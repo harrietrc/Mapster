@@ -7,7 +7,7 @@
     android:name="com.google.android.gms.maps.MapFragment"
     map:cameraTargetLat="-36.852338"
     map:cameraTargetLng="174.769107"
-    map:cameraZoom="13"
+    map:cameraZoom="14"
     map:uiZoomGestures="true"
     map:uiScrollGestures="true"
     map:uiRotateGestures="true"
