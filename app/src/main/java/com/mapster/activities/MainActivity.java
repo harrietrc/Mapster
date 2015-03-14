@@ -14,6 +14,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -23,6 +24,8 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
 import com.mapster.json.JSONParser;
+import com.mapster.places.GooglePlace;
+import com.mapster.places.GooglePlaceJsonParser;
 
 import org.apache.http.HttpConnection;
 import org.json.JSONArray;
@@ -32,9 +35,9 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
-// FragmentActivity extends Activity, unsurprisingly
-public class MainActivity extends FragmentActivity{
+public class MainActivity extends FragmentActivity implements GoogleMap.OnMarkerClickListener {
 
 //    private List<Marker> _markers;
     private static final LatLng SKY_CITY = new LatLng(-37.044116, 175.0610719);
@@ -42,7 +45,9 @@ public class MainActivity extends FragmentActivity{
     private static final LatLng TAURANGA = new LatLng(-37.6877974, 176.1651295);
     private static final LatLng ROTURUA = new LatLng(-38.1368478, 176.2497461);
 
-    GoogleMap googleMap;
+    private static final float UNDEFINED_COLOUR = -1;
+
+    private GoogleMap _map;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,19 +55,19 @@ public class MainActivity extends FragmentActivity{
         setContentView(R.layout.activity_main);
         SupportMapFragment fm = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
-        googleMap = fm.getMap();
+        _map = fm.getMap();
 
         MarkerOptions options = new MarkerOptions();
         options.position(SKY_CITY);
         options.position(CHRISTCHURCH);
         options.position(TAURANGA);
         options.position(ROTURUA);
-        googleMap.addMarker(options);
+        _map.addMarker(options);
         String url = getMapsApiDirectionsUrl();
-        ReadTask downloadTask = new ReadTask();
+        DirectionsTask downloadTask = new DirectionsTask();
         downloadTask.execute(url);
 
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(SKY_CITY,
+        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(SKY_CITY,
                 13));
         addMarkers();
 
@@ -73,6 +78,38 @@ public class MainActivity extends FragmentActivity{
 //
 //        _markers = new ArrayList<Marker>();
 
+        _map.setOnMarkerClickListener(this);
+
+    }
+
+    public String buildPlacesUrl(double lat, double lng, int radius, String[] types) {
+        StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
+        sb.append("key=" + getResources().getString(R.string.API_KEY));
+        sb.append("&location=" + lat + "," + lng);
+        sb.append("&radius=" + radius);
+        if (types.length > 0) {
+            sb.append("&types=");
+            String delim = "";
+            for (String s: types) {
+                sb.append(delim);
+                sb.append(s);
+                delim = ",";
+            }
+        }
+        return sb.toString();
+    }
+
+    public boolean onMarkerClick(Marker marker) {
+        LatLng loc = marker.getPosition();
+        String url = buildPlacesUrl(loc.latitude, loc.longitude, 2000, new String[0]);
+        PlacesTask placesTask = new PlacesTask();
+        try {
+            String response = placesTask.execute(url).get();
+            String x = response;
+        } catch (InterruptedException | ExecutionException e) {
+            Log.d("Places task", e.toString());
+        }
+        return true;
     }
 
     private String getMapsApiDirectionsUrl() {
@@ -90,34 +127,98 @@ public class MainActivity extends FragmentActivity{
     }
 
     private void addMarkers() {
-        if (googleMap != null) {
-            googleMap.addMarker(new MarkerOptions().position(SKY_CITY)
+        if (_map != null) {
+            _map.addMarker(new MarkerOptions().position(SKY_CITY)
                     .title("First Point"));
-            googleMap.addMarker(new MarkerOptions().position(CHRISTCHURCH)
+            _map.addMarker(new MarkerOptions().position(CHRISTCHURCH)
                     .title("Second Point"));
-            googleMap.addMarker(new MarkerOptions().position(TAURANGA).title("Third Point"));
-            googleMap.addMarker(new MarkerOptions().position(TAURANGA).title("Fourth Point"));
+            _map.addMarker(new MarkerOptions().position(TAURANGA).title("Third Point"));
+            _map.addMarker(new MarkerOptions().position(TAURANGA).title("Fourth Point"));
         }
     }
 
+    private String downloadUrl(String url) {
+        String data = "";
+        try {
+            com.mapster.connectivities.HttpConnection http = new com.mapster.connectivities.HttpConnection();
+            data = http.readUrl(url);
+        } catch (Exception e) {
+            Log.d("Background Task", e.toString());
+        }
+        return data;
+    }
+
+    /**
+     * Extend this if your task involves getting a response from a URL
+     */
     private class ReadTask extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... url) {
-            String data = "";
-            try {
-                com.mapster.connectivities.HttpConnection http = new com.mapster.connectivities.HttpConnection();
-                data = http.readUrl(url[0]);
-            } catch (Exception e) {
-                Log.d("Background Task", e.toString());
-            }
-            return data;
+            String response = downloadUrl(url[0]);
+            return response;
         }
+    }
 
+    private class PlacesTask extends ReadTask {
+        @Override
+        protected void onPostExecute(String result) {
+            PlacesParserTask parserTask = new PlacesParserTask();
+            parserTask.execute(result);
+        }
+    }
+
+    private class DirectionsTask extends ReadTask {
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
             new ParserTask().execute(result);
         }
+    }
+
+    /**
+     * Adapted from http://wptrafficanalyzer.in/blog/showing-nearby-places-with-photos-at-any-location-in-google-maps-android-api-v2/
+     */
+    private class PlacesParserTask extends AsyncTask<String, Integer, GooglePlace[]> {
+        public JSONObject json;
+
+        @Override
+        protected GooglePlace[] doInBackground(String... jsonData) {
+            GooglePlace[] places = null;
+            GooglePlaceJsonParser placeJsonParser = new GooglePlaceJsonParser();
+
+            try {
+                json = new JSONObject(jsonData[0]);
+                places = placeJsonParser.parse(json);
+            } catch (Exception e) {
+                Log.d("Exception, oh woe.", e.toString());
+            }
+            return places;
+        }
+
+        /**
+         * Creates a marker from each of the places from the parsed JSON
+         * @param places = an array of GooglePlaces
+         */
+        @Override
+        protected void onPostExecute(GooglePlace[] places) {
+            for (int i=0; i < places.length; i++) {
+                GooglePlace place = places[i];
+                double lat = Double.parseDouble(place.latitude);
+                double lng = Double.parseDouble(place.longitude);
+                LatLng latLng = new LatLng(lat, lng);
+                Marker m = drawMarker(latLng, BitmapDescriptorFactory.HUE_AZURE);
+            }
+        }
+    }
+
+    private Marker drawMarker(LatLng latLng, float colour) {
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(latLng);
+        if (colour != UNDEFINED_COLOUR) {
+            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(colour));
+        }
+        Marker m = _map.addMarker(markerOptions);
+        return m;
     }
 
     private class ParserTask extends
@@ -165,7 +266,7 @@ public class MainActivity extends FragmentActivity{
                 polyLineOptions.color(Color.BLUE);
             }
 
-            googleMap.addPolyline(polyLineOptions);
+            _map.addPolyline(polyLineOptions);
         }
     }
 
