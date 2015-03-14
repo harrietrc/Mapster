@@ -11,4 +11,4 @@ Planning an overseas trip can be a lot of work, requiring time and effort to fin
 
 Mapster is a map-based trip planner for the independent traveler. Users mark points-of-interests (POIs) and travel information on the map. Users can also ask Mapster to suggest POIs near a location on the map. Mapster finds the best route between the POIs to create a map-based itinerary.
 
-Please visit our [Wiki](https://github.com/harrietrc/Mapster/wiki) for more detail about this project
+Please visit our [Wiki](https://github.com/harrietrc/Mapster/wiki) for more information about this project
