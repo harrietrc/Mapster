@@ -17,14 +17,14 @@
                     android:checked="true"
                     android:title="All"/>
                 <item
-                    android:id="@+id/restaurant"
-                    android:title="Restaurants"/>
+                    android:id="@+id/dining"
+                    android:title="Dining"/>
                 <item
-                    android:id="@+id/museum"
-                    android:title="Museums"/>
+                    android:id="@+id/attraction"
+                    android:title="Attractions"/>
                 <item
-                    android:id="@+id/park"
-                    android:title="Parks"/>
+                    android:id="@+id/accommodation"
+                    android:title="Accommodation"/>
             </group>
             <item
                 android:id="@+id/clear"
