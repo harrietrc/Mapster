@@ -1,10 +1,13 @@
 package com.mapster.activities;
 
+//import android.support.v7.appcompat.*;
+
 import android.app.ProgressDialog;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -37,7 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-public class MainActivity extends FragmentActivity implements GoogleMap.OnMarkerClickListener {
+public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener {
 
 //    private List<Marker> _markers;
     private static final LatLng SKY_CITY = new LatLng(-37.044116, 175.0610719);
@@ -48,6 +51,7 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
     private static final float UNDEFINED_COLOUR = -1;
 
     private GoogleMap _map;
+    private List<Marker> _attractionMarkers; // Markers for suggestions of attractions
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +83,8 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
 //        _markers = new ArrayList<Marker>();
 
         _map.setOnMarkerClickListener(this);
+
+        _attractionMarkers = new ArrayList<>();
 
     }
 
@@ -207,6 +213,7 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
                 double lng = Double.parseDouble(place.longitude);
                 LatLng latLng = new LatLng(lat, lng);
                 Marker m = drawMarker(latLng, BitmapDescriptorFactory.HUE_AZURE);
+                _attractionMarkers.add(m);
             }
         }
     }
@@ -308,12 +315,12 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
 //        _markers.add(marker);
 //    }
 //
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.menu_main, menu);
-//        return true;
-//    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

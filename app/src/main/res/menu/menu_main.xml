@@ -3,4 +3,32 @@
     xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" app:showAsAction="never" />
+    <item
+        android:title="Filter"
+        android:id="@+id/action_filter"
+        android:icon="@drawable/ic_menu_star"
+        app:showAsAction="always">
+        <menu>
+            <group
+                android:id="@+id/filterGroup"
+                android:checkableBehavior="all">
+                <item
+                    android:id="@+id/all"
+                    android:checked="true"
+                    android:title="All"/>
+                <item
+                    android:id="@+id/restaurant"
+                    android:title="Restaurants"/>
+                <item
+                    android:id="@+id/museum"
+                    android:title="Museums"/>
+                <item
+                    android:id="@+id/park"
+                    android:title="Parks"/>
+            </group>
+            <item
+                android:id="@+id/clear"
+                android:title="Clear"/>
+        </menu>
+    </item>
 </menu>
