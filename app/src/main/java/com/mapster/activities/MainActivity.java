@@ -36,6 +36,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -355,5 +356,56 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+
+    public void onFilterItemClick(MenuItem item) {
+        switch(item.getItemId()) {
+            case R.id.all:
+                // Display all the markers
+                setAllMarkersVisible(true);
+                break;
+            case R.id.accommodation:
+                // Set accommodation markers visible
+                setAllMarkersVisible(false);
+                List<Marker> accommodationMarkers = _suggestionMarkers.get("accommodation");
+                setMarkerListVisible(true, accommodationMarkers);
+                break;
+            case R.id.attraction:
+                // Set attraction markers visible
+                setAllMarkersVisible(false);
+                List<Marker> attractionMarkers = _suggestionMarkers.get("attraction");
+                setMarkerListVisible(true, attractionMarkers);
+                break;
+            case R.id.dining:
+                // Set dining markers visible
+                setAllMarkersVisible(false);
+                List<Marker> diningMarkers = _suggestionMarkers.get("dining");
+                setMarkerListVisible(true, diningMarkers);
+                break;
+            case R.id.clear:
+                // Make all markers invisible
+                setAllMarkersVisible(false);
+                break;
+            default:
+                super.onOptionsItemSelected(item);
+                break;
+        }
+    }
+
+    private void setMarkerListVisible(boolean isVisible, List<Marker> markers) {
+        if (markers != null) {
+            for (Marker m: markers)
+                m.setVisible(isVisible);
+        }
+    }
+
+    private void setAllMarkersVisible(boolean isVisible) {
+        Collection all = _suggestionMarkers.values();
+        for (Object o: all) {
+            ArrayList<Marker> markerList = (ArrayList) o;
+            for (Marker m: markerList)
+                m.setVisible(isVisible);
+        }
     }
 }

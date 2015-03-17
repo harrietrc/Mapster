@@ -5,30 +5,35 @@
         android:orderInCategory="100" app:showAsAction="never" />
     <item
         android:title="Filter"
-        android:id="@+id/action_filter"
+        android:id="@+id/filter"
         android:icon="@drawable/ic_menu_star"
         app:showAsAction="always">
         <menu>
             <group
                 android:id="@+id/filterGroup"
-                android:checkableBehavior="all">
+                android:checkableBehavior="single">
                 <item
                     android:id="@+id/all"
+                    android:onClick="onFilterItemClick"
                     android:checked="true"
                     android:title="All"/>
                 <item
                     android:id="@+id/dining"
+                    android:onClick="onFilterItemClick"
                     android:title="Dining"/>
                 <item
                     android:id="@+id/attraction"
+                    android:onClick="onFilterItemClick"
                     android:title="Attractions"/>
                 <item
                     android:id="@+id/accommodation"
+                    android:onClick="onFilterItemClick"
                     android:title="Accommodation"/>
+                <item
+                    android:id="@+id/clear"
+                    android:onClick="onFilterItemClick"
+                    android:title="Clear"/>
             </group>
-            <item
-                android:id="@+id/clear"
-                android:title="Clear"/>
         </menu>
     </item>
 </menu>
