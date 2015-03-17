@@ -47,11 +47,12 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private static final LatLng CHRISTCHURCH = new LatLng(-43.5320544, 172.6362254);
     private static final LatLng TAURANGA = new LatLng(-37.6877974, 176.1651295);
     private static final LatLng ROTURUA = new LatLng(-38.1368478, 176.2497461);
+    private static final LatLng UNIVERSITY = new LatLng(-36.852338,174.76910);
 
     private static final float UNDEFINED_COLOUR = -1;
 
     private GoogleMap _map;
-    private List<Marker> _attractionMarkers; // Markers for suggestions of attractions
+    private HashMap<String, List<Marker>> _suggestionMarkers; // Markers for suggestions of attractions
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,26 +67,27 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         options.position(CHRISTCHURCH);
         options.position(TAURANGA);
         options.position(ROTURUA);
+        options.position(UNIVERSITY);
         _map.addMarker(options);
         String url = getMapsApiDirectionsUrl();
         DirectionsTask downloadTask = new DirectionsTask();
         downloadTask.execute(url);
 
-        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(SKY_CITY,
-                13));
+        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(UNIVERSITY,
+                13)); // Setting zoom >13 crashes the emulator, see https://code.google.com/p/android/issues/detail?id=82997
         addMarkers();
 
 //        // R.id.map is added automatically when the layout file is built
 //        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
 //        // Sets this as the callback object for when the GoogleMap instance is ready to use
 //        mapFragment.getMapAsync(this);
-//
-//        _markers = new ArrayList<Marker>();
 
         _map.setOnMarkerClickListener(this);
 
-        _attractionMarkers = new ArrayList<>();
-
+        _suggestionMarkers = new HashMap<>();
+        _suggestionMarkers.put("attractions", new ArrayList<Marker>());
+        _suggestionMarkers.put("dining", new ArrayList<Marker>());
+        _suggestionMarkers.put("accommodation", new ArrayList<Marker>());
     }
 
     public String buildPlacesUrl(double lat, double lng, int radius, String[] types) {
@@ -99,15 +101,16 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             for (String s: types) {
                 sb.append(delim);
                 sb.append(s);
-                delim = ",";
+                delim = "|";
             }
         }
-        return sb.toString();
+        String url = sb.toString();
+        return url;
     }
 
     public boolean onMarkerClick(Marker marker) {
         LatLng loc = marker.getPosition();
-        String url = buildPlacesUrl(loc.latitude, loc.longitude, 2000, new String[0]);
+        String url = buildPlacesUrl(loc.latitude, loc.longitude, 2000, GooglePlace.getAllCategories());
         PlacesTask placesTask = new PlacesTask();
         try {
             String response = placesTask.execute(url).get();
@@ -213,7 +216,24 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 double lng = Double.parseDouble(place.longitude);
                 LatLng latLng = new LatLng(lat, lng);
                 Marker m = drawMarker(latLng, BitmapDescriptorFactory.HUE_AZURE);
-                _attractionMarkers.add(m);
+
+                // Save the marker in the correct categories
+                String[] categories = place.categories;
+                for (String c : categories) {
+                    // Not the best way to do this, but ok for 3 categories. I will refactor this.
+                    String parentCategory;
+                    if (GooglePlace.ACCOMMODATION.contains(c)) {
+                        parentCategory = "accommodation";
+                    } else if (GooglePlace.ATTRACTIONS.contains(c)) {
+                        parentCategory = "attractions";
+                    } else if (GooglePlace.DINING.contains(c)) {
+                        parentCategory = "dining";
+                    } else {
+                        continue;
+                    }
+                    List<Marker> markers = _suggestionMarkers.get(parentCategory);
+                    markers.add(m);
+                }
             }
         }
     }
