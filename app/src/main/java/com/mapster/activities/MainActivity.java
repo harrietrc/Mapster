@@ -360,6 +360,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
 
     public void onFilterItemClick(MenuItem item) {
+        item.setChecked(true);
         switch(item.getItemId()) {
             case R.id.all:
                 // Display all the markers
@@ -374,7 +375,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             case R.id.attraction:
                 // Set attraction markers visible
                 setAllMarkersVisible(false);
-                List<Marker> attractionMarkers = _suggestionMarkers.get("attraction");
+                List<Marker> attractionMarkers = _suggestionMarkers.get("attractions");
                 setMarkerListVisible(true, attractionMarkers);
                 break;
             case R.id.dining:
