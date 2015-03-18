@@ -38,6 +38,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -54,6 +55,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     private GoogleMap _map;
     private HashMap<String, List<Marker>> _suggestionMarkers; // Markers for suggestions of attractions
+    private HashSet<String> _userMarkers; // Contains marker ids, not Markers.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,13 +65,17 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 .findFragmentById(R.id.map);
         _map = fm.getMap();
 
+        _userMarkers = new HashSet<>();
+
         MarkerOptions options = new MarkerOptions();
         options.position(SKY_CITY);
         options.position(CHRISTCHURCH);
         options.position(TAURANGA);
         options.position(ROTURUA);
         options.position(UNIVERSITY);
-        _map.addMarker(options);
+        Marker m = _map.addMarker(options);
+        String id = m.getId();
+        _userMarkers.add(m.getId());
         String url = getMapsApiDirectionsUrl();
         DirectionsTask downloadTask = new DirectionsTask();
         downloadTask.execute(url);
@@ -110,16 +116,21 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     public boolean onMarkerClick(Marker marker) {
-        LatLng loc = marker.getPosition();
-        String url = buildPlacesUrl(loc.latitude, loc.longitude, 2000, GooglePlace.getAllCategories());
-        PlacesTask placesTask = new PlacesTask();
-        try {
-            String response = placesTask.execute(url).get();
-            String x = response;
-        } catch (InterruptedException | ExecutionException e) {
-            Log.d("Places task", e.toString());
+        String id= marker.getId();
+        HashSet<String> h = _userMarkers;
+        if (_userMarkers.contains(marker.getId())) {
+            LatLng loc = marker.getPosition();
+            String url = buildPlacesUrl(loc.latitude, loc.longitude, 2000, GooglePlace.getAllCategories());
+            PlacesTask placesTask = new PlacesTask();
+            try {
+                String response = placesTask.execute(url).get();
+                String x = response;
+            } catch (InterruptedException | ExecutionException e) {
+                Log.d("Places task", e.toString());
+            }
+            return true;
         }
-        return true;
+        return true; // Maybe return false so default behaviour can occur?
     }
 
     private String getMapsApiDirectionsUrl() {
@@ -138,12 +149,13 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     private void addMarkers() {
         if (_map != null) {
-            _map.addMarker(new MarkerOptions().position(SKY_CITY)
-                    .title("First Point"));
-            _map.addMarker(new MarkerOptions().position(CHRISTCHURCH)
-                    .title("Second Point"));
-            _map.addMarker(new MarkerOptions().position(TAURANGA).title("Third Point"));
-            _map.addMarker(new MarkerOptions().position(TAURANGA).title("Fourth Point"));
+            LatLng[] positions = {SKY_CITY, CHRISTCHURCH, TAURANGA, TAURANGA};
+            String[] titles = {"First Point", "Second Point", "Third Point", "Fourth Point"};
+
+            for (int i=0; i<positions.length; i++) {
+                Marker m =_map.addMarker(new MarkerOptions().position(positions[i]).title(titles[i]));
+                _userMarkers.add(m.getId());
+            }
         }
     }
 
