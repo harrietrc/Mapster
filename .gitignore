@@ -25,3 +25,6 @@ proguard/
 #iml file
 *.iml
 /app/*.iml
+/local.properties
+/.idea/workspace.xml
+/.idea/libraries
