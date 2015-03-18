@@ -22,6 +22,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -38,20 +39,13 @@ public class PlacesActivity extends Activity implements AdapterView.OnItemClickL
     private static final String OUT_JSON = "/json";
 
     private ArrayList<String> autocomplete(String input) {
-        ArrayList<String> resultList = null;
-
         HttpURLConnection conn = null;
-        StringBuilder jsonResults = new StringBuilder();
+        ArrayList<String> resultList = null;
+        StringBuilder jsonResults;
+        URL url = null;
+        InputStreamReader in = null;
         try {
-            StringBuilder sb = new StringBuilder(PLACES_API_BASE + TYPE_AUTOCOMPLETE + OUT_JSON);
-            try {
-                sb.append("?input=" + URLEncoder.encode(input, "utf8"));
-                sb.append("&key=" + API_KEY);
-            } catch (UnsupportedEncodingException e){
-                e.printStackTrace();
-            }
-            URL url = null;
-            InputStreamReader in = null;
+            StringBuilder sb = formURLString(input);
             try {
                 url = new URL(sb.toString());
                 conn = (HttpURLConnection) url.openConnection();
@@ -61,13 +55,8 @@ public class PlacesActivity extends Activity implements AdapterView.OnItemClickL
             } catch(IOException e){
                 e.printStackTrace();
             }
-
-            // Load the results into a StringBuilder
-            int read;
-            char[] buff = new char[1024];
-            while ((read = in.read(buff)) != -1) {
-                jsonResults.append(buff, 0, read);
-            }
+            jsonResults = convertJsonResultsToStringBuilder(in);
+            resultList = extractPlaceDescriptionsFromResults(jsonResults);
         } catch (MalformedURLException e) {
             Log.e(LOG_TAG, "Error processing Places API URL", e);
             return resultList;
@@ -79,7 +68,32 @@ public class PlacesActivity extends Activity implements AdapterView.OnItemClickL
                 conn.disconnect();
             }
         }
+        return resultList;
+    }
 
+    private StringBuilder formURLString(String input){
+        StringBuilder sb = new StringBuilder(PLACES_API_BASE + TYPE_AUTOCOMPLETE + OUT_JSON);
+        try {
+            sb.append("?input=" + URLEncoder.encode(input, "utf8"));
+            sb.append("&key=" + API_KEY);
+        } catch (UnsupportedEncodingException e){
+            e.printStackTrace();
+        }
+        return sb;
+    }
+
+    private StringBuilder convertJsonResultsToStringBuilder(InputStreamReader in) throws IOException{
+        StringBuilder jsonResults = new StringBuilder();
+        int read;
+        char[] buff = new char[1024];
+        while ((read = in.read(buff)) != -1) {
+            jsonResults.append(buff, 0, read);
+        }
+        return jsonResults;
+    }
+
+    private ArrayList<String> extractPlaceDescriptionsFromResults(StringBuilder jsonResults) {
+        ArrayList<String> resultList = null;
         try {
             // Create a JSON object hierarchy from the results
             JSONObject jsonObj = new JSONObject(jsonResults.toString());
@@ -93,7 +107,6 @@ public class PlacesActivity extends Activity implements AdapterView.OnItemClickL
         } catch (JSONException e) {
             Log.e(LOG_TAG, "Cannot process JSON results", e);
         }
-
         return resultList;
     }
 
@@ -102,6 +115,38 @@ public class PlacesActivity extends Activity implements AdapterView.OnItemClickL
         String str = (String) adapterView.getItemAtPosition(position);
         Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
 
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_places);
+        AutoCompleteTextView autoCompView = (AutoCompleteTextView) findViewById(R.id.autocomplete);
+        autoCompView.setAdapter(new PlacesAutoCompleteAdapter(this, R.layout.list_item));
+        autoCompView.setOnItemClickListener(this);
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_places, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     private class PlacesAutoCompleteAdapter extends ArrayAdapter<String> implements Filterable {
@@ -149,37 +194,5 @@ public class PlacesActivity extends Activity implements AdapterView.OnItemClickL
                 }};
             return filter;
         }
-    }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_places);
-        AutoCompleteTextView autoCompView = (AutoCompleteTextView) findViewById(R.id.autocomplete);
-        autoCompView.setAdapter(new PlacesAutoCompleteAdapter(this, R.layout.list_item));
-        autoCompView.setOnItemClickListener(this);
-    }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_places, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 }
