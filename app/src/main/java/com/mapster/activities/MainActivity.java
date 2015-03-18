@@ -74,7 +74,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         options.position(ROTURUA);
         options.position(UNIVERSITY);
         Marker m = _map.addMarker(options);
-        String id = m.getId();
         _userMarkers.add(m.getId());
         String url = getMapsApiDirectionsUrl();
         DirectionsTask downloadTask = new DirectionsTask();
@@ -116,8 +115,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     public boolean onMarkerClick(Marker marker) {
-        String id= marker.getId();
-        HashSet<String> h = _userMarkers;
         if (_userMarkers.contains(marker.getId())) {
             LatLng loc = marker.getPosition();
             String url = buildPlacesUrl(loc.latitude, loc.longitude, 2000, GooglePlace.getAllCategories());
