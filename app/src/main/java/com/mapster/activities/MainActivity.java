@@ -1,39 +1,27 @@
 package com.mapster.activities;
 
-//import android.support.v7.appcompat.*;
-
-import android.app.ProgressDialog;
 import android.graphics.Color;
 import android.os.AsyncTask;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
 import com.mapster.json.JSONParser;
 import com.mapster.places.GooglePlace;
 import com.mapster.places.GooglePlaceJsonParser;
 
-import org.apache.http.HttpConnection;
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -244,27 +232,40 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 double lat = Double.parseDouble(place.latitude);
                 double lng = Double.parseDouble(place.longitude);
                 LatLng latLng = new LatLng(lat, lng);
-                Marker m = drawMarker(latLng, BitmapDescriptorFactory.HUE_AZURE);
+                Marker m;
 
                 // Save the marker in the correct categories
                 String[] categories = place.categories;
+                String parentCategory;
+                int iconId;
                 for (String c : categories) {
                     // Not the best way to do this, but ok for 3 categories. I will refactor this.
-                    String parentCategory;
                     if (GooglePlace.ACCOMMODATION.contains(c)) {
                         parentCategory = "accommodation";
+                        iconId = R.drawable.lodging_0star;
                     } else if (GooglePlace.ATTRACTIONS.contains(c)) {
                         parentCategory = "attractions";
+                        iconId = R.drawable.flag_export;
                     } else if (GooglePlace.DINING.contains(c)) {
                         parentCategory = "dining";
+                        iconId = R.drawable.restaurant;
                     } else {
                         continue;
                     }
                     List<Marker> markers = _suggestionMarkers.get(parentCategory);
+                    m = drawMarker(latLng, BitmapDescriptorFactory.fromResource(iconId));
                     markers.add(m);
                 }
             }
         }
+    }
+
+    private Marker drawMarker(LatLng latLng, BitmapDescriptor bd) {
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(latLng);
+        markerOptions.icon(bd);
+        Marker m = _map.addMarker(markerOptions);
+        return m;
     }
 
     private Marker drawMarker(LatLng latLng, float colour) {
