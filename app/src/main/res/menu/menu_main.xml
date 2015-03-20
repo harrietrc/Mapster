@@ -7,6 +7,7 @@
         android:title="Filter"
         android:id="@+id/filter"
         android:icon="@drawable/ic_menu_star"
+        android:visible="false"
         app:showAsAction="always">
         <menu>
             <group
@@ -29,11 +30,11 @@
                     android:id="@+id/accommodation"
                     android:onClick="onFilterItemClick"
                     android:title="Accommodation"/>
+            </group>
                 <item
                     android:id="@+id/clear"
                     android:onClick="onFilterItemClick"
                     android:title="Clear"/>
-            </group>
         </menu>
     </item>
 </menu>

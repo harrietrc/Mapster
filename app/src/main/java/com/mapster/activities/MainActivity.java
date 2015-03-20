@@ -11,6 +11,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -57,6 +58,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private HashMap<String, List<Marker>> _suggestionMarkers; // Markers for suggestions of attractions
     private HashSet<String> _userMarkers; // Contains marker ids, not Markers.
 
+    private MenuItem _filterItem;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,11 +93,25 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
         _map.setOnMarkerClickListener(this);
 
+        initSuggestionMarkers();
+
+    }
+
+    /**
+     * Initialises hashmap for suggestion markers - allows them to be reset when markers are cleared.
+     */
+    public void initSuggestionMarkers() {
         _suggestionMarkers = new HashMap<>();
         _suggestionMarkers.put("attractions", new ArrayList<Marker>());
         _suggestionMarkers.put("dining", new ArrayList<Marker>());
         _suggestionMarkers.put("accommodation", new ArrayList<Marker>());
     }
+
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        // Save the filter button to a field - for toggling visibility
+//        MenuItem filterItem = menu.findItem(R.id.filter);
+//    }
 
     public String buildPlacesUrl(double lat, double lng, int radius, String[] types) {
         StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
@@ -125,6 +142,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             } catch (InterruptedException | ExecutionException e) {
                 Log.d("Places task", e.toString());
             }
+            // Make the filters button in the action bar visible
+            _filterItem.setVisible(true);
             return true;
         }
         return true; // Maybe return false so default behaviour can occur?
@@ -349,6 +368,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        // Save the filter button so that its visibility can be toggled
+        _filterItem = menu.findItem(R.id.filter);
         return true;
     }
 
@@ -394,8 +416,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 setMarkerListVisible(true, diningMarkers);
                 break;
             case R.id.clear:
-                // Make all markers invisible
-                setAllMarkersVisible(false);
+                // Clear the markers
+                removeAllSuggestionsMarkers();
+                // Hide the filter button - no suggestions to filter
+                _filterItem.setVisible(false);
                 break;
             default:
                 super.onOptionsItemSelected(item);
@@ -417,5 +441,21 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             for (Marker m: markerList)
                 m.setVisible(isVisible);
         }
+    }
+
+    /**
+     * Markers are currently removed instead of hidden, to avoid the computation costs involved in
+     * checking whether a marker already exists before creating it and adding it to the HashMap of
+     * suggestions markers.
+     * TODO: Keep track of the user markers that have been clicked and check that instead
+     */
+    private void removeAllSuggestionsMarkers() {
+        Collection all = _suggestionMarkers.values();
+        for (Object o: all) {
+            ArrayList<Marker> markerList = (ArrayList) o;
+            for (Marker m: markerList)
+                m.remove();
+        }
+        initSuggestionMarkers();
     }
 }
