@@ -27,7 +27,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -44,7 +43,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     private GoogleMap _map;
     private HashMap<String, List<Marker>> _suggestionMarkers; // Markers for suggestions of attractions
-    private HashSet<String> _userMarkers; // Contains marker ids, not Markers.
+
+    // Contains marker ids and a boolean to indicate whether it has been clicked
+    private HashMap<String, Boolean> _userMarkers;
 
     private MenuItem _filterItem;
 
@@ -56,16 +57,16 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 .findFragmentById(R.id.map);
         _map = fm.getMap();
 
-        _userMarkers = new HashSet<>();
+        _userMarkers = new HashMap<>();
 
-        MarkerOptions options = new MarkerOptions();
-        options.position(SKY_CITY);
-        options.position(CHRISTCHURCH);
-        options.position(TAURANGA);
-        options.position(ROTURUA);
-        options.position(UNIVERSITY);
-        Marker m = _map.addMarker(options);
-        _userMarkers.add(m.getId());
+//        MarkerOptions options = new MarkerOptions();
+//        options.position(SKY_CITY);
+//        options.position(CHRISTCHURCH);
+//        options.position(TAURANGA);
+//        options.position(ROTURUA);
+//        options.position(UNIVERSITY);
+//        Marker m = _map.addMarker(options);
+//        _userMarkers.put(m.getId(), false);
         String url = getMapsApiDirectionsUrl();
         DirectionsTask downloadTask = new DirectionsTask();
         downloadTask.execute(url);
@@ -95,12 +96,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _suggestionMarkers.put("accommodation", new ArrayList<Marker>());
     }
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Save the filter button to a field - for toggling visibility
-//        MenuItem filterItem = menu.findItem(R.id.filter);
-//    }
-
     public String buildPlacesUrl(double lat, double lng, int radius, String[] types) {
         StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
         sb.append("key=" + getResources().getString(R.string.API_KEY));
@@ -120,13 +115,17 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     public boolean onMarkerClick(Marker marker) {
-        if (_userMarkers.contains(marker.getId())) {
+        String id  = marker.getId();
+
+        // Record places and add markers if the marker is user-defined and has not been clicked before
+        // Check for false to disallow null values (returned if key does not exist in the HashMap)
+        if (_userMarkers.get(id) == false) {
+            _userMarkers.put(id, true);
             LatLng loc = marker.getPosition();
             String url = buildPlacesUrl(loc.latitude, loc.longitude, 2000, GooglePlace.getAllCategories());
             PlacesTask placesTask = new PlacesTask();
             try {
-                String response = placesTask.execute(url).get();
-                String x = response;
+                placesTask.execute(url).get();
             } catch (InterruptedException | ExecutionException e) {
                 Log.d("Places task", e.toString());
             }
@@ -153,12 +152,13 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     private void addMarkers() {
         if (_map != null) {
-            LatLng[] positions = {SKY_CITY, CHRISTCHURCH, TAURANGA, TAURANGA};
-            String[] titles = {"First Point", "Second Point", "Third Point", "Fourth Point"};
+            LatLng[] positions = {SKY_CITY, CHRISTCHURCH, TAURANGA, TAURANGA, UNIVERSITY};
+            String[] titles = {"First Point", "Second Point", "Third Point", "Fourth Point", "University of Auckland"};
 
             for (int i=0; i<positions.length; i++) {
                 Marker m =_map.addMarker(new MarkerOptions().position(positions[i]).title(titles[i]));
-                _userMarkers.add(m.getId());
+                _userMarkers.put(m.getId(), false);
+                m.showInfoWindow();
             }
         }
     }
@@ -418,14 +418,25 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 break;
             case R.id.clear:
                 // Clear the markers
-                removeAllSuggestionsMarkers();
+                setAllMarkersVisible(false);
                 // Hide the filter button - no suggestions to filter
                 _filterItem.setVisible(false);
+                // Reset 'clicked' values for all user-defined markers (all suggestions cleared)
+                resetMarkersClicked();
                 break;
             default:
                 super.onOptionsItemSelected(item);
                 break;
         }
+    }
+
+    /**
+     * Change this to something more generic if reusing it would be useful. Resets all the booleans
+     * that track whether a user-defined marker has been clicked to false.
+     */
+    private void resetMarkersClicked() {
+        for (HashMap.Entry<String, Boolean> e: _userMarkers.entrySet())
+            _userMarkers.put(e.getKey(), false);
     }
 
     private void setMarkerListVisible(boolean isVisible, List<Marker> markers) {
