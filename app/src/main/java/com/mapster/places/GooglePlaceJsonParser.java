@@ -46,14 +46,16 @@ public class GooglePlaceJsonParser {
         GooglePlace place = new GooglePlace();
 
         try {
-            if (!jsonPlace.isNull("name")) {
+            if (!jsonPlace.isNull("name"))
                 place.name = jsonPlace.getString("name");
-            }
 
             place.latitude = jsonPlace.getJSONObject("geometry").getJSONObject("location").getString("lat");
             place.longitude = jsonPlace.getJSONObject("geometry").getJSONObject("location").getString("lng");
 
             place.id = jsonPlace.getString("place_id");
+
+            if (!jsonPlace.isNull("rating"))
+                place.rating = (float) jsonPlace.getDouble("rating");
 
             // Parse the types of the place
             String[] categories = jsonPlace.getJSONArray("types").join(",").split(",");

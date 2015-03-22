@@ -18,7 +18,7 @@ public class GooglePlace {
     public String longitude;
     public String name;
     public String id; // Google placeId
-    public String detail;
+    public float rating;
     public String[] categories;
 
     private static String[] _allCategories;

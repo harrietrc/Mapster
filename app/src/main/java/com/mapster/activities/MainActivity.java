@@ -5,8 +5,13 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.RatingBar;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -23,7 +28,7 @@ import com.mapster.places.GooglePlace;
 import com.mapster.places.GooglePlaceDetail;
 import com.mapster.places.GooglePlaceDetailJsonParser;
 import com.mapster.places.GooglePlaceJsonParser;
-import com.mapster.suggestions.SuggestionInfoAdapter;
+import com.mapster.suggestions.Suggestion;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -47,15 +52,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     private GoogleMap _map;
 
-    /*
-     * Suggestion data - to be refactored? Suggestions must be able to be retrieved by marker id and
-     * the associated markers iterated over by category. Will probably combine _suggestionMarkers
-     * and _suggestionPlaces into a single data structure.
-     */
-    // Markers for suggestions of attractions, categorised into accommodation, dining, and attractions
-    private HashMap<String, List<Marker>> _suggestionMarkers;
-    // Associates suggestion marker ids with place ids
-    private HashMap<String, String> _suggestionPlaces;
+    // Markers divided into categories (to make enumeration of categories faster)
+    private HashMap<String, List<Marker>> _markersByCategory;
+    // All suggestions, keyed by marker ID
+    private HashMap<String, Suggestion> _suggestionsByMarkerId;
 
     // Contains marker ids and a boolean to indicate whether it has been clicked
     private HashMap<String, Boolean> _userMarkers;
@@ -97,17 +97,27 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _map.setInfoWindowAdapter(new SuggestionInfoAdapter(getLayoutInflater()));
 
         initSuggestionMarkers();
-        _suggestionPlaces = new HashMap<>();
+        _suggestionsByMarkerId = new HashMap<>();
+    }
+
+    /**
+     * Does what it says on the tin. Required by SuggestionInfoAdapter, as Marker can't be
+     * extended.
+     * @param markerId = ID of a marker
+     * @return = Suggestion object corresponding to that Marker id.
+     */
+    public Suggestion getSuggestionByMarkerId(String markerId) {
+        return _suggestionsByMarkerId.get(markerId);
     }
 
     /**
      * Initialises hashmap for suggestion markers - allows them to be reset when markers are cleared.
      */
     public void initSuggestionMarkers() {
-        _suggestionMarkers = new HashMap<>();
-        _suggestionMarkers.put("attractions", new ArrayList<Marker>());
-        _suggestionMarkers.put("dining", new ArrayList<Marker>());
-        _suggestionMarkers.put("accommodation", new ArrayList<Marker>());
+        _markersByCategory = new HashMap<>();
+        _markersByCategory.put("attractions", new ArrayList<Marker>());
+        _markersByCategory.put("dining", new ArrayList<Marker>());
+        _markersByCategory.put("accommodation", new ArrayList<Marker>());
     }
 
     public String buildPlacesUrl(double lat, double lng, int radius, String[] types) {
@@ -145,12 +155,12 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             // detail and show the info window.
             if (marker.getSnippet() == null) {
                 PlaceDetailTask detailTask = new PlaceDetailTask();
-                String placeId = _suggestionPlaces.get(id);
+                Suggestion s = _suggestionsByMarkerId.get(id);
                 String detail = "";
 
                 // Query the Places API for detail on place corresponding to marker
                 try {
-                    detail = detailTask.execute(placeId).get();
+                    detail = detailTask.execute(s.getPlaceId()).get();
                 } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace();
                 }
@@ -212,6 +222,21 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             Log.d("Background Task", e.toString());
         }
         return data;
+    }
+
+    /**
+     * Ensures that the suggestion is categorised and keyed by marker id (so that it can be easily
+     * retrieved) when it is created.
+     * @param marker
+     * @param placeId
+     * @param rating
+     * @param category
+     */
+    private void addSuggestion(Marker marker, String placeId, String category, float rating) {
+        Suggestion suggestion = new Suggestion(marker, placeId, category, rating);
+        _suggestionsByMarkerId.put(marker.getId(), suggestion);
+        List<Marker> cat = _markersByCategory.get(category);
+        cat.add(marker);
     }
 
     /**
@@ -298,11 +323,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                     } else {
                         continue;
                     }
-                    List<Marker> markers = _suggestionMarkers.get(parentCategory);
+                    List<Marker> markers = _markersByCategory.get(parentCategory);
                     m = drawMarker(latLng, BitmapDescriptorFactory.fromResource(iconId));
                     m.setTitle(place.name);
-                    _suggestionPlaces.put(m.getId(), place.id);
-                    markers.add(m);
+                    addSuggestion(m, place.id, parentCategory, place.rating);
                 }
             }
 
@@ -458,19 +482,19 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             case R.id.accommodation:
                 // Set accommodation markers visible
                 setAllMarkersVisible(false);
-                List<Marker> accommodationMarkers = _suggestionMarkers.get("accommodation");
+                List<Marker> accommodationMarkers = _markersByCategory.get("accommodation");
                 setMarkerListVisible(true, accommodationMarkers);
                 break;
             case R.id.attraction:
                 // Set attraction markers visible
                 setAllMarkersVisible(false);
-                List<Marker> attractionMarkers = _suggestionMarkers.get("attractions");
+                List<Marker> attractionMarkers = _markersByCategory.get("attractions");
                 setMarkerListVisible(true, attractionMarkers);
                 break;
             case R.id.dining:
                 // Set dining markers visible
                 setAllMarkersVisible(false);
-                List<Marker> diningMarkers = _suggestionMarkers.get("dining");
+                List<Marker> diningMarkers = _markersByCategory.get("dining");
                 setMarkerListVisible(true, diningMarkers);
                 break;
             case R.id.clear:
@@ -504,7 +528,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     private void setAllMarkersVisible(boolean isVisible) {
-        Collection all = _suggestionMarkers.values();
+        Collection all = _markersByCategory.values();
         for (Object o: all) {
             ArrayList<Marker> markerList = (ArrayList) o;
             for (Marker m: markerList)
@@ -519,7 +543,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
      * TODO: Keep track of the user markers that have been clicked and check that instead
      */
     private void removeAllSuggestionsMarkers() {
-        Collection all = _suggestionMarkers.values();
+        Collection all = _markersByCategory.values();
         for (Object o: all) {
             ArrayList<Marker> markerList = (ArrayList) o;
             for (Marker m: markerList)
@@ -527,4 +551,57 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
         initSuggestionMarkers();
     }
+
+    public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter {
+
+        private LayoutInflater _inflater;
+
+        public SuggestionInfoAdapter(LayoutInflater inflater) {
+            _inflater = inflater;
+        }
+
+        @Override
+        public View getInfoWindow(Marker marker) {
+            return null;
+        }
+
+        @Override
+        /**
+         * This is only called if getInfoWindow() returns null. If this returns null, the default info
+         * window will be displayed.
+         */
+        public View getInfoContents(Marker marker) {
+            Suggestion s = _suggestionsByMarkerId.get(marker.getId());
+            View info = _inflater.inflate(R.layout.suggestion_info_window, null);
+
+            TextView title = (TextView) info.findViewById(R.id.title);
+            title.setText(marker.getTitle());
+
+            TextView snippet = (TextView) info.findViewById(R.id.snippet);
+            snippet.setText(marker.getSnippet());
+
+            // Set the rating of the place, if the place is not user-defined
+            
+            RatingBar ratingBar = (RatingBar) info.findViewById(R.id.rating_bar);
+            float rating;
+            if (s != null) {
+                rating = s.getRating();
+            } else {
+                rating = 0;
+            }
+
+            if (rating == 0) {
+                ratingBar.setVisibility(View.GONE);
+            } else {
+                ratingBar.setRating(rating);
+            }
+
+                ImageView image = (ImageView) info.findViewById(R.id.image);
+                if (image.getDrawable() == null) {
+                    image.setVisibility(View.GONE);
+                }
+
+                return info;
+            }
+        }
 }
