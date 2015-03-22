@@ -53,6 +53,8 @@ public class GooglePlaceJsonParser {
             place.latitude = jsonPlace.getJSONObject("geometry").getJSONObject("location").getString("lat");
             place.longitude = jsonPlace.getJSONObject("geometry").getJSONObject("location").getString("lng");
 
+            place.id = jsonPlace.getString("place_id");
+
             // Parse the types of the place
             String[] categories = jsonPlace.getJSONArray("types").join(",").split(",");
             String[] trimmedArray = new String[categories.length];

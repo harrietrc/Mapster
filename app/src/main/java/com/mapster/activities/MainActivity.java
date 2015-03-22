@@ -20,8 +20,12 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
 import com.mapster.json.JSONParser;
 import com.mapster.places.GooglePlace;
+import com.mapster.places.GooglePlaceDetail;
+import com.mapster.places.GooglePlaceDetailJsonParser;
 import com.mapster.places.GooglePlaceJsonParser;
+import com.mapster.suggestions.SuggestionInfoAdapter;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -42,7 +46,16 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private static final float UNDEFINED_COLOUR = -1;
 
     private GoogleMap _map;
-    private HashMap<String, List<Marker>> _suggestionMarkers; // Markers for suggestions of attractions
+
+    /*
+     * Suggestion data - to be refactored? Suggestions must be able to be retrieved by marker id and
+     * the associated markers iterated over by category. Will probably combine _suggestionMarkers
+     * and _suggestionPlaces into a single data structure.
+     */
+    // Markers for suggestions of attractions, categorised into accommodation, dining, and attractions
+    private HashMap<String, List<Marker>> _suggestionMarkers;
+    // Associates suggestion marker ids with place ids
+    private HashMap<String, String> _suggestionPlaces;
 
     // Contains marker ids and a boolean to indicate whether it has been clicked
     private HashMap<String, Boolean> _userMarkers;
@@ -81,9 +94,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 //        mapFragment.getMapAsync(this);
 
         _map.setOnMarkerClickListener(this);
+        _map.setInfoWindowAdapter(new SuggestionInfoAdapter(getLayoutInflater()));
 
         initSuggestionMarkers();
-
+        _suggestionPlaces = new HashMap<>();
     }
 
     /**
@@ -114,12 +128,38 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         return url;
     }
 
+    public String buildDetailUrl(String placeId) {
+        StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place/details/json?");
+        sb.append("key=" + getResources().getString(R.string.API_KEY));
+        sb.append("&placeid=" + placeId);
+        String url = sb.toString();
+        return url;
+    }
+
     public boolean onMarkerClick(Marker marker) {
         String id  = marker.getId();
+        Boolean isClicked = _userMarkers.get(id);
 
-        // Record places and add markers if the marker is user-defined and has not been clicked before
-        // Check for false to disallow null values (returned if key does not exist in the HashMap)
-        if (_userMarkers.get(id) == false) {
+        if (isClicked == null) {
+            // Marker is not recorded as user-defined, so assume it's a suggestion. Request place
+            // detail and show the info window.
+            if (marker.getSnippet() == null) {
+                PlaceDetailTask detailTask = new PlaceDetailTask();
+                String placeId = _suggestionPlaces.get(id);
+                String detail = "";
+
+                // Query the Places API for detail on place corresponding to marker
+                try {
+                    detail = detailTask.execute(placeId).get();
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
+                marker.setSnippet(detail);
+            }
+            marker.showInfoWindow();
+            return true;
+        } else if (!isClicked) {
+            // Marker is user-defined and has not been clicked before. Record places and add markers.
             _userMarkers.put(id, true);
             LatLng loc = marker.getPosition();
             String url = buildPlacesUrl(loc.latitude, loc.longitude, 2000, GooglePlace.getAllCategories());
@@ -133,7 +173,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             _filterItem.setVisible(true);
             return true;
         }
-        return true; // Maybe return false so default behaviour can occur?
+        return false;
     }
 
     private String getMapsApiDirectionsUrl() {
@@ -180,54 +220,60 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private class ReadTask extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... url) {
-            String response = downloadUrl(url[0]);
-            return response;
+            return downloadUrl(url[0]);
         }
     }
 
-    private class PlacesTask extends ReadTask {
-        @Override
-        protected void onPostExecute(String result) {
-            PlacesParserTask parserTask = new PlacesParserTask();
-            parserTask.execute(result);
-        }
-    }
-
-    private class DirectionsTask extends ReadTask {
-        @Override
-        protected void onPostExecute(String result) {
-            super.onPostExecute(result);
-            new ParserTask().execute(result);
-        }
-    }
-
-    /**
-     * Adapted from http://wptrafficanalyzer.in/blog/showing-nearby-places-with-photos-at-any-location-in-google-maps-android-api-v2/
-     */
-    private class PlacesParserTask extends AsyncTask<String, Integer, GooglePlace[]> {
-        public JSONObject json;
+    private class PlaceDetailTask extends AsyncTask<String, Void, String> {
 
         @Override
-        protected GooglePlace[] doInBackground(String... jsonData) {
-            GooglePlace[] places = null;
-            GooglePlaceJsonParser placeJsonParser = new GooglePlaceJsonParser();
+        protected String doInBackground(String... placeIds) {
+            GooglePlaceDetailJsonParser detailJsonParser = new GooglePlaceDetailJsonParser();
+            String url = buildDetailUrl(placeIds[0]);
+            String response = downloadUrl(url);
+            String detail = "";
 
             try {
-                json = new JSONObject(jsonData[0]);
-                places = placeJsonParser.parse(json);
-            } catch (Exception e) {
-                Log.d("Exception, oh woe.", e.toString());
+                JSONObject jsonResponse = new JSONObject(response);
+                detail = detailJsonParser.parse(jsonResponse);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return detail;
+        }
+    }
+
+    private class PlacesTask extends AsyncTask<String, Void, GooglePlace[]> {
+        /**
+         * Fetches and parses suggestions near a point of interest.
+         * @param url = URL for querying the Google Maps API
+         * @return = The places found
+         */
+        @Override
+        protected GooglePlace[] doInBackground(String... url) {
+            GooglePlaceJsonParser placeJsonParser = new GooglePlaceJsonParser();
+            GooglePlace[] places = null; // Suggested places near the point of interest
+
+            // Query the Google Places API to get nearby places
+            String response = downloadUrl(url[0]);
+
+            // Parse JSON response into GooglePlaces
+            try {
+                JSONObject jsonResponse = new JSONObject(response);
+                places = placeJsonParser.parse(jsonResponse);
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
             return places;
         }
 
         /**
-         * Creates a marker from each of the places from the parsed JSON
+         * Creates a marker from each of the places from the parsed JSON, adding it to the UI
          * @param places = an array of GooglePlaces
          */
         @Override
         protected void onPostExecute(GooglePlace[] places) {
-            for (int i=0; i < places.length; i++) {
+            for (int i = 0; i < places.length; i++) {
                 GooglePlace place = places[i];
                 double lat = Double.parseDouble(place.latitude);
                 double lng = Double.parseDouble(place.longitude);
@@ -254,9 +300,20 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                     }
                     List<Marker> markers = _suggestionMarkers.get(parentCategory);
                     m = drawMarker(latLng, BitmapDescriptorFactory.fromResource(iconId));
+                    m.setTitle(place.name);
+                    _suggestionPlaces.put(m.getId(), place.id);
                     markers.add(m);
                 }
             }
+
+        }
+    }
+
+    private class DirectionsTask extends ReadTask {
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            new ParserTask().execute(result);
         }
     }
 

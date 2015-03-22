@@ -12,12 +12,13 @@ import java.util.Set;
 
 /**
  * Created by Harriet on 3/15/2015.
- * From http://wptrafficanalyzer.in/blog/showing-nearby-places-with-photos-at-any-location-in-google-maps-android-api-v2/
  */
 public class GooglePlace {
     public String latitude;
     public String longitude;
     public String name;
+    public String id; // Google placeId
+    public String detail;
     public String[] categories;
 
     private static String[] _allCategories;
