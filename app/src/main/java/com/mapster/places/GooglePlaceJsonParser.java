@@ -6,12 +6,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Harriet on 3/15/2015.
  * Copied from http://wptrafficanalyzer.in/blog/showing-nearby-places-with-photos-at-any-location-in-google-maps-android-api-v2/
  */
 public class GooglePlaceJsonParser {
-    public GooglePlace[] parse(JSONObject json) {
+    public List<GooglePlace> parse(JSONObject json) {
         JSONArray jsonPlaces = null;
 
         try {
@@ -22,13 +25,13 @@ public class GooglePlaceJsonParser {
         return getPlaces(jsonPlaces);
     }
 
-    private GooglePlace[] getPlaces(JSONArray jsonPlaces) {
+    private List<GooglePlace> getPlaces(JSONArray jsonPlaces) {
         int placeCount = jsonPlaces.length();
-        GooglePlace[] places = new GooglePlace[placeCount];
+        List<GooglePlace> places = new ArrayList<>();
 
         for (int i=0; i < placeCount; i++) {
             try {
-                places[i] = getPlace((JSONObject) jsonPlaces.get(i));
+                places.add(getPlace((JSONObject) jsonPlaces.get(i)));
             } catch (JSONException e) {
                 e.printStackTrace();
             }

@@ -5,6 +5,8 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="API_KEY">AIzaSyBM7NSP59Z4Lhfk975jtoMR2O1g4BPTos4</string>
+    <string name="YELP_CONSUMER_KEY">JtK8bdHS-tk1xOHJZsPa5Q</string>
+    <string name="YELP_TOKEN">1NJPh7dnIXFYmSddco6Ato4oXJzaE25h</string>
     <!--<string name="API_KEY">AIzaSyDGbryAn8AT_UliJQk6OnCQ0b-CMLJhNFw</string>--> <!-- This one's yours, Tommy - wasn't working for Places API for me today -->
 
 </resources>

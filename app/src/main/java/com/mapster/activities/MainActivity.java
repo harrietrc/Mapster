@@ -79,14 +79,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
         _userMarkers = new HashMap<>();
 
-//        MarkerOptions options = new MarkerOptions();
-//        options.position(SKY_CITY);
-//        options.position(CHRISTCHURCH);
-//        options.position(TAURANGA);
-//        options.position(ROTURUA);
-//        options.position(UNIVERSITY);
-//        Marker m = _map.addMarker(options);
-//        _userMarkers.put(m.getId(), false);
         String url = getMapsApiDirectionsUrl();
         DirectionsTask downloadTask = new DirectionsTask();
         downloadTask.execute(url);
@@ -94,11 +86,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _map.moveCamera(CameraUpdateFactory.newLatLngZoom(UNIVERSITY,
                 13)); // Setting zoom >13 crashes the emulator, see https://code.google.com/p/android/issues/detail?id=82997
         addMarkers();
-
-//        // R.id.map is added automatically when the layout file is built
-//        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
-//        // Sets this as the callback object for when the GoogleMap instance is ready to use
-//        mapFragment.getMapAsync(this);
 
         _map.setOnMarkerClickListener(this);
         _map.setInfoWindowAdapter(new SuggestionInfoAdapter(getLayoutInflater()));
@@ -132,6 +119,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         sb.append("key=" + getResources().getString(R.string.API_KEY));
         sb.append("&location=" + lat + "," + lng);
         sb.append("&radius=" + radius);
+//        sb.append("&rankby=prominence");
         if (types.length > 0) {
             sb.append("&types=");
             String delim = "";
@@ -185,9 +173,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             // Marker is user-defined and has not been clicked before. Record places and add markers.
             _userMarkers.put(id, true);
             LatLng loc = marker.getPosition();
-            String url = buildPlacesUrl(loc.latitude, loc.longitude, 2000, GooglePlace.getAllCategories());
             PlacesTask placesTask = new PlacesTask();
-            placesTask.execute(url);
+            placesTask.execute(loc);
             // Make the filters button in the action bar visible
             _filterItem.setVisible(true);
             return true;
@@ -280,26 +267,34 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
     }
 
-    private class PlacesTask extends AsyncTask<String, Void, GooglePlace[]> {
+    private class PlacesTask extends AsyncTask<LatLng, Void, List<GooglePlace>> {
         /**
          * Fetches and parses suggestions near a point of interest.
-         * @param url = URL for querying the Google Maps API
          * @return = The places found
          */
         @Override
-        protected GooglePlace[] doInBackground(String... url) {
+        protected List<GooglePlace> doInBackground(LatLng... locs) {
             GooglePlaceJsonParser placeJsonParser = new GooglePlaceJsonParser();
-            GooglePlace[] places = null; // Suggested places near the point of interest
+            List<GooglePlace> places = new ArrayList<>();
 
-            // Query the Google Places API to get nearby places
-            String response = downloadUrl(url[0]);
+            String[] urls = new String[3];
 
-            // Parse JSON response into GooglePlaces
-            try {
-                JSONObject jsonResponse = new JSONObject(response);
-                places = placeJsonParser.parse(jsonResponse);
-            } catch (JSONException e) {
-                e.printStackTrace();
+            urls[0] = buildPlacesUrl(locs[0].latitude, locs[0].longitude, 2000, GooglePlace.getAccommodationCategories());
+            urls[1] = buildPlacesUrl(locs[0].latitude, locs[0].longitude, 2000, GooglePlace.getDiningCategories());
+            urls[2] = buildPlacesUrl(locs[0].latitude, locs[0].longitude, 2000, GooglePlace.getAttractionCategories());
+
+            for (String url: urls) {
+                // Query the Google Places API to get nearby places
+                String response = downloadUrl(url);
+
+                // Parse JSON response into GooglePlaces
+                try {
+                    JSONObject jsonResponse = new JSONObject(response);
+                    List<GooglePlace> parsed = placeJsonParser.parse(jsonResponse);
+                    places.addAll(parsed);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
             return places;
         }
@@ -309,9 +304,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
          * @param places = an array of GooglePlaces
          */
         @Override
-        protected void onPostExecute(GooglePlace[] places) {
-            for (int i = 0; i < places.length; i++) {
-                GooglePlace place = places[i];
+        protected void onPostExecute(List<GooglePlace> places) {
+            for (GooglePlace place: places) {
                 double lat = Double.parseDouble(place.latitude);
                 double lng = Double.parseDouble(place.longitude);
                 LatLng latLng = new LatLng(lat, lng);
@@ -319,23 +313,26 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
                 // Save the marker in the correct categories
                 String[] categories = place.categories;
-                String parentCategory;
-                int iconId;
+                String parentCategory = null;
+                int iconId = 0;
+                // Find the category for the marker. May find multiple categories - icon will
+                // represent the last one found.
                 for (String c : categories) {
-                    // Not the best way to do this, but ok for 3 categories. I will refactor this.
+                    // Not the best way to do this, but ok for 3 categories.
                     if (GooglePlace.ACCOMMODATION.contains(c)) {
                         parentCategory = "accommodation";
                         iconId = R.drawable.lodging_0star;
-                    } else if (GooglePlace.ATTRACTIONS.contains(c)) {
+                    } else if (GooglePlace.ATTRACTIONS.contains(c)|GooglePlace.EXTRA_ATTRACTIONS.contains(c)) {
                         parentCategory = "attractions";
                         iconId = R.drawable.flag_export;
                     } else if (GooglePlace.DINING.contains(c)) {
                         parentCategory = "dining";
                         iconId = R.drawable.restaurant;
-                    } else {
-                        continue;
                     }
-                    List<Marker> markers = _markersByCategory.get(parentCategory);
+                }
+                // 'establishment' type is allowed only if it also matches one of the
+                // EXTRA_ATTRACTIONS types - if not, discard the Place.
+                if (parentCategory != null) {
                     m = drawMarker(latLng, BitmapDescriptorFactory.fromResource(iconId));
                     m.setTitle(place.name);
                     addSuggestion(m, place.id, parentCategory, place.rating, place.photoReference);
@@ -393,7 +390,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
         @Override
         protected void onPostExecute(List<List<HashMap<String, String>>> routes) {
-            ArrayList<LatLng> points = null;
+            ArrayList<LatLng> points;
             PolylineOptions polyLineOptions = null;
             // traversing through routes
             for (int i = 0; i < routes.size(); i++) {
