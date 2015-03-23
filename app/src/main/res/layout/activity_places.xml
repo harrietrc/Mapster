@@ -19,6 +19,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/autocomplete_origin"
+        android:lines="1"
+        android:maxLines="1"
         android:hint="Start Place"/>
     <!--<Button-->
         <!--android:layout_width="wrap_content"-->
@@ -36,6 +38,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/autocomplete_stop_point_1"
+        android:lines="1"
+        android:maxLines="1"
         android:hint="Stop Point 1"/>
     <TextView
         android:layout_width="match_parent"
@@ -47,6 +51,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/autocomplete_stop_point_2"
+        android:lines="1"
+        android:maxLines="1"
         android:hint="Stop Point 2"/>
     <TextView
         android:layout_width="match_parent"
@@ -58,6 +64,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/autocomplete_stop_point_3"
+        android:lines="1"
+        android:maxLines="1"
         android:hint="Stop Point 3"/>
     <TextView
         android:layout_width="match_parent"
@@ -70,6 +78,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/autocomplete_destination"
+        android:lines="1"
+        android:maxLines="1"
         android:hint="Your Destination"/>
     <LinearLayout
         android:layout_width="fill_parent"

@@ -7,8 +7,10 @@ import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AutoCompleteTextView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -20,7 +22,7 @@ import com.mapster.places.autocomplete.PlacesAutoCompleteAdapter;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
-public class PlacesActivity extends ActionBarActivity implements AdapterView.OnItemClickListener{
+public class PlacesActivity extends ActionBarActivity implements OnItemClickListener{
     private PlacesAutoCompleteAdapter _autoCompAdapder;
     private LinearLayout _activityLinearLayout;
     private ArrayList<AutoCompleteTextView> autoCompleteTextViewList;
@@ -39,6 +41,7 @@ public class PlacesActivity extends ActionBarActivity implements AdapterView.OnI
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_places);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
         _activityLinearLayout = (LinearLayout) findViewById(R.id.place_activity_layout);
         getAllAutoCompleteTextViewChildren();
         initializeAutoCompleteTextViews();
@@ -97,7 +100,6 @@ public class PlacesActivity extends ActionBarActivity implements AdapterView.OnI
     }
 
     public void ok(View view){
-        System.out.println(checkForOriginAndDestination());
         if(checkForOriginAndDestination()){
             coordinateArrayList = new ArrayList<>();
             for (AutoCompleteTextView acTextView : autoCompleteTextViewList){

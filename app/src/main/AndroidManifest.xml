@@ -36,8 +36,7 @@
 
         <activity
             android:name=".activities.PlacesActivity"
-            android:label="@string/title_activity_places" >
-
+            android:label="@string/title_activity_places">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
