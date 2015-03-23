@@ -53,6 +53,7 @@ public class GooglePlaceJsonParser {
             place.longitude = jsonPlace.getJSONObject("geometry").getJSONObject("location").getString("lng");
 
             place.id = jsonPlace.getString("place_id");
+            place.imageUrl = jsonPlace.getString("icon");
 
             if (!jsonPlace.isNull("rating"))
                 place.rating = (float) jsonPlace.getDouble("rating");
