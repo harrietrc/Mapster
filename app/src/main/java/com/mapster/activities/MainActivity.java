@@ -15,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -156,6 +157,11 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         String id  = marker.getId();
         Boolean isClicked = _userMarkers.get(id);
 
+        // Centre on the marker that was clicked
+        int zoom = (int) _map.getCameraPosition().zoom;
+        CameraUpdate cu = CameraUpdateFactory.newLatLngZoom(new LatLng(marker.getPosition().latitude + (double)90/Math.pow(2, zoom), marker.getPosition().longitude), zoom);
+        _map.animateCamera(cu);
+
         if (isClicked == null) {
             // Marker is not recorded as user-defined, so assume it's a suggestion. Request place
             // detail and show the info window.
@@ -185,8 +191,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             // Make the filters button in the action bar visible
             _filterItem.setVisible(true);
             return true;
+        } else {
+            marker.showInfoWindow();
+            return true;
         }
-        return false;
     }
 
     private String getMapsApiDirectionsUrl() {
@@ -655,7 +663,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                     } else {
                         // Marker clicked for first time - download the icon and load it into the view
                         s.setClicked(true);
-                        Picasso.with(MainActivity.this).load(imageUrl).resize(150,150).centerCrop().into(image,
+                        Picasso.with(MainActivity.this).load(imageUrl).resize(150, 150).centerCrop().into(image,
                                 new InfoWindowRefresher(marker));
                     }
                 }
