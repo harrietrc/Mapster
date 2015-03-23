@@ -1,6 +1,7 @@
 package com.mapster.activities;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.support.v4.app.FragmentActivity;
@@ -40,12 +41,15 @@ import java.util.concurrent.ExecutionException;
 public class MainActivity extends FragmentActivity implements GoogleMap.OnMarkerClickListener {
 
 //    private List<Marker> _markers;
-    private static final LatLng SKY_CITY = new LatLng(-37.044116, 175.0610719);
-    private static final LatLng CHRISTCHURCH = new LatLng(-43.5320544, 172.6362254);
-    private static final LatLng TAURANGA = new LatLng(-37.6877974, 176.1651295);
-    private static final LatLng ROTURUA = new LatLng(-38.1368478, 176.2497461);
-
+//    private static final LatLng SKY_CITY = new LatLng(-37.044116, 175.0610719);
+//    private static final LatLng CHRISTCHURCH = new LatLng(-43.5320544, 172.6362254);
+//    private static final LatLng TAURANGA = new LatLng(-37.6877974, 176.1651295);
+//    private static final LatLng ROTURUA = new LatLng(-38.1368478, 176.2497461);
+//    private LatLng _origin = null;
+//    private LatLng _destination = null;
     private static final float UNDEFINED_COLOUR = -1;
+    private ArrayList<String> coordinateArrayList;
+    ArrayList<LatLng> latLngArrayList;
 
     private GoogleMap _map;
 
@@ -57,17 +61,33 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
                 .findFragmentById(R.id.map);
         _map = fm.getMap();
 
+        Intent i = getIntent();
+//        String[] originHolder = i.getStringArrayExtra("origin");
+//        System.out.println(originHolder[0] + " " + originHolder[1] );
+//        _origin = new LatLng(Double.parseDouble(originHolder[0]),Double.parseDouble(originHolder[1]));
+//        String[] destinationHolder = i.getStringArrayExtra("destination");
+//        System.out.println(destinationHolder[0]+ " " + destinationHolder[1] );
+//        _destination = new LatLng(Double.parseDouble(destinationHolder[0]),Double.parseDouble(destinationHolder[1]));
+
+        coordinateArrayList = i.getStringArrayListExtra("CO-ORDINATE_LIST");
+        System.out.println (coordinateArrayList);
+        latLngArrayList = new ArrayList<>();
+        for (int position = 0; position < coordinateArrayList.size() - 1; position += 2){
+            System.out.println(Double.parseDouble(coordinateArrayList.get(position)) + "," + Double.parseDouble(coordinateArrayList.get(position + 1)));
+            latLngArrayList.add(new LatLng(Double.parseDouble(coordinateArrayList.get(position)),Double.parseDouble(coordinateArrayList.get(position + 1))));
+        }
+
+
         MarkerOptions options = new MarkerOptions();
-        options.position(SKY_CITY);
-        options.position(CHRISTCHURCH);
-        options.position(TAURANGA);
-        options.position(ROTURUA);
+        for (LatLng position : latLngArrayList){
+            options.position(position);
+        }
         _map.addMarker(options);
         String url = getMapsApiDirectionsUrl();
         DirectionsTask downloadTask = new DirectionsTask();
         downloadTask.execute(url);
 
-        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(SKY_CITY,
+        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngArrayList.get(0),
                 13));
         addMarkers();
 
@@ -113,27 +133,38 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
     }
 
     private String getMapsApiDirectionsUrl() {
-        String waypoints = "origin="
-                + SKY_CITY.latitude + "," + SKY_CITY.longitude
-                + "&waypoints=optimize:true|" + ROTURUA.latitude + "," + ROTURUA.longitude
-                + "|" + TAURANGA.latitude + "," + TAURANGA.longitude
-                + "&destination=" + CHRISTCHURCH.latitude + "," + CHRISTCHURCH.longitude ;
-        String output = "json";
-        String sensor = "&sensor=true";
-        String url = "https://maps.googleapis.com/maps/api/directions/"
-                + output + "?" + waypoints + sensor;
+        int size = latLngArrayList.size();
+        System.out.println("MAPSTER " + size );
+        LatLng originCoordinate = latLngArrayList.get(0);
+        LatLng destinationCoordinate = latLngArrayList.get(size - 1);
+        String origin = "?origin=" + originCoordinate.latitude + "," + originCoordinate.longitude;
+        String waypoints = "";
+        if(size > 2){
+            waypoints = "&waypoints=optimize:true";
+            for(int position = 1; position < size - 1; position ++){
+                LatLng coordinate = latLngArrayList.get(position);
+                waypoints += "|" + coordinate.latitude + "," + coordinate.longitude ;
+            }
+//            LatLng lastWaypoint = latLngArrayList.get(size - 2);
+//            waypoints += lastWaypoint.latitude + "," + lastWaypoint.longitude;
+        }
+        String destination = "&destination=" + destinationCoordinate.latitude + "," + destinationCoordinate.longitude;
+        String output = "/json";
+        String url = "https://maps.googleapis.com/maps/api/directions"
+                + output + origin + waypoints + destination;
         //url = "https://maps.googleapis.com/maps/api/directions/json?origin=41.3758887,2.1745799999999917&waypoints=41.39097711845494,2.1807326361331434|41.38680260504134,2.188132850805232|41.38458293055814,2.1758925899657697&destination=41.38394800519846,2.166872321048686&sensor=true&mode=walking";
+        System.out.println(url);
         return url;
     }
 
     private void addMarkers() {
         if (_map != null) {
-            _map.addMarker(new MarkerOptions().position(SKY_CITY)
-                    .title("First Point"));
-            _map.addMarker(new MarkerOptions().position(CHRISTCHURCH)
-                    .title("Second Point"));
-            _map.addMarker(new MarkerOptions().position(TAURANGA).title("Third Point"));
-            _map.addMarker(new MarkerOptions().position(TAURANGA).title("Fourth Point"));
+            int name = 0;
+            for (LatLng position : latLngArrayList){
+                name++;
+                _map.addMarker(new MarkerOptions().position(position)
+                        .title(Integer.toString(name)));
+            }
         }
     }
 
@@ -232,12 +263,14 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
             List<List<HashMap<String, String>>> routes = null;
 
             try {
+                System.out.println(jsonData[0]);
                 jObject = new JSONObject(jsonData[0]);
                 JSONParser parser = new JSONParser();
                 routes = parser.parse(jObject);
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            System.out.println("Mapster " + routes.isEmpty());
             return routes;
         }
 
@@ -246,6 +279,7 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
             ArrayList<LatLng> points = null;
             PolylineOptions polyLineOptions = null;
             // traversing through routes
+            System.out.println("Mapster " + routes.size());
             for (int i = 0; i < routes.size(); i++) {
                 points = new ArrayList<LatLng>();
                 polyLineOptions = new PolylineOptions();

@@ -1,131 +1,48 @@
 package com.mapster.activities;
 
-import android.app.Activity;
 import android.content.Context;
-import android.support.v7.app.ActionBarActivity;
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.Filter;
-import android.widget.Filterable;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.mapster.R;
+import com.mapster.geocode.GeoCode;
+import com.mapster.places.autocomplete.PlacesAutoCompleteAdapter;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
-public class PlacesActivity extends Activity implements AdapterView.OnItemClickListener{
-    private static final String LOG_TAG = "Mapster";
-    private static final String API_KEY = "AIzaSyBM7NSP59Z4Lhfk975jtoMR2O1g4BPTos4";
-    private static final String PLACES_API_BASE = "https://maps.googleapis.com/maps/api/place";
-    private static final String TYPE_AUTOCOMPLETE = "/autocomplete";
-    private static final String OUT_JSON = "/json";
-
-    private ArrayList<String> autocomplete(String input) {
-        HttpURLConnection conn = null;
-        ArrayList<String> resultList = null;
-        StringBuilder jsonResults;
-        URL url = null;
-        InputStreamReader in = null;
-        try {
-            StringBuilder sb = formURLString(input);
-            try {
-                url = new URL(sb.toString());
-                conn = (HttpURLConnection) url.openConnection();
-                in = new InputStreamReader(conn.getInputStream());
-            } catch (MalformedURLException e){
-                e.printStackTrace();
-            } catch(IOException e){
-                e.printStackTrace();
-            }
-            jsonResults = convertJsonResultsToStringBuilder(in);
-            resultList = extractPlaceDescriptionsFromResults(jsonResults);
-        } catch (MalformedURLException e) {
-            Log.e(LOG_TAG, "Error processing Places API URL", e);
-            return resultList;
-        } catch (IOException e) {
-            Log.e(LOG_TAG, "Error connecting to Places API", e);
-            return resultList;
-        } finally {
-            if (conn != null) {
-                conn.disconnect();
-            }
-        }
-        return resultList;
-    }
-
-    private StringBuilder formURLString(String input){
-        StringBuilder sb = new StringBuilder(PLACES_API_BASE + TYPE_AUTOCOMPLETE + OUT_JSON);
-        try {
-            sb.append("?input=" + URLEncoder.encode(input, "utf8"));
-            sb.append("&key=" + API_KEY);
-        } catch (UnsupportedEncodingException e){
-            e.printStackTrace();
-        }
-        return sb;
-    }
-
-    private StringBuilder convertJsonResultsToStringBuilder(InputStreamReader in) throws IOException{
-        StringBuilder jsonResults = new StringBuilder();
-        int read;
-        char[] buff = new char[1024];
-        while ((read = in.read(buff)) != -1) {
-            jsonResults.append(buff, 0, read);
-        }
-        return jsonResults;
-    }
-
-    private ArrayList<String> extractPlaceDescriptionsFromResults(StringBuilder jsonResults) {
-        ArrayList<String> resultList = null;
-        try {
-            // Create a JSON object hierarchy from the results
-            JSONObject jsonObj = new JSONObject(jsonResults.toString());
-            JSONArray predsJsonArray = jsonObj.getJSONArray("predictions");
-
-            // Extract the Place descriptions from the results
-            resultList = new ArrayList<String>(predsJsonArray.length());
-            for (int i = 0; i < predsJsonArray.length(); i++) {
-                resultList.add(predsJsonArray.getJSONObject(i).getString("description"));
-            }
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, "Cannot process JSON results", e);
-        }
-        return resultList;
-    }
+public class PlacesActivity extends ActionBarActivity implements AdapterView.OnItemClickListener{
+    private PlacesAutoCompleteAdapter _autoCompAdapder;
+    private LinearLayout _activityLinearLayout;
+    private ArrayList<AutoCompleteTextView> autoCompleteTextViewList;
+    private ArrayList<String> coordinateArrayList;
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-        String str = (String) adapterView.getItemAtPosition(position);
-        Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
-
+        String result = (String) adapterView.getItemAtPosition(position);
+        Toast.makeText(this, result, Toast.LENGTH_SHORT).show();
+        InputMethodManager inputManager = (InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputManager.hideSoftInputFromWindow(view.getApplicationWindowToken(), 0);
+        inputManager.hideSoftInputFromInputMethod(view.getApplicationWindowToken(), 0);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_places);
-        AutoCompleteTextView autoCompView = (AutoCompleteTextView) findViewById(R.id.autocomplete);
-        autoCompView.setAdapter(new PlacesAutoCompleteAdapter(this, R.layout.list_item));
-        autoCompView.setOnItemClickListener(this);
+        _activityLinearLayout = (LinearLayout) findViewById(R.id.place_activity_layout);
+        getAllAutoCompleteTextViewChildren();
+        initializeAutoCompleteTextViews();
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -149,50 +66,96 @@ public class PlacesActivity extends Activity implements AdapterView.OnItemClickL
         return super.onOptionsItemSelected(item);
     }
 
-    private class PlacesAutoCompleteAdapter extends ArrayAdapter<String> implements Filterable {
-        private ArrayList<String> resultList;
-
-        public PlacesAutoCompleteAdapter(Context context, int textViewResourceId) {
-            super(context, textViewResourceId);
+    private void initializeAutoCompleteTextViews() {
+        for (AutoCompleteTextView autoCompTextView : autoCompleteTextViewList){
+            autoCompTextView.setAdapter(_autoCompAdapder);
+            autoCompTextView.setOnItemClickListener(this);
         }
+//        AutoCompleteTextView originAutoCompView = (AutoCompleteTextView) findViewById(R.id.autocomplete_origin);
+//        originAutoCompView.setAdapter(_autoCompAdapder);
+//        originAutoCompView.setOnItemClickListener(this);
+//
+//        AutoCompleteTextView destinationAutoCompView = (AutoCompleteTextView) findViewById(R.id.autocomplete_destination);
+//        destinationAutoCompView.setAdapter(_autoCompAdapder);
+//        destinationAutoCompView.setOnItemClickListener(this);
+    }
 
-        @Override
-        public int getCount() {
-            return resultList.size();
-        }
-
-        @Override
-        public String getItem(int index) {
-            return resultList.get(index);
-        }
-
-        @Override
-        public Filter getFilter() {
-            Filter filter = new Filter() {
-                @Override
-                protected android.widget.Filter.FilterResults performFiltering(CharSequence constraint) {
-                    FilterResults filterResults = new FilterResults();
-                    if (constraint != null) {
-                        // Retrieve the autocomplete results.
-                        resultList = autocomplete(constraint.toString());
-
-                        // Assign the data to the FilterResults
-                        filterResults.values = resultList;
-                        filterResults.count = resultList.size();
-                    }
-                    return filterResults;
-                }
-
-                @Override
-                protected void publishResults(CharSequence constraint, FilterResults results) {
-                    if (results != null && results.count > 0) {
-                        notifyDataSetChanged();
-                    }
-                    else {
-                        notifyDataSetInvalidated();
-                    }
-                }};
-            return filter;
+    private void getAllAutoCompleteTextViewChildren(){
+        autoCompleteTextViewList = new ArrayList<AutoCompleteTextView>();
+        _autoCompAdapder = new PlacesAutoCompleteAdapter(this, R.layout.list_item);
+        for (int i = 0; i < _activityLinearLayout.getChildCount(); i++) {
+            if (_activityLinearLayout.getChildAt(i) instanceof AutoCompleteTextView) {
+                autoCompleteTextViewList.add((AutoCompleteTextView) _activityLinearLayout.getChildAt(i));
+            }
         }
     }
+
+    public void clearAll(View view){
+        for (AutoCompleteTextView acTextView : autoCompleteTextViewList){
+            acTextView.setText("");
+        }
+    }
+
+    public void ok(View view){
+        System.out.println(checkForOriginAndDestination());
+        if(checkForOriginAndDestination()){
+            coordinateArrayList = new ArrayList<>();
+            for (AutoCompleteTextView acTextView : autoCompleteTextViewList){
+                try {
+                    if(acTextView.getText().toString().length() > 1) {
+                        String[] coordinate = new GeoCode().execute(acTextView.getText().toString()).get();
+                        coordinateArrayList.add(coordinate[0]);
+                        coordinateArrayList.add(coordinate[1]);
+                    }
+
+                } catch(InterruptedException e){
+                    e.printStackTrace();
+                } catch(ExecutionException e){
+                    e.printStackTrace();
+                }
+            }
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra("CO-ORDINATE_LIST", coordinateArrayList);
+            startActivity(intent);
+        } else {
+            Toast.makeText(this,"Origin and Destination fields can not be blank",Toast.LENGTH_SHORT).show();
+        }
+
+       }
+
+    private boolean checkForOriginAndDestination(){
+        AutoCompleteTextView originInList = autoCompleteTextViewList.get(0);
+        AutoCompleteTextView destinationInList = autoCompleteTextViewList.get(autoCompleteTextViewList.size() - 1);
+        AutoCompleteTextView originInLayout = (AutoCompleteTextView) findViewById(R.id.autocomplete_origin);
+        AutoCompleteTextView destinationInLayout = (AutoCompleteTextView) findViewById(R.id.autocomplete_destination);
+        if(originInLayout.equals(originInList) && destinationInLayout.equals(destinationInList)){
+            if(!originInList.getText().toString().isEmpty() && !destinationInLayout.getText().toString().isEmpty()){
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+//    public void addStopPoint(View view){
+//        createTextViewToThisLayout("Stop Point");
+//    }
+//
+//    private TextView createTextViewToThisLayout(String text){
+//        final LinearLayout.LayoutParams lparams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+//        final TextView textView = new TextView(this);
+////        textView.setLayoutParams(lparams);
+//        textView.setText(text);
+//        activityLayout.addView(textView);
+//        return textView;
+//    }
+//
+//    private AutoCompleteTextView createAutoCompleteTextView(){
+//        final LinearLayout.LayoutParams lparams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+//        final AutoCompleteTextView autoCompleteTextView = new AutoCompleteTextView(this);
+//        return autoCompleteTextView;
+//    }
+
 }
