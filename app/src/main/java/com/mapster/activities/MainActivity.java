@@ -541,8 +541,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     private String buildPhotoUrl(String photoReference) {
-        int maxWidth = 100;
-        int maxHeight = 100;
+        int maxWidth = 200;
+        int maxHeight = 200;
 
         StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place/photo?");
         sb.append("key=" + getResources().getString(R.string.API_KEY));
@@ -641,20 +641,29 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 ratingBar.setRating(rating);
             }
 
+            ImageView image = (ImageView) info.findViewById(R.id.image);
+
             // Load the icon into the ImageView of the InfoWindow
             if (s != null) {
-                ImageView image = (ImageView) info.findViewById(R.id.image);
                 String photoReference = s.getPhotoReference();
-                String imageUrl = buildPhotoUrl(photoReference);
-                if (s.isClicked()) {
-                    // Marker has been clicked before - don't need to call the callback to load icon
-                    Picasso.with(MainActivity.this).load(imageUrl).into(image);
-                } else {
-                    // Marker clicked for first time - download the icon and load it into the view
-                    s.setClicked(true);
-                    Picasso.with(MainActivity.this).load(imageUrl).into(image,
-                            new InfoWindowRefresher(marker));
+                if (photoReference != null) {
+                    String imageUrl = buildPhotoUrl(photoReference);
+                    if (s.isClicked()) {
+                        // Marker has been clicked before - don't need to call the callback to load icon
+                        // Picasso has a fit() method for fitting to an ImageView, but it doesn't seem to work.
+                        Picasso.with(MainActivity.this).load(imageUrl).resize(150,150).centerCrop().into(image);
+                    } else {
+                        // Marker clicked for first time - download the icon and load it into the view
+                        s.setClicked(true);
+                        Picasso.with(MainActivity.this).load(imageUrl).resize(150,150).centerCrop().into(image,
+                                new InfoWindowRefresher(marker));
+                    }
                 }
+            }
+
+            // Hide the ImageView if it has no image
+            if (image.getDrawable() == null) {
+                image.setVisibility(View.GONE);
             }
 
             return info;
