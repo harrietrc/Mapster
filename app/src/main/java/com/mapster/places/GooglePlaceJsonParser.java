@@ -53,7 +53,15 @@ public class GooglePlaceJsonParser {
             place.longitude = jsonPlace.getJSONObject("geometry").getJSONObject("location").getString("lng");
 
             place.id = jsonPlace.getString("place_id");
-            place.imageUrl = jsonPlace.getString("icon");
+
+            // Get the photo reference. Overly cautious, as I can't find any documentation that says
+            // whether 'photos' is ever null (or just empty if there are no photos)
+            if (!jsonPlace.isNull("photos")) {
+                JSONArray jsonPhotos = jsonPlace.getJSONArray("photos");
+                JSONObject jsonPhoto = (JSONObject) jsonPhotos.get(0);
+                if (!jsonPhoto.equals(null))
+                    place.photoReference = jsonPhoto.getString("photo_reference");
+            }
 
             if (!jsonPlace.isNull("rating"))
                 place.rating = (float) jsonPlace.getDouble("rating");

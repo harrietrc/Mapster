@@ -20,7 +20,7 @@ public class GooglePlace {
     public String id; // Google placeId
     public float rating;
     public String[] categories;
-    public String imageUrl;
+    public String photoReference;
 
     private static String[] _allCategories;
 

@@ -10,20 +10,20 @@ public class Suggestion {
     private String _placeId;
     private float _rating;
     private String _category;
-    private String _imageUrl;
+    private String _photoReference;
     private boolean _isClicked;
 
-    public Suggestion(Marker marker, String placeId, String category, float rating, String imageUrl) {
+    public Suggestion(Marker marker, String placeId, String category, float rating, String photoReference) {
         _marker = marker;
         _placeId = placeId;
         _category = category;
         _rating = rating;
-        _imageUrl = imageUrl;
+        _photoReference = photoReference;
         _isClicked = false;
     }
 
-    public String getImageUrl() {
-        return _imageUrl;
+    public String getPhotoReference() {
+        return _photoReference;
     }
 
     public Marker getMarker() {

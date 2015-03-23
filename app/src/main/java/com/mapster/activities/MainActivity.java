@@ -330,7 +330,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                     List<Marker> markers = _markersByCategory.get(parentCategory);
                     m = drawMarker(latLng, BitmapDescriptorFactory.fromResource(iconId));
                     m.setTitle(place.name);
-                    addSuggestion(m, place.id, parentCategory, place.rating, place.imageUrl);
+                    addSuggestion(m, place.id, parentCategory, place.rating, place.photoReference);
                 }
             }
 
@@ -540,6 +540,19 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
     }
 
+    private String buildPhotoUrl(String photoReference) {
+        int maxWidth = 100;
+        int maxHeight = 100;
+
+        StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place/photo?");
+        sb.append("key=" + getResources().getString(R.string.API_KEY));
+        sb.append("&photoreference=" + photoReference);
+        sb.append("&maxwidth=" + maxWidth);
+        sb.append("&maxheight=" + maxHeight);
+
+        return sb.toString();
+    }
+
     /**
      * Markers are currently removed instead of hidden, to avoid the computation costs involved in
      * checking whether a marker already exists before creating it and adding it to the HashMap of
@@ -631,7 +644,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             // Load the icon into the ImageView of the InfoWindow
             if (s != null) {
                 ImageView image = (ImageView) info.findViewById(R.id.image);
-                String imageUrl = s.getImageUrl();
+                String photoReference = s.getPhotoReference();
+                String imageUrl = buildPhotoUrl(photoReference);
                 if (s.isClicked()) {
                     // Marker has been clicked before - don't need to call the callback to load icon
                     Picasso.with(MainActivity.this).load(imageUrl).into(image);
