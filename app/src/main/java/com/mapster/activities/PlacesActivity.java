@@ -23,6 +23,8 @@ import com.mapster.places.autocomplete.PlacesAutoCompleteAdapter;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
+import static junit.framework.Assert.assertTrue;
+
 public class PlacesActivity extends ActionBarActivity implements OnItemClickListener{
     private PlacesAutoCompleteAdapter _autoCompAdapder;
     private ArrayList<AutoCompleteTextView> autoCompleteTextViewArrayList;
@@ -30,10 +32,43 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        autoCompleteTextViewArrayList = new ArrayList<AutoCompleteTextView>();
+        _autoCompAdapder = new PlacesAutoCompleteAdapter(this, R.layout.list_item);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_places);
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+        addAutoCompleteTextViewInLayoutToArrayList((LinearLayout)findViewById(R.id.place_activity_layout));
+        initializeAutoCompleteTextViewInArrayList();
+    }
 
+    private void addAutoCompleteTextViewInLayoutToArrayList(LinearLayout llayout){
+        for (int i = 0; i < llayout.getChildCount(); i++) {
+            if (llayout.getChildAt(i) instanceof AutoCompleteTextView) {
+                autoCompleteTextViewArrayList.add((AutoCompleteTextView) llayout.getChildAt(i));
+            }
+        }
+    }
+
+    private void initializeAutoCompleteTextViewInArrayList(){
+        for (AutoCompleteTextView acTextView : autoCompleteTextViewArrayList){
+            initializeAutoCompleteTextViews(acTextView);
+        }
+    }
+
+    private void initializeAutoCompleteTextViews(AutoCompleteTextView autoCompleteTextView) {
+        autoCompleteTextView.setAdapter(_autoCompAdapder);
+        autoCompleteTextView.setOnItemClickListener(this);
+        displayTextFromStart(autoCompleteTextView);
+    }
+
+    private void displayTextFromStart(final AutoCompleteTextView acTextView){
+        acTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus == false) {  // lost focus
+                    acTextView.setSelection(0,0);
+                }
+            }
+        });
     }
 
     @Override
@@ -46,35 +81,32 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         switch(item.getItemId()){
             case R.id.action_settings:
                 return true;
             case R.id.action_add_stops:
-                addStopPoints();
+                final int positionOfAutoCompleteTextView = 1;
+                LinearLayout linearLayout = addStopPoints();
+                addAutoCompleteTextViewToArrayList((AutoCompleteTextView)linearLayout.getChildAt(positionOfAutoCompleteTextView));
+                initializeAutoCompleteTextViews((AutoCompleteTextView)linearLayout.getChildAt(positionOfAutoCompleteTextView));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
-    private void addStopPoints(){
+    private LinearLayout addStopPoints(){
         LinearLayout layoutToAddPoint = (LinearLayout) findViewById(R.id.add_stop_points);
         LinearLayout inflateLayout = (LinearLayout)View.inflate(
                                       this, R.layout.add_stop_points, null);
         layoutToAddPoint.addView(inflateLayout);
         layoutToAddPoint.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT));
+        return inflateLayout;
     }
 
-    private void initializeAutoCompleteTextViews() {
-        for (final AutoCompleteTextView autoCompTextView : autoCompleteTextViewArrayList){
-            autoCompTextView.setAdapter(_autoCompAdapder);
-            autoCompTextView.setOnItemClickListener(this);
-            displayTextFromStart(autoCompTextView);
-        }
+    private void addAutoCompleteTextViewToArrayList(AutoCompleteTextView autoCompleteTextView){
+        autoCompleteTextViewArrayList.add(autoCompleteTextView);
     }
 
     @Override
@@ -91,35 +123,6 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         inputManager.hideSoftInputFromInputMethod(view.getApplicationWindowToken(), 0);
     }
 
-    private void displayTextFromStart(final AutoCompleteTextView acTextView){
-        acTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus == false) {  // lost focus
-                    acTextView.setSelection(0,0);
-                }
-            }
-        });
-    }
-
-    private void getAllAutoCompleteTextViewChildren(){
-        LinearLayout addPoint = (LinearLayout) findViewById(R.id.add_stop_points);
-        LinearLayout activityLinearLayout = (LinearLayout) findViewById(R.id.place_activity_layout);
-        autoCompleteTextViewArrayList = new ArrayList<AutoCompleteTextView>();
-        _autoCompAdapder = new PlacesAutoCompleteAdapter(this, R.layout.list_item);
-        // Must be in this order because of the order of origin and destination
-        addAutoCompleteTextViewInLayoutToList(addPoint);
-        addAutoCompleteTextViewInLayoutToList(activityLinearLayout);
-    }
-
-    private void addAutoCompleteTextViewInLayoutToList(LinearLayout llayout){
-        for (int i = 0; i < llayout.getChildCount(); i++) {
-            if (llayout.getChildAt(i) instanceof AutoCompleteTextView) {
-                autoCompleteTextViewArrayList.add((AutoCompleteTextView) llayout.getChildAt(i));
-            }
-        }
-    }
-
     public void clearAll(View view){
         for (AutoCompleteTextView acTextView : autoCompleteTextViewArrayList){
             acTextView.setText("");
@@ -127,14 +130,28 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     }
 
     public void ok(View view){
-        getAllAutoCompleteTextViewChildren();
-        initializeAutoCompleteTextViews();
         if(isNotOriginAndDestinationEmpty()){
             addUserCoordinateToArrayList();
-            transferDataToMainActivity();
+            moveToMainActivityWithData();
         } else {
-            Toast.makeText(this,"Origin and Destination fields can not be blank",
+            Toast.makeText(this,"Origin and Destination fields must not be blank",
                            Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private boolean isNotOriginAndDestinationEmpty(){
+        AutoCompleteTextView originInList = autoCompleteTextViewArrayList.get(0);
+        AutoCompleteTextView destinationInList = autoCompleteTextViewArrayList.get(1);
+        AutoCompleteTextView originInLayout =
+                (AutoCompleteTextView) findViewById(R.id.autocomplete_origin);
+        AutoCompleteTextView destinationInLayout =
+                (AutoCompleteTextView) findViewById(R.id.autocomplete_destination);
+        assertTrue(originInLayout.equals(originInList) && destinationInLayout.equals(destinationInList));
+        if(originInList.getText().toString().isEmpty()
+                || destinationInLayout.getText().toString().isEmpty()){
+            return false;
+        } else {
+            return true;
         }
     }
 
@@ -143,7 +160,8 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         for (AutoCompleteTextView acTextView : autoCompleteTextViewArrayList){
             try {
                 if(acTextView.getText().toString().length() > 1) {
-                    String[] coordinate = new GeoCode().execute(acTextView.getText().toString()).get();
+                    String[] coordinate = new GeoCode().execute(
+                                                        acTextView.getText().toString()).get();
                     coordinateArrayList.add(coordinate[0]);
                     coordinateArrayList.add(coordinate[1]);
                 }
@@ -155,29 +173,9 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         }
     }
 
-    private void transferDataToMainActivity(){
+    private void moveToMainActivityWithData(){
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("COORDINATE_LIST", coordinateArrayList);
         startActivity(intent);
-    }
-
-    private boolean isNotOriginAndDestinationEmpty(){
-        AutoCompleteTextView originInList = autoCompleteTextViewArrayList.get(0);
-        AutoCompleteTextView destinationInList = autoCompleteTextViewArrayList.get(
-                                                 autoCompleteTextViewArrayList.size() - 1);
-        AutoCompleteTextView originInLayout =
-                            (AutoCompleteTextView) findViewById(R.id.autocomplete_origin);
-        AutoCompleteTextView destinationInLayout =
-                            (AutoCompleteTextView) findViewById(R.id.autocomplete_destination);
-        if(originInLayout.equals(originInList) && destinationInLayout.equals(destinationInList)){
-            if(originInList.getText().toString().isEmpty()
-            || destinationInLayout.getText().toString().isEmpty()){
-                return false;
-            } else {
-                return true;
-            }
-        } else {
-            return false;
-        }
     }
 }

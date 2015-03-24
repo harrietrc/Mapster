@@ -1,36 +1,26 @@
 package com.mapster.activities;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
 import com.mapster.json.JSONParser;
 import com.mapster.places.GooglePlace;
 import com.mapster.places.GooglePlaceJsonParser;
 
-import org.apache.http.HttpConnection;
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -41,22 +31,19 @@ import java.util.concurrent.ExecutionException;
 public class MainActivity extends FragmentActivity implements GoogleMap.OnMarkerClickListener {
     private static final float UNDEFINED_COLOUR = -1;
     private ArrayList<String> coordinateArrayList;
-    ArrayList<LatLng> latLngArrayList;
-
+    private ArrayList<LatLng> latLngArrayList;
     private GoogleMap _map;
 
-    @Override
+ @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //TODO refactor
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initializeGoogleMap();
         getDataFromPlaceActivity();
         convertStringArrayListToLatLngArrayList();
+        MarkerOptions options = initializeOptionMarker();
 
-        MarkerOptions options = new MarkerOptions();
-        for (LatLng position : latLngArrayList){
-            options.position(position);
-        }
         _map.addMarker(options);
         String url = getMapsApiDirectionsUrl();
         DirectionsTask downloadTask = new DirectionsTask();
@@ -77,6 +64,7 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
     private void getDataFromPlaceActivity(){
         Intent i = getIntent();
         coordinateArrayList = i.getStringArrayListExtra("COORDINATE_LIST");
+        System.out.println("MAPSTER" + coordinateArrayList.size());
     }
 
     private void convertStringArrayListToLatLngArrayList(){
@@ -84,6 +72,14 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
         for (int position = 0; position < coordinateArrayList.size() - 1; position += 2){
             latLngArrayList.add(new LatLng(Double.parseDouble(coordinateArrayList.get(position)),Double.parseDouble(coordinateArrayList.get(position + 1))));
         }
+    }
+
+    private MarkerOptions initializeOptionMarker(){
+        MarkerOptions options = new MarkerOptions();
+        for (LatLng position : latLngArrayList){
+            options.position(position);
+        }
+        return options;
     }
 
     public String buildPlacesUrl(double lat, double lng, int radius, String[] types) {
@@ -118,22 +114,25 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
     }
 
     private String getMapsApiDirectionsUrl() {
+        //TODO refactor String --> StringBuilder
         int size = latLngArrayList.size();
         LatLng originCoordinate = latLngArrayList.get(0);
-        LatLng destinationCoordinate = latLngArrayList.get(size - 1);
+        LatLng destinationCoordinate = latLngArrayList.get(1);
         String origin = "?origin=" + originCoordinate.latitude + "," + originCoordinate.longitude;
+        String destination = "&destination=" + destinationCoordinate.latitude + "," + destinationCoordinate.longitude;
         String waypoints = "";
         if(size > 2){
             waypoints = "&waypoints=optimize:true";
-            for(int position = 1; position < size - 1; position ++){
+            for(int position = 2; position < size; position ++){
                 LatLng coordinate = latLngArrayList.get(position);
                 waypoints += "|" + coordinate.latitude + "," + coordinate.longitude ;
             }
         }
-        String destination = "&destination=" + destinationCoordinate.latitude + "," + destinationCoordinate.longitude;
+
         String output = "/json";
         String url = "https://maps.googleapis.com/maps/api/directions"
                 + output + origin + waypoints + destination;
+        System.out.println(url);
         return url;
     }
 
@@ -243,14 +242,12 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
             List<List<HashMap<String, String>>> routes = null;
 
             try {
-                System.out.println(jsonData[0]);
                 jObject = new JSONObject(jsonData[0]);
                 JSONParser parser = new JSONParser();
                 routes = parser.parse(jObject);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            System.out.println("Mapster " + routes.isEmpty());
             return routes;
         }
 
@@ -259,7 +256,6 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
             ArrayList<LatLng> points = null;
             PolylineOptions polyLineOptions = null;
             // traversing through routes
-            System.out.println("Mapster " + routes.size());
             for (int i = 0; i < routes.size(); i++) {
                 points = new ArrayList<LatLng>();
                 polyLineOptions = new PolylineOptions();
@@ -267,19 +263,15 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
 
                 for (int j = 0; j < path.size(); j++) {
                     HashMap<String, String> point = path.get(j);
-
                     double lat = Double.parseDouble(point.get("lat"));
                     double lng = Double.parseDouble(point.get("lng"));
                     LatLng position = new LatLng(lat, lng);
-
                     points.add(position);
                 }
-
                 polyLineOptions.addAll(points);
                 polyLineOptions.width(2);
                 polyLineOptions.color(Color.BLUE);
             }
-
             _map.addPolyline(polyLineOptions);
         }
     }
@@ -290,12 +282,10 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 }
