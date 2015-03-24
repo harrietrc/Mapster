@@ -119,7 +119,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         sb.append("key=" + getResources().getString(R.string.API_KEY));
         sb.append("&location=" + lat + "," + lng);
         sb.append("&radius=" + radius);
-//        sb.append("&rankby=prominence");
+        sb.append("&rankby=prominence");
         if (types.length > 0) {
             sb.append("&types=");
             String delim = "";
@@ -291,7 +291,14 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 try {
                     JSONObject jsonResponse = new JSONObject(response);
                     List<GooglePlace> parsed = placeJsonParser.parse(jsonResponse);
-                    places.addAll(parsed);
+
+                    // Limit the number of suggestions per category
+                    List<GooglePlace> shortList = parsed;
+                    int maxSuggestions = 10;
+                    if (places.size() > maxSuggestions)
+                        shortList = parsed.subList(0, maxSuggestions);
+                    places.addAll(shortList);
+
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
