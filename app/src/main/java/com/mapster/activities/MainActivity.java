@@ -168,7 +168,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 marker.setSnippet(detail);
             }
             marker.showInfoWindow();
-            return true;
+            return false; // Marker toolbar will be shown (returning false allows default behaviour)
         } else if (!isClicked) {
             // Marker is user-defined and has not been clicked before. Record places and add markers.
             _userMarkers.put(id, true);
@@ -177,10 +177,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             placesTask.execute(loc);
             // Make the filters button in the action bar visible
             _filterItem.setVisible(true);
-            return true;
+            return false;
         } else {
             marker.showInfoWindow();
-            return true;
+            return false;
         }
     }
 
