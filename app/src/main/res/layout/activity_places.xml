@@ -7,7 +7,6 @@
     android:orientation="vertical"
     android:id="@+id/place_activity_layout"
     tools:context="com.mapster.activities.PlacesActivity">
-
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -15,58 +14,23 @@
         android:text="Origin"
         android:textSize="10pt"
         android:textColor="#000000"/>
+
     <AutoCompleteTextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/autocomplete_origin"
         android:lines="1"
         android:maxLines="1"
+        android:singleLine="true"
         android:hint="Start Place"/>
-    <!--<Button-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:text="Add Stop Point"-->
-        <!--android:id="@+id/add_stop_point"-->
-        <!--android:onClick="addStopPoint"/>-->
-    <TextView
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Stop Point 1"
-        android:textSize="10pt"
-        android:textColor="#000000"/>
-    <AutoCompleteTextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/autocomplete_stop_point_1"
-        android:lines="1"
-        android:maxLines="1"
-        android:hint="Stop Point 1"/>
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Stop Point 2"
-        android:textSize="10pt"
-        android:textColor="#000000"/>
-    <AutoCompleteTextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/autocomplete_stop_point_2"
-        android:lines="1"
-        android:maxLines="1"
-        android:hint="Stop Point 2"/>
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Stop Point 3"
-        android:textSize="10pt"
-        android:textColor="#000000"/>
-    <AutoCompleteTextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/autocomplete_stop_point_3"
-        android:lines="1"
-        android:maxLines="1"
-        android:hint="Stop Point 3"/>
+        android:orientation="vertical"
+        android:id="@+id/add_stop_points">
+
+    </LinearLayout>
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -80,6 +44,7 @@
         android:id="@+id/autocomplete_destination"
         android:lines="1"
         android:maxLines="1"
+        android:singleLine="true"
         android:hint="Your Destination"/>
     <LinearLayout
         android:layout_width="fill_parent"
@@ -100,6 +65,5 @@
             android:id="@+id/clear"
             android:layout_weight=".50"
             android:onClick="clearAll"/>
-
     </LinearLayout>
 </LinearLayout>

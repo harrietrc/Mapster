@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
@@ -24,33 +25,22 @@ import java.util.concurrent.ExecutionException;
 
 public class PlacesActivity extends ActionBarActivity implements OnItemClickListener{
     private PlacesAutoCompleteAdapter _autoCompAdapder;
-    private LinearLayout _activityLinearLayout;
-    private ArrayList<AutoCompleteTextView> autoCompleteTextViewList;
+    private ArrayList<AutoCompleteTextView> autoCompleteTextViewArrayList;
     private ArrayList<String> coordinateArrayList;
-
-    @Override
-    public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-        String result = (String) adapterView.getItemAtPosition(position);
-        Toast.makeText(this, result, Toast.LENGTH_SHORT).show();
-        InputMethodManager inputManager = (InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE);
-        inputManager.hideSoftInputFromWindow(view.getApplicationWindowToken(), 0);
-        inputManager.hideSoftInputFromInputMethod(view.getApplicationWindowToken(), 0);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_places);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
-        _activityLinearLayout = (LinearLayout) findViewById(R.id.place_activity_layout);
-        getAllAutoCompleteTextViewChildren();
-        initializeAutoCompleteTextViews();
+
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_places, menu);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_places, menu);
         return true;
     }
 
@@ -59,105 +49,135 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch(item.getItemId()){
+            case R.id.action_settings:
+                return true;
+            case R.id.action_add_stops:
+                addStopPoints();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
+    }
 
-        return super.onOptionsItemSelected(item);
+    private void addStopPoints(){
+        LinearLayout layoutToAddPoint = (LinearLayout) findViewById(R.id.add_stop_points);
+        LinearLayout inflateLayout = (LinearLayout)View.inflate(
+                                      this, R.layout.add_stop_points, null);
+        layoutToAddPoint.addView(inflateLayout);
+        layoutToAddPoint.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT));
     }
 
     private void initializeAutoCompleteTextViews() {
-        for (AutoCompleteTextView autoCompTextView : autoCompleteTextViewList){
+        for (final AutoCompleteTextView autoCompTextView : autoCompleteTextViewArrayList){
             autoCompTextView.setAdapter(_autoCompAdapder);
             autoCompTextView.setOnItemClickListener(this);
+            displayTextFromStart(autoCompTextView);
         }
-//        AutoCompleteTextView originAutoCompView = (AutoCompleteTextView) findViewById(R.id.autocomplete_origin);
-//        originAutoCompView.setAdapter(_autoCompAdapder);
-//        originAutoCompView.setOnItemClickListener(this);
-//
-//        AutoCompleteTextView destinationAutoCompView = (AutoCompleteTextView) findViewById(R.id.autocomplete_destination);
-//        destinationAutoCompView.setAdapter(_autoCompAdapder);
-//        destinationAutoCompView.setOnItemClickListener(this);
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+        String result = (String) adapterView.getItemAtPosition(position);
+        Toast.makeText(this, result, Toast.LENGTH_SHORT).show();
+        hideSoftKeyboard(view);
+    }
+
+    private void hideSoftKeyboard(View view){
+        InputMethodManager inputManager = (InputMethodManager) this.getSystemService(
+                Context.INPUT_METHOD_SERVICE);
+        inputManager.hideSoftInputFromWindow(view.getApplicationWindowToken(), 0);
+        inputManager.hideSoftInputFromInputMethod(view.getApplicationWindowToken(), 0);
+    }
+
+    private void displayTextFromStart(final AutoCompleteTextView acTextView){
+        acTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus == false) {  // lost focus
+                    acTextView.setSelection(0,0);
+                }
+            }
+        });
     }
 
     private void getAllAutoCompleteTextViewChildren(){
-        autoCompleteTextViewList = new ArrayList<AutoCompleteTextView>();
+        LinearLayout addPoint = (LinearLayout) findViewById(R.id.add_stop_points);
+        LinearLayout activityLinearLayout = (LinearLayout) findViewById(R.id.place_activity_layout);
+        autoCompleteTextViewArrayList = new ArrayList<AutoCompleteTextView>();
         _autoCompAdapder = new PlacesAutoCompleteAdapter(this, R.layout.list_item);
-        for (int i = 0; i < _activityLinearLayout.getChildCount(); i++) {
-            if (_activityLinearLayout.getChildAt(i) instanceof AutoCompleteTextView) {
-                autoCompleteTextViewList.add((AutoCompleteTextView) _activityLinearLayout.getChildAt(i));
+        // Must be in this order because of the order of origin and destination
+        addAutoCompleteTextViewInLayoutToList(addPoint);
+        addAutoCompleteTextViewInLayoutToList(activityLinearLayout);
+    }
+
+    private void addAutoCompleteTextViewInLayoutToList(LinearLayout llayout){
+        for (int i = 0; i < llayout.getChildCount(); i++) {
+            if (llayout.getChildAt(i) instanceof AutoCompleteTextView) {
+                autoCompleteTextViewArrayList.add((AutoCompleteTextView) llayout.getChildAt(i));
             }
         }
     }
 
     public void clearAll(View view){
-        for (AutoCompleteTextView acTextView : autoCompleteTextViewList){
+        for (AutoCompleteTextView acTextView : autoCompleteTextViewArrayList){
             acTextView.setText("");
         }
     }
 
     public void ok(View view){
-        if(checkForOriginAndDestination()){
-            coordinateArrayList = new ArrayList<>();
-            for (AutoCompleteTextView acTextView : autoCompleteTextViewList){
-                try {
-                    if(acTextView.getText().toString().length() > 1) {
-                        String[] coordinate = new GeoCode().execute(acTextView.getText().toString()).get();
-                        coordinateArrayList.add(coordinate[0]);
-                        coordinateArrayList.add(coordinate[1]);
-                    }
-
-                } catch(InterruptedException e){
-                    e.printStackTrace();
-                } catch(ExecutionException e){
-                    e.printStackTrace();
-                }
-            }
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.putExtra("CO-ORDINATE_LIST", coordinateArrayList);
-            startActivity(intent);
+        getAllAutoCompleteTextViewChildren();
+        initializeAutoCompleteTextViews();
+        if(isNotOriginAndDestinationEmpty()){
+            addUserCoordinateToArrayList();
+            transferDataToMainActivity();
         } else {
-            Toast.makeText(this,"Origin and Destination fields can not be blank",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,"Origin and Destination fields can not be blank",
+                           Toast.LENGTH_SHORT).show();
         }
+    }
 
-       }
+    private void addUserCoordinateToArrayList(){
+        coordinateArrayList = new ArrayList<>();
+        for (AutoCompleteTextView acTextView : autoCompleteTextViewArrayList){
+            try {
+                if(acTextView.getText().toString().length() > 1) {
+                    String[] coordinate = new GeoCode().execute(acTextView.getText().toString()).get();
+                    coordinateArrayList.add(coordinate[0]);
+                    coordinateArrayList.add(coordinate[1]);
+                }
+            } catch(InterruptedException e){
+                e.printStackTrace();
+            } catch(ExecutionException e){
+                e.printStackTrace();
+            }
+        }
+    }
 
-    private boolean checkForOriginAndDestination(){
-        AutoCompleteTextView originInList = autoCompleteTextViewList.get(0);
-        AutoCompleteTextView destinationInList = autoCompleteTextViewList.get(autoCompleteTextViewList.size() - 1);
-        AutoCompleteTextView originInLayout = (AutoCompleteTextView) findViewById(R.id.autocomplete_origin);
-        AutoCompleteTextView destinationInLayout = (AutoCompleteTextView) findViewById(R.id.autocomplete_destination);
+    private void transferDataToMainActivity(){
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("COORDINATE_LIST", coordinateArrayList);
+        startActivity(intent);
+    }
+
+    private boolean isNotOriginAndDestinationEmpty(){
+        AutoCompleteTextView originInList = autoCompleteTextViewArrayList.get(0);
+        AutoCompleteTextView destinationInList = autoCompleteTextViewArrayList.get(
+                                                 autoCompleteTextViewArrayList.size() - 1);
+        AutoCompleteTextView originInLayout =
+                            (AutoCompleteTextView) findViewById(R.id.autocomplete_origin);
+        AutoCompleteTextView destinationInLayout =
+                            (AutoCompleteTextView) findViewById(R.id.autocomplete_destination);
         if(originInLayout.equals(originInList) && destinationInLayout.equals(destinationInList)){
-            if(!originInList.getText().toString().isEmpty() && !destinationInLayout.getText().toString().isEmpty()){
-                return true;
-            } else {
+            if(originInList.getText().toString().isEmpty()
+            || destinationInLayout.getText().toString().isEmpty()){
                 return false;
+            } else {
+                return true;
             }
         } else {
             return false;
         }
     }
-
-//    public void addStopPoint(View view){
-//        createTextViewToThisLayout("Stop Point");
-//    }
-//
-//    private TextView createTextViewToThisLayout(String text){
-//        final LinearLayout.LayoutParams lparams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-//        final TextView textView = new TextView(this);
-////        textView.setLayoutParams(lparams);
-//        textView.setText(text);
-//        activityLayout.addView(textView);
-//        return textView;
-//    }
-//
-//    private AutoCompleteTextView createAutoCompleteTextView(){
-//        final LinearLayout.LayoutParams lparams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-//        final AutoCompleteTextView autoCompleteTextView = new AutoCompleteTextView(this);
-//        return autoCompleteTextView;
-//    }
-
 }
