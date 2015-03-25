@@ -75,9 +75,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         initializeGoogleMap();
         getDataFromPlaceActivity();
         convertStringArrayListToLatLngArrayList();
-        MarkerOptions options = initializeOptionMarker();
         _userMarkers = new HashMap<>();
-        _map.addMarker(options);
         String url = getMapsApiDirectionsUrl();
         DirectionsTask downloadTask = new DirectionsTask();
         downloadTask.execute(url);
@@ -238,8 +236,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             int name = 0;
             for (LatLng position : latLngArrayList){
                 name++;
-                _map.addMarker(new MarkerOptions().position(position)
+                Marker m = _map.addMarker(new MarkerOptions().position(position)
                         .title(Integer.toString(name)));
+                _userMarkers.put(m.getId(), false);
+//                m.showInfoWindow();
             }
         }
     }
