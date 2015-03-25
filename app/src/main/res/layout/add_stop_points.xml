@@ -18,7 +18,7 @@
         android:lines="1"
         android:maxLines="1"
         android:singleLine="true"
-        android:textSize="6pt"
+        android:textSize="7pt"
         android:hint="Stop Point"
         android:paddingLeft="10pt"/>
 </LinearLayout>
