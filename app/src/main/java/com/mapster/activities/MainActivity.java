@@ -9,6 +9,11 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.content.Intent;
+import android.graphics.Color;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
@@ -47,16 +52,9 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener {
-
-//    private List<Marker> _markers;
-    private static final LatLng SKY_CITY = new LatLng(-37.044116, 175.0610719);
-    private static final LatLng CHRISTCHURCH = new LatLng(-43.5320544, 172.6362254);
-    private static final LatLng TAURANGA = new LatLng(-37.6877974, 176.1651295);
-    private static final LatLng ROTURUA = new LatLng(-38.1368478, 176.2497461);
-    private static final LatLng UNIVERSITY = new LatLng(-36.852338,174.76910);
-
     private static final float UNDEFINED_COLOUR = -1;
-
+    private ArrayList<String> coordinateArrayList;
+    private ArrayList<LatLng> latLngArrayList;
     private GoogleMap _map;
 
     // Markers divided into categories (to make enumeration of categories faster)
@@ -71,22 +69,22 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //TODO refactor
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        SupportMapFragment fm = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        _map = fm.getMap();
-
+        initializeGoogleMap();
+        getDataFromPlaceActivity();
+        convertStringArrayListToLatLngArrayList();
+        MarkerOptions options = initializeOptionMarker();
         _userMarkers = new HashMap<>();
-
+        _map.addMarker(options);
         String url = getMapsApiDirectionsUrl();
         DirectionsTask downloadTask = new DirectionsTask();
         downloadTask.execute(url);
 
-        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(UNIVERSITY,
-                13)); // Setting zoom >13 crashes the emulator, see https://code.google.com/p/android/issues/detail?id=82997
+        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngArrayList.get(0),
+                13));
         addMarkers();
-
         _map.setOnMarkerClickListener(this);
         _map.setInfoWindowAdapter(new SuggestionInfoAdapter(getLayoutInflater()));
 
@@ -114,8 +112,36 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _markersByCategory.put("accommodation", new ArrayList<Marker>());
     }
 
+    private void initializeGoogleMap(){
+        SupportMapFragment fm = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        _map = fm.getMap();
+    }
+
+    private void getDataFromPlaceActivity(){
+        Intent i = getIntent();
+        coordinateArrayList = i.getStringArrayListExtra("COORDINATE_LIST");
+        System.out.println("MAPSTER" + coordinateArrayList.size());
+    }
+
+    private void convertStringArrayListToLatLngArrayList(){
+        latLngArrayList = new ArrayList<>();
+        for (int position = 0; position < coordinateArrayList.size() - 1; position += 2){
+            latLngArrayList.add(new LatLng(Double.parseDouble(coordinateArrayList.get(position)),Double.parseDouble(coordinateArrayList.get(position + 1))));
+        }
+    }
+
+    private MarkerOptions initializeOptionMarker(){
+        MarkerOptions options = new MarkerOptions();
+        for (LatLng position : latLngArrayList){
+            options.position(position);
+        }
+        return options;
+    }
+
     public String buildPlacesUrl(double lat, double lng, int radius, String[] types) {
-        StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
+        StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place"
+                                             + "/nearbysearch/json?");
         sb.append("key=" + getResources().getString(R.string.API_KEY));
         sb.append("&location=" + lat + "," + lng);
         sb.append("&radius=" + radius);
@@ -185,28 +211,35 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     private String getMapsApiDirectionsUrl() {
-        String waypoints = "origin="
-                + SKY_CITY.latitude + "," + SKY_CITY.longitude
-                + "&waypoints=optimize:true|" + ROTURUA.latitude + "," + ROTURUA.longitude
-                + "|" + TAURANGA.latitude + "," + TAURANGA.longitude
-                + "&destination=" + CHRISTCHURCH.latitude + "," + CHRISTCHURCH.longitude ;
-        String output = "json";
-        String sensor = "&sensor=true";
-        String url = "https://maps.googleapis.com/maps/api/directions/"
-                + output + "?" + waypoints + sensor;
-        //url = "https://maps.googleapis.com/maps/api/directions/json?origin=41.3758887,2.1745799999999917&waypoints=41.39097711845494,2.1807326361331434|41.38680260504134,2.188132850805232|41.38458293055814,2.1758925899657697&destination=41.38394800519846,2.166872321048686&sensor=true&mode=walking";
+        //TODO refactor String --> StringBuilder
+        int size = latLngArrayList.size();
+        LatLng originCoordinate = latLngArrayList.get(0);
+        LatLng destinationCoordinate = latLngArrayList.get(1);
+        String origin = "?origin=" + originCoordinate.latitude + "," + originCoordinate.longitude;
+        String destination = "&destination=" + destinationCoordinate.latitude + "," + destinationCoordinate.longitude;
+        String waypoints = "";
+        if(size > 2){
+            waypoints = "&waypoints=optimize:true";
+            for(int position = 2; position < size; position ++){
+                LatLng coordinate = latLngArrayList.get(position);
+                waypoints += "|" + coordinate.latitude + "," + coordinate.longitude ;
+            }
+        }
+
+        String output = "/json";
+        String url = "https://maps.googleapis.com/maps/api/directions"
+                + output + origin + waypoints + destination;
+        System.out.println(url);
         return url;
     }
 
     private void addMarkers() {
         if (_map != null) {
-            LatLng[] positions = {SKY_CITY, CHRISTCHURCH, TAURANGA, TAURANGA, UNIVERSITY};
-            String[] titles = {"First Point", "Second Point", "Third Point", "Fourth Point", "University of Auckland"};
-
-            for (int i=0; i<positions.length; i++) {
-                Marker m =_map.addMarker(new MarkerOptions().position(positions[i]).title(titles[i]));
-                _userMarkers.put(m.getId(), false);
-                m.showInfoWindow();
+            int name = 0;
+            for (LatLng position : latLngArrayList){
+                name++;
+                _map.addMarker(new MarkerOptions().position(position)
+                        .title(Integer.toString(name)));
             }
         }
     }
@@ -407,61 +440,19 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
                 for (int j = 0; j < path.size(); j++) {
                     HashMap<String, String> point = path.get(j);
-
                     double lat = Double.parseDouble(point.get("lat"));
                     double lng = Double.parseDouble(point.get("lng"));
                     LatLng position = new LatLng(lat, lng);
-
                     points.add(position);
                 }
-
                 polyLineOptions.addAll(points);
                 polyLineOptions.width(2);
                 polyLineOptions.color(Color.BLUE);
             }
-
             _map.addPolyline(polyLineOptions);
         }
     }
 
-//    @Override
-//    public void onMapReady(final GoogleMap googleMap) {
-//        newMarker(-36.853085, 174.76958, "The University of Auckland", googleMap);
-//        newMarker(-36.848448,174.762191, "The Sky Tower", googleMap);
-//        newMarker(-36.8273514, 174.811964, "North Head", googleMap);
-//
-//        googleMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
-//            @Override
-//            public void onCameraChange(CameraPosition cameraPosition) {
-//                // Auto-zoom to fit all markers
-//                // This builder creates a minimum bound based on a set of LatLng points
-//                LatLngBounds.Builder b = new LatLngBounds.Builder();
-//                for (Marker m: _markers) {
-//                    b.include(m.getPosition());
-//                }
-//                LatLngBounds bounds = b.build();
-//
-//                // The second argument is padding
-//                googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 50));
-//                googleMap.setOnCameraChangeListener(null);
-//            }
-//        });
-//
-//    }
-//
-//    /**
-//     * Convenience method for adding new markers and keeping track of them in a list.
-//     * @param latitude = Latitude value for marker
-//     * @param longitude = Longitude value for marker
-//     * @param name = Name associated with the marker
-//     * @param map = Map that this marker will be added to
-//     */
-//    private void newMarker(double latitude, double longitude, String name, GoogleMap map) {
-//        Marker marker = map.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude))
-//                .title(name));
-//        _markers.add(marker);
-//    }
-//
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -478,15 +469,12 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
-
 
     public void onFilterItemClick(MenuItem item) {
         item.setChecked(true);

@@ -9,4 +9,6 @@
     <string name="YELP_TOKEN">1NJPh7dnIXFYmSddco6Ato4oXJzaE25h</string>
     <!--<string name="API_KEY">AIzaSyDGbryAn8AT_UliJQk6OnCQ0b-CMLJhNFw</string>--> <!-- This one's yours, Tommy - wasn't working for Places API for me today -->
 
+    <string name="title_activity_places">Places</string>
+
 </resources>

@@ -1,0 +1,78 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.mapster.activities.PlacesActivity">
+    <LinearLayout android:layout_width="match_parent"
+        android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:orientation="vertical"
+        android:id="@+id/place_activity_layout"
+        >
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/origin"
+            android:text="Origin"
+            android:textSize="8pt"
+            android:textColor="#287AA9"/>
+
+        <AutoCompleteTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/autocomplete_origin"
+            android:lines="1"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:textSize="7pt"
+            android:hint="Start Place"
+            android:paddingLeft="5pt"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:id="@+id/add_stop_points">
+
+        </LinearLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/destination"
+            android:text="Destination"
+            android:textSize="8pt"
+            android:textColor="#287AA9"/>
+        <AutoCompleteTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/autocomplete_destination"
+            android:lines="1"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:textSize="7pt"
+            android:hint="Your Destination"
+            android:paddingLeft="5pt" />
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:layout_marginTop="20dp">
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="OK"
+                android:id="@+id/ok"
+                android:layout_weight=".50"
+                android:onClick="ok"/>
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Clear All"
+                android:id="@+id/clear"
+                android:layout_weight=".50"
+                android:onClick="clearAll"/>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
