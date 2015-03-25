@@ -3,4 +3,38 @@
     xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" app:showAsAction="never" />
+    <item
+        android:title="Filter"
+        android:id="@+id/filter"
+        android:icon="@drawable/ic_menu_star"
+        android:visible="false"
+        app:showAsAction="always">
+        <menu>
+            <group
+                android:id="@+id/filterGroup"
+                android:checkableBehavior="single">
+                <item
+                    android:id="@+id/all"
+                    android:onClick="onFilterItemClick"
+                    android:checked="true"
+                    android:title="All"/>
+                <item
+                    android:id="@+id/dining"
+                    android:onClick="onFilterItemClick"
+                    android:title="Dining"/>
+                <item
+                    android:id="@+id/attraction"
+                    android:onClick="onFilterItemClick"
+                    android:title="Attractions"/>
+                <item
+                    android:id="@+id/accommodation"
+                    android:onClick="onFilterItemClick"
+                    android:title="Accommodation"/>
+            </group>
+                <item
+                    android:id="@+id/clear"
+                    android:onClick="onFilterItemClick"
+                    android:title="Clear"/>
+        </menu>
+    </item>
 </menu>
