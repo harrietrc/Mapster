@@ -66,6 +66,8 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus == false) {  // lost focus
                     acTextView.setSelection(0,0);
+                }else{
+                    acTextView.setText("");
                 }
             }
         });
