@@ -10,10 +10,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.content.Intent;
-import android.graphics.Color;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
@@ -237,7 +233,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             for (LatLng position : latLngArrayList){
                 name++;
                 Marker m = _map.addMarker(new MarkerOptions().position(position)
-                        .title(Integer.toString(name)));
+                        .title("Marker " + Integer.toString(name)));
                 _userMarkers.put(m.getId(), false);
 //                m.showInfoWindow();
             }
@@ -390,6 +386,11 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
     }
 
+    /**
+     * @param latLng = The latitude and longitude of the new marker
+     * @param bd = An icon for the marker
+     * @return = The new marker
+     */
     private Marker drawMarker(LatLng latLng, BitmapDescriptor bd) {
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(latLng);
@@ -596,9 +597,14 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
     }
 
+
     public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter {
 
         private LayoutInflater _inflater;
+
+        // This field prevents the ImageView from being garbage collected before its drawable can be
+        // set, and the image returned by Picasso displayed.
+        private ImageView _currentInfoWindowImage;
 
         public SuggestionInfoAdapter(LayoutInflater inflater) {
             _inflater = inflater;
@@ -655,8 +661,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                     } else {
                         // Marker clicked for first time - download the icon and load it into the view
                         s.setClicked(true);
-                        Picasso.with(MainActivity.this).load(imageUrl).resize(150, 150).centerCrop().into(image,
-                                new InfoWindowRefresher(marker));
+                        _currentInfoWindowImage = image;
+                        Picasso.with(MainActivity.this).load(imageUrl).resize(150, 150).centerCrop()
+                                .into(_currentInfoWindowImage, new InfoWindowRefresher(marker));
                     }
                 }
             }

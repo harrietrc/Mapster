@@ -40,8 +40,10 @@ public class GooglePlaceDetailJsonParser {
 
         try {
             // Street address
-            String formattedAddress = jsonDetail.getString("formatted_address");
-            detail.shortAddress = formattedAddress.split(",")[0]; // First line of the address
+            if (!jsonDetail.getString("formatted_address").equals(JSONObject.NULL)) {
+                String formattedAddress = jsonDetail.getString("formatted_address");
+                detail.shortAddress = formattedAddress.split(",")[0]; // First line of the address
+            }
 
             // Phone number
             if (!jsonDetail.isNull("formatted_phone_number")) {
