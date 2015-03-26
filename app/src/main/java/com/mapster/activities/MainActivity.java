@@ -400,6 +400,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     private Marker drawMarker(LatLng latLng, float colour) {
+        //TODO remove if necessary
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(latLng);
         if (colour != UNDEFINED_COLOUR) {
