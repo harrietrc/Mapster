@@ -29,7 +29,31 @@
             android:textSize="7pt"
             android:hint="Start Place"
             android:paddingLeft="5pt"/>
-
+        <RadioGroup
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Drive"
+                android:id="@+id/drive_mode"/>
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Walk"
+                android:id="@+id/walk_mode"/>
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bike"
+                android:id="@+id/bike_mode"/>
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Transit"
+                android:id="@+id/transit_mode"/>
+        </RadioGroup>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -115,7 +115,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private void getDataFromPlaceActivity(){
         Intent i = getIntent();
         coordinateArrayList = i.getStringArrayListExtra("COORDINATE_LIST");
-        System.out.println("MAPSTER" + coordinateArrayList.size());
     }
 
     private void convertStringArrayListToLatLngArrayList(){
@@ -223,7 +222,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         String output = "/json";
         String url = "https://maps.googleapis.com/maps/api/directions"
                 + output + origin + waypoints + destination;
-        System.out.println(url);
         return url;
     }
 

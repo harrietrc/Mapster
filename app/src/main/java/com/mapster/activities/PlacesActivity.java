@@ -8,12 +8,13 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AutoCompleteTextView;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import com.mapster.R;
@@ -21,41 +22,54 @@ import com.mapster.geocode.GeoCode;
 import com.mapster.places.autocomplete.PlacesAutoCompleteAdapter;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static junit.framework.Assert.assertTrue;
 
 public class PlacesActivity extends ActionBarActivity implements OnItemClickListener{
-    private PlacesAutoCompleteAdapter _autoCompAdapder;
-    private ArrayList<AutoCompleteTextView> autoCompleteTextViewArrayList;
-    private ArrayList<String> coordinateArrayList;
+    private PlacesAutoCompleteAdapter _autoCompAdapter;
+    private ArrayList<AutoCompleteTextView> _autoCompleteTextViewArrayList;
+    private ArrayList<String> _coordinateArrayList;
+    private List<RadioGroup> _transportModeViewList;
+    private List<String> _transportModeList;
+    public enum TravelMode{
+        DRIVING("driving"), WALKING("walking"), BIKING("bicycling"), TRANSIT("transit");
+        private final String name;
+        private TravelMode(String name){
+            this.name = name;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        autoCompleteTextViewArrayList = new ArrayList<AutoCompleteTextView>();
-        _autoCompAdapder = new PlacesAutoCompleteAdapter(this, R.layout.list_item);
+        _autoCompleteTextViewArrayList = new ArrayList<>();
+        _transportModeViewList = new ArrayList<>();
+        _autoCompAdapter = new PlacesAutoCompleteAdapter(this, R.layout.list_item);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_places);
-        addAutoCompleteTextViewInLayoutToArrayList((LinearLayout)findViewById(R.id.place_activity_layout));
+        addViewsInLayoutToArrayList((LinearLayout) findViewById(R.id.place_activity_layout));
         initializeAutoCompleteTextViewInArrayList();
     }
 
-    private void addAutoCompleteTextViewInLayoutToArrayList(LinearLayout llayout){
+    private void addViewsInLayoutToArrayList(LinearLayout llayout){
         for (int i = 0; i < llayout.getChildCount(); i++) {
             if (llayout.getChildAt(i) instanceof AutoCompleteTextView) {
-                autoCompleteTextViewArrayList.add((AutoCompleteTextView) llayout.getChildAt(i));
+                _autoCompleteTextViewArrayList.add((AutoCompleteTextView) llayout.getChildAt(i));
+            } else if(llayout.getChildAt(i) instanceof RadioGroup) {
+                _transportModeViewList.add((RadioGroup) llayout.getChildAt(i));
             }
         }
     }
 
     private void initializeAutoCompleteTextViewInArrayList(){
-        for (AutoCompleteTextView acTextView : autoCompleteTextViewArrayList){
+        for (AutoCompleteTextView acTextView : _autoCompleteTextViewArrayList){
             initializeAutoCompleteTextViews(acTextView);
         }
     }
 
     private void initializeAutoCompleteTextViews(AutoCompleteTextView autoCompleteTextView) {
-        autoCompleteTextView.setAdapter(_autoCompAdapder);
+        autoCompleteTextView.setAdapter(_autoCompAdapter);
         autoCompleteTextView.setOnItemClickListener(this);
         displayTextFromStart(autoCompleteTextView);
     }
@@ -64,18 +78,17 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         acTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus == false) {  // lost focus
-                    acTextView.setSelection(0,0);
-                }else{
-                    acTextView.setText("");
-                }
+            if (hasFocus == false) {  // lost focus
+                acTextView.setSelection(0,0);
+            }else{
+                acTextView.setText("");
+            }
             }
         });
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_places, menu);
         return true;
@@ -88,9 +101,11 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                 return true;
             case R.id.action_add_stops:
                 final int positionOfAutoCompleteTextView = 1;
+                final int positionOfRadioGroupView = 2;
                 LinearLayout linearLayout = addStopPoints();
                 addAutoCompleteTextViewToArrayList((AutoCompleteTextView)linearLayout.getChildAt(positionOfAutoCompleteTextView));
                 initializeAutoCompleteTextViews((AutoCompleteTextView)linearLayout.getChildAt(positionOfAutoCompleteTextView));
+                addRadioGroupToList((RadioGroup)linearLayout.getChildAt(positionOfRadioGroupView));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -108,7 +123,11 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     }
 
     private void addAutoCompleteTextViewToArrayList(AutoCompleteTextView autoCompleteTextView){
-        autoCompleteTextViewArrayList.add(autoCompleteTextView);
+        _autoCompleteTextViewArrayList.add(autoCompleteTextView);
+    }
+
+    private void addRadioGroupToList(RadioGroup radioGroup){
+        _transportModeViewList.add(radioGroup);
     }
 
     @Override
@@ -126,7 +145,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     }
 
     public void clearAll(View view){
-        for (AutoCompleteTextView acTextView : autoCompleteTextViewArrayList){
+        for (AutoCompleteTextView acTextView : _autoCompleteTextViewArrayList){
             acTextView.setText("");
         }
     }
@@ -134,6 +153,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     public void ok(View view){
         if(isNotOriginAndDestinationEmpty()){
             addUserCoordinateToArrayList();
+            addTransportModeToList();
             moveToMainActivityWithData();
         } else {
             Toast.makeText(this,"Origin and Destination fields must not be blank",
@@ -142,8 +162,8 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     }
 
     private boolean isNotOriginAndDestinationEmpty(){
-        AutoCompleteTextView originInList = autoCompleteTextViewArrayList.get(0);
-        AutoCompleteTextView destinationInList = autoCompleteTextViewArrayList.get(1);
+        AutoCompleteTextView originInList = _autoCompleteTextViewArrayList.get(0);
+        AutoCompleteTextView destinationInList = _autoCompleteTextViewArrayList.get(1);
         AutoCompleteTextView originInLayout =
                 (AutoCompleteTextView) findViewById(R.id.autocomplete_origin);
         AutoCompleteTextView destinationInLayout =
@@ -158,14 +178,14 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     }
 
     private void addUserCoordinateToArrayList(){
-        coordinateArrayList = new ArrayList<>();
-        for (AutoCompleteTextView acTextView : autoCompleteTextViewArrayList){
+        _coordinateArrayList = new ArrayList<>();
+        for (AutoCompleteTextView acTextView : _autoCompleteTextViewArrayList){
             try {
-                if(acTextView.getText().toString().length() > 1) {
+                if(!acTextView.getText().toString().isEmpty()) {
                     String[] coordinate = new GeoCode().execute(
                                                         acTextView.getText().toString()).get();
-                    coordinateArrayList.add(coordinate[0]);
-                    coordinateArrayList.add(coordinate[1]);
+                    _coordinateArrayList.add(coordinate[0]);
+                    _coordinateArrayList.add(coordinate[1]);
                 }
             } catch(InterruptedException e){
                 e.printStackTrace();
@@ -175,9 +195,51 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         }
     }
 
+    private void addTransportModeToList(){
+        _transportModeList = new ArrayList<>();
+        for(int i = 0; i < _transportModeViewList.size(); i++){
+            if(_autoCompleteTextViewArrayList.get(i).getId() != R.id.autocomplete_destination) {
+                if (!_autoCompleteTextViewArrayList.get(i + 1).getText().toString().isEmpty()) {
+                    for (int j = 0; j < _transportModeViewList.get(i).getChildCount(); j++) {
+                        RadioButton rb = (RadioButton) _transportModeViewList.get(i).getChildAt(j);
+                        addToTranposportModeList(rb);
+                    }
+                }
+            }
+        }
+    }
+
+    private void addToTranposportModeList(RadioButton rb){
+        switch(rb.getId()) {
+            case R.id.bike_mode:
+                if (rb.isChecked()) {
+                    _transportModeList.add(TravelMode.BIKING.name);
+                }
+                break;
+            case R.id.drive_mode:
+                if (rb.isChecked()) {
+                    _transportModeList.add(TravelMode.DRIVING.name);
+                }
+                break;
+            case R.id.transit_mode:
+                if (rb.isChecked()) {
+                    _transportModeList.add(TravelMode.TRANSIT.name);
+                }
+                break;
+            case R.id.walk_mode:
+                if (rb.isChecked()) {
+                    _transportModeList.add(TravelMode.WALKING.name);
+                }
+                break;
+            default:
+                break;
+        }
+
+    }
+
     private void moveToMainActivityWithData(){
         Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra("COORDINATE_LIST", coordinateArrayList);
+        intent.putExtra("COORDINATE_LIST", _coordinateArrayList);
         startActivity(intent);
     }
 }
