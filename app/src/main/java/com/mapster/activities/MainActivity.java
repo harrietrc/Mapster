@@ -65,7 +65,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private HashMap<String, Boolean> _userMarkers;
 
     private MenuItem _filterItem; // Filters button and menu
-    private String currentCategory;
+    private String _currentCategory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -511,11 +511,11 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         // A 'null' level should be interpreted as no filter
         if (level == null) {
             // Set all the markers from the current category to visible
-            if (currentCategory == null) {
+            if (_currentCategory == null) {
                 // No category selected - all markers should be visible
                 setAllMarkersVisible(true);
             } else {
-                List<Marker> markers = _markersByCategory.get(currentCategory);
+                List<Marker> markers = _markersByCategory.get(_currentCategory);
                 setMarkerListVisible(true, markers);
             }
         } else {
@@ -535,27 +535,27 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             case R.id.all:
                 // Display all the markers
                 setAllMarkersVisible(true);
-                currentCategory = null;
+                _currentCategory = null;
                 break;
             case R.id.accommodation:
                 // Set accommodation markers visible
                 setAllMarkersVisible(false);
                 List<Marker> accommodationMarkers = _markersByCategory.get("accommodation");
-                currentCategory = "accommodation";
+                _currentCategory = "accommodation";
                 setMarkerListVisible(true, accommodationMarkers);
                 break;
             case R.id.attraction:
                 // Set attraction markers visible
                 setAllMarkersVisible(false);
                 List<Marker> attractionMarkers = _markersByCategory.get("attractions");
-                currentCategory = "attractions";
+                _currentCategory = "attractions";
                 setMarkerListVisible(true, attractionMarkers);
                 break;
             case R.id.dining:
                 // Set dining markers visible
                 setAllMarkersVisible(false);
                 List<Marker> diningMarkers = _markersByCategory.get("dining");
-                currentCategory = "dining";
+                _currentCategory = "dining";
                 setMarkerListVisible(true, diningMarkers);
                 break;
             default:
@@ -572,10 +572,15 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         Menu filters = _filterItem.getSubMenu();
         filters.findItem(R.id.all).setChecked(true);
         filters.findItem(R.id.priceLevelNone).setChecked(false);
+
         // Hide the filter button - no suggestions to filter
         _filterItem.setVisible(false);
+
         // Reset 'clicked' values for all user-defined markers (all suggestions cleared)
         resetMarkersClicked();
+
+        // Set the currently selected category to null
+        _currentCategory = null;
     }
 
     /**
