@@ -1,29 +1,34 @@
 package com.mapster.suggestions;
 
 import com.google.android.gms.maps.model.Marker;
+import com.mapster.places.GooglePlace;
+import com.mapster.places.GooglePlaceDetail;
 
 /**
  * Created by Harriet on 3/22/2015.
  */
 public class Suggestion {
     private Marker _marker;
-    private String _placeId;
-    private float _rating;
     private String _category;
-    private String _photoReference;
     private boolean _isClicked;
 
-    public Suggestion(Marker marker, String placeId, String category, float rating, String photoReference) {
+    // Save data about the Google Place that this marker represents
+    private GooglePlace _place;
+
+    public Suggestion(Marker marker, GooglePlace place, String category) {
         _marker = marker;
-        _placeId = placeId;
+        // TODO Set category from GooglePlace as well
         _category = category;
-        _rating = rating;
-        _photoReference = photoReference;
         _isClicked = false;
+        _place = place;
+    }
+
+    public void setPlaceDetail(GooglePlaceDetail detail) {
+        _place.setDetail(detail);
     }
 
     public String getPhotoReference() {
-        return _photoReference;
+        return _place.photoReference;
     }
 
     public Marker getMarker() {
@@ -31,7 +36,7 @@ public class Suggestion {
     }
 
     public float getRating() {
-        return _rating;
+        return _place.rating;
     }
 
     public String getCategory() {
@@ -39,7 +44,7 @@ public class Suggestion {
     }
 
     public String getPlaceId() {
-        return _placeId;
+        return _place.id;
     }
 
     public boolean isClicked() {

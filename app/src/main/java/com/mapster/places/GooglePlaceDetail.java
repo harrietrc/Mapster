@@ -13,10 +13,21 @@ public class GooglePlaceDetail {
     public String shortAddress;
     public String website; // May be null
     public String phoneNumber; // May be null
+    public String priceLevel; // Rates the expense of the place, with 0 being free and 4 very expensive
 
     // TODO: show today's hours in InfoWindow of suggestion markers
     private HashMap<String, String> _openHours;
 
     // TODO: reviews summary (Google offers this as a premium service - worth looking into?)
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(shortAddress);
+        if (phoneNumber != null)
+            sb.append("\n" + phoneNumber);
+        if (website != null)
+            sb.append("\n" + website);
+        return sb.toString();
+    }
 
 }

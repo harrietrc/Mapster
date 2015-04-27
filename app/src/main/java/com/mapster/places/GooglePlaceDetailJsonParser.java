@@ -11,7 +11,7 @@ import org.json.JSONObject;
  * string (no UI-related processing is required after parsing).
  */
 public class GooglePlaceDetailJsonParser {
-    public String parse(JSONObject json) {
+    public GooglePlaceDetail parse(JSONObject json) {
         JSONObject jsonDetail = null;
         StringBuilder sb = new StringBuilder();
 
@@ -21,13 +21,7 @@ public class GooglePlaceDetailJsonParser {
             e.printStackTrace();
         }
         GooglePlaceDetail detail = getDetail(jsonDetail);
-
-        sb.append(detail.shortAddress);
-        if (detail.phoneNumber != null)
-            sb.append("\n" + detail.phoneNumber);
-        if (detail.website != null)
-            sb.append("\n" + detail.website);
-        return sb.toString();
+        return detail;
     }
 
     /**
@@ -53,6 +47,11 @@ public class GooglePlaceDetailJsonParser {
             // Website
             if (!jsonDetail.isNull("website")) {
                 detail.website = jsonDetail.getString("website");
+            }
+
+            // Price level - note that most of the time this isn't provided.
+            if (!jsonDetail.isNull("price_level")) {
+                detail.priceLevel = jsonDetail.getString("price_level"); // Error checking?
             }
 
             // TODO: opening hours (will be more complicated if we're to show only today's hours)

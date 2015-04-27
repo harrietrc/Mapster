@@ -22,6 +22,26 @@ public class GooglePlace {
     public String[] categories;
     public String photoReference;
 
+    // Save the details of a place, if they are retrieved.
+    private GooglePlaceDetail _detail;
+
+    /**
+     * Returns the price
+     */
+    public Integer getPriceLevel() {
+        if (_detail.priceLevel == null)
+            return null;
+        return Integer.parseInt(_detail.priceLevel);
+    }
+
+    // TODO Composition: is there a best practice for setting the properties of contained objects?
+    // I feel like setters and getters are a good option because you can control the access precisely
+    // and how fine grained that access will be. It also allows customisation of how values are
+    // processed but has the danger of setters/getters that do too much (e.g. change values)
+    public void setDetail(GooglePlaceDetail detail) {
+        _detail = detail;
+    }
+
     private static String[] _allCategories;
 
     // Default category for uncategorised places
@@ -86,6 +106,6 @@ public class GooglePlace {
     }
 
     public GooglePlace() {
-
+        _detail = null;
     }
 }

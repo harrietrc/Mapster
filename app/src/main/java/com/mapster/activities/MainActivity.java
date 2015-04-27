@@ -29,6 +29,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
 import com.mapster.json.JSONParser;
 import com.mapster.places.GooglePlace;
+import com.mapster.places.GooglePlaceDetail;
 import com.mapster.places.GooglePlaceDetailJsonParser;
 import com.mapster.places.GooglePlaceJsonParser;
 import com.mapster.suggestions.Suggestion;
@@ -177,7 +178,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
             if (marker.getSnippet() == null) {
                 PlaceDetailTask detailTask = new PlaceDetailTask();
-                String detail = "";
+                GooglePlaceDetail detail = null;
+                String infoWindowString;
 
                 // Query the Places API for detail on place corresponding to marker
                 try {
@@ -185,7 +187,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace();
                 }
-                marker.setSnippet(detail);
+                // Use the detail to set the information displayed in the popup and save it to the place.
+                infoWindowString = detail == null? "" : detail.toString();
+                marker.setSnippet(infoWindowString);
+                s.setPlaceDetail(detail);
             }
             marker.showInfoWindow();
             return false; // Marker toolbar will be shown (returning false allows default behaviour)
@@ -255,13 +260,11 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
      * Ensures that the suggestion is categorised and keyed by marker id (so that it can be easily
      * retrieved) when it is created.
      * @param marker
-     * @param placeId
-     * @param rating
+     * @param place
      * @param category
      */
-    private void addSuggestion(Marker marker, String placeId, String category, float rating,
-                               String imageUrl) {
-        Suggestion suggestion = new Suggestion(marker, placeId, category, rating, imageUrl);
+    private void addSuggestion(Marker marker, GooglePlace place, String category) {
+        Suggestion suggestion = new Suggestion(marker, place, category);
         _suggestionsByMarkerId.put(marker.getId(), suggestion);
         List<Marker> cat = _markersByCategory.get(category);
         cat.add(marker);
@@ -277,14 +280,14 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
     }
 
-    private class PlaceDetailTask extends AsyncTask<String, Void, String> {
+    private class PlaceDetailTask extends AsyncTask<String, Void, GooglePlaceDetail> {
 
         @Override
-        protected String doInBackground(String... placeIds) {
+        protected GooglePlaceDetail doInBackground(String... placeIds) {
             GooglePlaceDetailJsonParser detailJsonParser = new GooglePlaceDetailJsonParser();
             String url = buildDetailUrl(placeIds[0]);
             String response = downloadUrl(url);
-            String detail = "";
+            GooglePlaceDetail detail = null;
 
             try {
                 JSONObject jsonResponse = new JSONObject(response);
@@ -371,7 +374,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 if (parentCategory != null) {
                     m = drawMarker(latLng, BitmapDescriptorFactory.fromResource(iconId));
                     m.setTitle(place.name);
-                    addSuggestion(m, place.id, parentCategory, place.rating, place.photoReference);
+                    addSuggestion(m, place, parentCategory);
                 }
             }
 
