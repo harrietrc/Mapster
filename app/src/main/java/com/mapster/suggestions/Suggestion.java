@@ -23,6 +23,10 @@ public class Suggestion {
         _place = place;
     }
 
+    public String getName() {
+        return _place.name;
+    }
+
     public boolean hasPlaceDetail() {
        return _place.hasDetail();
     }

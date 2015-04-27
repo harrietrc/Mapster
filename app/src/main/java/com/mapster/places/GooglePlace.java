@@ -28,6 +28,11 @@ public class GooglePlace {
 
     private Integer _priceLevel; // Rates the expense of the place, with 0 being free and 4 very expensive
 
+    public GooglePlace() {
+        _detail = null;
+        _priceLevel = null;
+    }
+
     /**
      * Returns the price level (null if not provided, which is the usual case in Auckland at least)
      */
@@ -119,7 +124,4 @@ public class GooglePlace {
         return _allCategories;
     }
 
-    public GooglePlace() {
-        _detail = null;
-    }
 }

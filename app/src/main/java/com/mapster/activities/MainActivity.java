@@ -46,8 +46,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener {
@@ -490,12 +492,16 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             case R.id.priceLevelOne:
                 // Expects an Integer, but autoboxing is cool.
                 setVisibilityByPriceLevel(1);
+                break;
             case R.id.priceLevelTwo:
                 setVisibilityByPriceLevel(2);
+                break;
             case R.id.priceLevelThree:
                 setVisibilityByPriceLevel(3);
+                break;
             case R.id.priceLevelNone:
                 setVisibilityByPriceLevel(null);
+                break;
             default:
                 super.onOptionsItemSelected(item);
                 break;
@@ -508,6 +514,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
      * @param level = Price level, as a string. Null will be interpreted as 'all'
      */
     public void setVisibilityByPriceLevel(Integer level) {
+        // All the markers in the current category (accommodation, attractions, or dining)
+        List<Marker> markers = _markersByCategory.get(_currentCategory);
+
         // A 'null' level should be interpreted as no filter
         if (level == null) {
             // Set all the markers from the current category to visible
@@ -515,15 +524,22 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 // No category selected - all markers should be visible
                 setAllMarkersVisible(true);
             } else {
-                List<Marker> markers = _markersByCategory.get(_currentCategory);
                 setMarkerListVisible(true, markers);
             }
         } else {
+            // Set to speed up accesses - null if markers aren't categorised.
+            Set<Marker> categorySet = null;
+            if (_currentCategory != null)
+                categorySet = new HashSet<>(markers);
+
             for (Suggestion s : _suggestionsByMarkerId.values()) {
                 Marker m = s.getMarker();
                 // getPriceLevel will return null if there was no price level provided
-                if (s.getPriceLevel() == null || !(s.getPriceLevel() < level) && m.isVisible()) {
+                if (s.getPriceLevel() == null || ((s.getPriceLevel() > level) && m.isVisible())) {
                     m.setVisible(false);
+                } else if (!m.isVisible() && (categorySet == null || categorySet.contains(m))) {
+                    // Marker was turned off because it didn't meet a lower price bracket
+                    m.setVisible(true);
                 }
             }
         }
