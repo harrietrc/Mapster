@@ -70,12 +70,6 @@ public class GooglePlaceDetailJsonParser {
                 detail.website = jsonDetail.getString("website");
             }
 
-            // Price level - note that most of the time this isn't provided.
-            if (!jsonDetail.isNull("price_level")) {
-                String priceLevel = jsonDetail.getString("price_level"); // Error checking?
-
-            }
-
             // TODO: opening hours (will be more complicated if we're to show only today's hours)
 
         } catch (JSONException e) {

@@ -2,6 +2,7 @@ package com.mapster.places;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -25,13 +26,26 @@ public class GooglePlace {
     // Save the details of a place, if they are retrieved.
     private GooglePlaceDetail _detail;
 
+    private Integer _priceLevel; // Rates the expense of the place, with 0 being free and 4 very expensive
+
     /**
      * Returns the price level (null if not provided, which is the usual case in Auckland at least)
      */
     public Integer getPriceLevel() {
-        if (_detail == null)
-            return null;
-        return _detail.getPriceLevel();
+        return _priceLevel;
+    }
+
+    public boolean hasDetail() {
+        return _detail != null;
+    }
+
+    public void setPriceLevel(int priceLevel) {
+        if (priceLevel > 5) {
+            Log.w("GooglePlaceDetail", "Got a value of " + priceLevel + " when 4 is the maximum.");
+            _priceLevel = null;
+        } else {
+            _priceLevel = priceLevel;
+        }
     }
 
     // TODO Composition: is there a best practice for setting the properties of contained objects?

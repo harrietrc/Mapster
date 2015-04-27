@@ -17,24 +17,10 @@ public class GooglePlaceDetail {
     public String website; // May be null
     public String phoneNumber; // May be null
 
-    private Integer _priceLevel; // Rates the expense of the place, with 0 being free and 4 very expensive
-
     // TODO: show today's hours in InfoWindow of suggestion markers
     private HashMap<String, String> _openHours;
 
     // TODO: reviews summary (Google offers this as a premium service - worth looking into?)
-
-    public void setPriceLevel(Integer priceLevel) {
-        if (priceLevel > 5) {
-            Log.w("GooglePlaceDetail", "Got a value of " + priceLevel + " when 4 is the maximum.");
-            priceLevel = null;
-        }
-        _priceLevel = priceLevel;
-    }
-
-    public Integer getPriceLevel() {
-        return _priceLevel;
-    }
 
     public String toString() {
         StringBuilder sb = new StringBuilder();

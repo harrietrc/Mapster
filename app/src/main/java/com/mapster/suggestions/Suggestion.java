@@ -23,6 +23,10 @@ public class Suggestion {
         _place = place;
     }
 
+    public boolean hasPlaceDetail() {
+       return _place.hasDetail();
+    }
+
     public Integer getPriceLevel() {
         // Note that this will return null if there is no price level recorded
         return _place.getPriceLevel();
