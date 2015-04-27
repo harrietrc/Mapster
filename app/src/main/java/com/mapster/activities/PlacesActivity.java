@@ -8,7 +8,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -29,6 +28,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     private PlacesAutoCompleteAdapter _autoCompAdapder;
     private ArrayList<AutoCompleteTextView> autoCompleteTextViewArrayList;
     private ArrayList<String> coordinateArrayList;
+    private ArrayList<String> nameList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +38,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         setContentView(R.layout.activity_places);
         addAutoCompleteTextViewInLayoutToArrayList((LinearLayout)findViewById(R.id.place_activity_layout));
         initializeAutoCompleteTextViewInArrayList();
+        nameList = new ArrayList<>();
     }
 
     private void addAutoCompleteTextViewInLayoutToArrayList(LinearLayout llayout){
@@ -162,8 +163,10 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         for (AutoCompleteTextView acTextView : autoCompleteTextViewArrayList){
             try {
                 if(acTextView.getText().toString().length() > 1) {
-                    String[] coordinate = new GeoCode().execute(
-                                                        acTextView.getText().toString()).get();
+                    String text = acTextView.getText().toString();
+                    String[] coordinate = new GeoCode().execute(text).get();
+                    String placeName = text.split(",")[0];
+                    nameList.add(placeName);
                     coordinateArrayList.add(coordinate[0]);
                     coordinateArrayList.add(coordinate[1]);
                 }
@@ -178,6 +181,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     private void moveToMainActivityWithData(){
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("COORDINATE_LIST", coordinateArrayList);
+        intent.putExtra("NAME_LIST", nameList);
         startActivity(intent);
     }
 }

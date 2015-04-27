@@ -11,7 +11,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.content.Intent;
 import android.view.MenuItem;
-import android.view.SubMenu;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RatingBar;
@@ -47,7 +46,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -55,6 +53,7 @@ import java.util.concurrent.ExecutionException;
 public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener {
     private static final float UNDEFINED_COLOUR = -1;
     private ArrayList<String> coordinateArrayList;
+    private List<String> nameList;
     private ArrayList<LatLng> latLngArrayList;
     private GoogleMap _map;
 
@@ -121,7 +120,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private void getDataFromPlaceActivity(){
         Intent i = getIntent();
         coordinateArrayList = i.getStringArrayListExtra("COORDINATE_LIST");
-        System.out.println("MAPSTER" + coordinateArrayList.size());
+        nameList = i.getStringArrayListExtra("NAME_LIST");
     }
 
     private void convertStringArrayListToLatLngArrayList(){
@@ -233,19 +232,16 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         String output = "/json";
         String url = "https://maps.googleapis.com/maps/api/directions"
                 + output + origin + waypoints + destination;
-        System.out.println(url);
         return url;
     }
 
     private void addMarkers() {
         if (_map != null) {
-            int name = 0;
-            for (LatLng position : latLngArrayList){
-                name++;
-                Marker m = _map.addMarker(new MarkerOptions().position(position)
-                        .title("Marker " + Integer.toString(name)));
+            for (int i=0; i<latLngArrayList.size(); i++){
+                LatLng position = latLngArrayList.get(i);
+                String name = nameList.get(i);
+                Marker m = _map.addMarker(new MarkerOptions().position(position).title(name));
                 _userMarkers.put(m.getId(), false);
-//                m.showInfoWindow();
             }
         }
     }
