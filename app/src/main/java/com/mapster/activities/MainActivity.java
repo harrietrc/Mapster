@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.content.Intent;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RatingBar;
@@ -45,6 +46,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -62,7 +64,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     // Contains marker ids and a boolean to indicate whether it has been clicked
     private HashMap<String, Boolean> _userMarkers;
 
-    private MenuItem _filterItem;
+    private MenuItem _filterItem; // Filters button and menu
+    private String currentCategory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -481,43 +484,98 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         return super.onOptionsItemSelected(item);
     }
 
+    public void onPriceFilterItemClick(MenuItem item) {
+        item.setChecked(true);
+        switch(item.getItemId()) {
+            case R.id.priceLevelOne:
+                // Expects an Integer, but autoboxing is cool.
+                setVisibilityByPriceLevel(1);
+            case R.id.priceLevelTwo:
+                setVisibilityByPriceLevel(2);
+            case R.id.priceLevelThree:
+                setVisibilityByPriceLevel(3);
+            case R.id.priceLevelNone:
+                setVisibilityByPriceLevel(null);
+            default:
+                super.onOptionsItemSelected(item);
+                break;
+        }
+    }
+
+    /**
+     * Sets visibility of markers based on a price level
+     * TODO Decide whether this method is preferable to maintaining a separate data structure like _markersByCategory
+     * @param level = Price level, as a string. Null will be interpreted as 'all'
+     */
+    public void setVisibilityByPriceLevel(Integer level) {
+        // A 'null' level should be interpreted as no filter
+        if (level == null) {
+            // Set all the markers from the current category to visible
+            if (currentCategory == null) {
+                // No category selected - all markers should be visible
+                setAllMarkersVisible(true);
+            } else {
+                List<Marker> markers = _markersByCategory.get(currentCategory);
+                setMarkerListVisible(true, markers);
+            }
+        } else {
+            for (Suggestion s : _suggestionsByMarkerId.values()) {
+                Marker m = s.getMarker();
+                // getPriceLevel will return null if there was no price level provided
+                if (s.getPriceLevel() == null || !(s.getPriceLevel() < level) && m.isVisible()) {
+                    m.setVisible(false);
+                }
+            }
+        }
+    }
+
     public void onFilterItemClick(MenuItem item) {
         item.setChecked(true);
         switch(item.getItemId()) {
             case R.id.all:
                 // Display all the markers
                 setAllMarkersVisible(true);
+                currentCategory = null;
                 break;
             case R.id.accommodation:
                 // Set accommodation markers visible
                 setAllMarkersVisible(false);
                 List<Marker> accommodationMarkers = _markersByCategory.get("accommodation");
+                currentCategory = "accommodation";
                 setMarkerListVisible(true, accommodationMarkers);
                 break;
             case R.id.attraction:
                 // Set attraction markers visible
                 setAllMarkersVisible(false);
                 List<Marker> attractionMarkers = _markersByCategory.get("attractions");
+                currentCategory = "attractions";
                 setMarkerListVisible(true, attractionMarkers);
                 break;
             case R.id.dining:
                 // Set dining markers visible
                 setAllMarkersVisible(false);
                 List<Marker> diningMarkers = _markersByCategory.get("dining");
+                currentCategory = "dining";
                 setMarkerListVisible(true, diningMarkers);
-                break;
-            case R.id.clear:
-                // Clear the markers
-                setAllMarkersVisible(false);
-                // Hide the filter button - no suggestions to filter
-                _filterItem.setVisible(false);
-                // Reset 'clicked' values for all user-defined markers (all suggestions cleared)
-                resetMarkersClicked();
                 break;
             default:
                 super.onOptionsItemSelected(item);
                 break;
         }
+    }
+
+    public void onFilterClearClicked(MenuItem item) {
+        // Clear the markers
+        setAllMarkersVisible(false);
+        // Reset the menu
+        // TODO what would be the appropriate action when any of the following is false? Force invalidate the menu?
+        Menu filters = _filterItem.getSubMenu();
+        filters.findItem(R.id.all).setChecked(true);
+        filters.findItem(R.id.priceLevelNone).setChecked(false);
+        // Hide the filter button - no suggestions to filter
+        _filterItem.setVisible(false);
+        // Reset 'clicked' values for all user-defined markers (all suggestions cleared)
+        resetMarkersClicked();
     }
 
     /**

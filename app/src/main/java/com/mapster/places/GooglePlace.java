@@ -26,12 +26,12 @@ public class GooglePlace {
     private GooglePlaceDetail _detail;
 
     /**
-     * Returns the price
+     * Returns the price level (null if not provided, which is the usual case in Auckland at least)
      */
     public Integer getPriceLevel() {
-        if (_detail.priceLevel == null)
+        if (_detail == null)
             return null;
-        return Integer.parseInt(_detail.priceLevel);
+        return _detail.getPriceLevel();
     }
 
     // TODO Composition: is there a best practice for setting the properties of contained objects?

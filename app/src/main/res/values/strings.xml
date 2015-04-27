@@ -11,4 +11,16 @@
 
     <string name="title_activity_places">Places</string>
 
+    <string name="dining">Dining</string>
+    <string name="accommodation">Accommodation</string>
+    <string name="attractions">Attractions</string>
+    <string name="all">All</string>
+    <string name="clear">Clear</string>
+
+    <!-- Placeholders - shouldn't actually be shown -->
+    <string name="price_level_one">$</string>
+    <string name="price_level_two">$$</string>
+    <string name="price_level_three">$$$</string>
+    <string name="price_level_none">/</string>
+
 </resources>

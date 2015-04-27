@@ -25,6 +25,27 @@ public class GooglePlaceDetailJsonParser {
     }
 
     /**
+     * Price levels are saved in place details as either null, 1, 2, or 3 (Google reports them as
+     * 0-4, but I don't think we need that many). This does that parsing.
+     * @return Parsed Integer: null, 1, 2, 3 (where 3 is expensive)
+     */
+    public Integer parsePriceLevel(String priceLevel) {
+        if (priceLevel == null)
+            return null;
+
+        int level = Integer.parseInt(priceLevel);
+
+        if (level < 2) {
+            return new Integer(1);
+        } else if (level < 4) {
+            return new Integer(2);
+        } else {
+            // Catch all, but not expected to be more than 4.
+            return new Integer(3);
+        }
+    }
+
+    /**
      * Parses a JSON object (corresponding to the response from querying the Google Places API).
      * @param jsonDetail = JSON representing Place detail
      * @return = A GooglePlaceDetail with the relevant data
@@ -51,7 +72,8 @@ public class GooglePlaceDetailJsonParser {
 
             // Price level - note that most of the time this isn't provided.
             if (!jsonDetail.isNull("price_level")) {
-                detail.priceLevel = jsonDetail.getString("price_level"); // Error checking?
+                String priceLevel = jsonDetail.getString("price_level"); // Error checking?
+
             }
 
             // TODO: opening hours (will be more complicated if we're to show only today's hours)

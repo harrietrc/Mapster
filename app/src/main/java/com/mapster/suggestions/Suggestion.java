@@ -23,6 +23,11 @@ public class Suggestion {
         _place = place;
     }
 
+    public Integer getPriceLevel() {
+        // Note that this will return null if there is no price level recorded
+        return _place.getPriceLevel();
+    }
+
     public void setPlaceDetail(GooglePlaceDetail detail) {
         _place.setDetail(detail);
     }
