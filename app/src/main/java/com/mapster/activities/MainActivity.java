@@ -66,7 +66,11 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private HashMap<String, Boolean> _userMarkers;
 
     private MenuItem _filterItem; // Filters button and menu
+    // TODO Issue with these is that with each new filter a new field will need to be added -
+    // consider changing to a HashMap of different filter values if enough filters are added for
+    // fields to be unwieldy
     private String _currentCategory;
+    private Integer _priceLevel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -195,6 +199,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 infoWindowString = detail == null? "" : detail.toString();
                 marker.setSnippet(infoWindowString);
                 s.setPlaceDetail(detail);
+                // Filter suggestions - all suggestions for this marker should be loaded, but not all
+                // of them need to be visible
             }
             marker.showInfoWindow();
             return false; // Marker toolbar will be shown (returning false allows default behaviour)
@@ -208,8 +214,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             _filterItem.setVisible(true);
             return false;
         } else {
-            // Marker has been clicked before - display any suggestions that aren't already visible
-            setCurrentCategoryMarkersVisible(); // TODO fix so this takes multiple markers into account
+            // User-defined marker has been clicked before. Display suggestions that aren't visible
+            setVisibilityByFilters(); // TODO fix so this takes multiple markers into account
             marker.showInfoWindow();
             _filterItem.setVisible(true);
             return false;
@@ -316,37 +322,12 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
             List<String> urls = new ArrayList<>();
 
-            if (_currentCategory == null) {
-                urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
-                        GooglePlace.getAccommodationCategories()));
-                urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
-                        GooglePlace.getDiningCategories()));
-                urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
-                        GooglePlace.getAttractionCategories()));
-            } else {
-                switch (_currentCategory) {
-                    // Change _currentCategory to enum?
-                    case "accommodation":
-                        urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
-                                GooglePlace.getAccommodationCategories()));
-                        break;
-                    case "dining":
-                        urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
-                                GooglePlace.getDiningCategories()));
-                        break;
-                    case "attractions":
-                        urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
-                                GooglePlace.getAttractionCategories()));
-                        break;
-                    default:
-                        urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
-                                GooglePlace.getAccommodationCategories()));
-                        urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
-                                GooglePlace.getDiningCategories()));
-                        urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
-                                GooglePlace.getAttractionCategories()));
-                }
-            }
+            urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
+                    GooglePlace.getAccommodationCategories()));
+            urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
+                    GooglePlace.getDiningCategories()));
+            urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
+                    GooglePlace.getAttractionCategories()));
 
             for (String url: urls) {
                 // Query the Google Places API to get nearby places
@@ -410,7 +391,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                     addSuggestion(m, place, parentCategory);
                 }
             }
-
+            // Filter suggestions
+            setVisibilityByFilters();
         }
     }
 
@@ -431,17 +413,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(latLng);
         markerOptions.icon(bd);
-        Marker m = _map.addMarker(markerOptions);
-        return m;
-    }
-
-    private Marker drawMarker(LatLng latLng, float colour) {
-        //TODO remove if necessary
-        MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(latLng);
-        if (colour != UNDEFINED_COLOUR) {
-            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(colour));
-        }
         Marker m = _map.addMarker(markerOptions);
         return m;
     }
@@ -519,16 +490,19 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         switch(item.getItemId()) {
             case R.id.priceLevelOne:
                 // Expects an Integer, but autoboxing is cool.
-                setVisibilityByPriceLevel(1);
+                _priceLevel = 1;
+                setVisibilityByPriceLevel();
                 break;
             case R.id.priceLevelTwo:
-                setVisibilityByPriceLevel(2);
+                _priceLevel = 2;
+                setVisibilityByPriceLevel();
                 break;
             case R.id.priceLevelThree:
-                setVisibilityByPriceLevel(3);
+                _priceLevel = 3;
+                setVisibilityByPriceLevel();
                 break;
             case R.id.priceLevelNone:
-                setVisibilityByPriceLevel(null);
+                setVisibilityByPriceLevel();
                 break;
             default:
                 super.onOptionsItemSelected(item);
@@ -537,32 +511,43 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     /**
+     * Sets the visibility of markers, taking into account all applicable filters
+     * TODO Currently each filter needs to take into account previous ones - change this so it's
+     * less complicated and error prone.
+     */
+    public void setVisibilityByFilters() {
+        setVisibilityByCategory();
+        setVisibilityByPriceLevel();
+    }
+
+    /**
      * Set all the markers in the current category to be visible. If the current category is null,
      * set all markers to be visible.
      */
-    public void setCurrentCategoryMarkersVisible() {
+    public void setVisibilityByCategory() {
         // All the markers in the current category (accommodation, attractions, or dining)
         List<Marker> markers = _markersByCategory.get(_currentCategory);
 
         if (_currentCategory == null) {
             setAllMarkersVisible(true);
         } else {
+            // Hide everything else
+            setAllMarkersVisible(false);
             setMarkerListVisible(true, markers);
         }
     }
 
     /**
-     * Sets visibility of markers based on a price level
+     * Sets visibility of markers based on a price level (retrieved from the _priceLevel field)
      * TODO Decide whether this method is preferable to maintaining a separate data structure like _markersByCategory
-     * @param level = Price level, as a string. Null will be interpreted as 'all'
      */
-    public void setVisibilityByPriceLevel(Integer level) {
+    public void setVisibilityByPriceLevel() {
         // All the markers in the current category (accommodation, attractions, or dining)
         List<Marker> markers = _markersByCategory.get(_currentCategory);
 
         // A 'null' level should be interpreted as no filter
-        if (level == null) {
-            setCurrentCategoryMarkersVisible();
+        if (_priceLevel == null) {
+            setVisibilityByCategory();
         } else {
             // Set to speed up accesses - null if markers aren't categorised.
             Set<Marker> categorySet = null;
@@ -576,7 +561,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 boolean markerIsVisible = m.isVisible();
 
                 // getPriceLevel will return null if there was no price level provided
-                if (priceLevel == null || ((priceLevel > level) && markerIsVisible)) {
+                if (priceLevel == null || ((priceLevel > _priceLevel) && markerIsVisible)) {
                     m.setVisible(false);
                 } else {
                     if (!markerIsVisible && (categorySet == null || categorySet.contains(m))) {
