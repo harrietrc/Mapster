@@ -21,6 +21,6 @@
     <string name="price_level_one">$</string>
     <string name="price_level_two">$$</string>
     <string name="price_level_three">$$$</string>
-    <string name="price_level_none">/</string>
+    <string name="price_level_none">All prices</string>
 
 </resources>

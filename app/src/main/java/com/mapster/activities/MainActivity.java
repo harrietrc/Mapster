@@ -208,6 +208,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             _filterItem.setVisible(true);
             return false;
         } else {
+            // Marker has been clicked before
             marker.showInfoWindow();
             return false;
         }
@@ -309,12 +310,41 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         protected List<GooglePlace> doInBackground(LatLng... locs) {
             GooglePlaceJsonParser placeJsonParser = new GooglePlaceJsonParser();
             List<GooglePlace> places = new ArrayList<>();
+            int radius = 2000;
 
-            String[] urls = new String[3];
+            List<String> urls = new ArrayList<>();
 
-            urls[0] = buildPlacesUrl(locs[0].latitude, locs[0].longitude, 2000, GooglePlace.getAccommodationCategories());
-            urls[1] = buildPlacesUrl(locs[0].latitude, locs[0].longitude, 2000, GooglePlace.getDiningCategories());
-            urls[2] = buildPlacesUrl(locs[0].latitude, locs[0].longitude, 2000, GooglePlace.getAttractionCategories());
+            if (_currentCategory == null) {
+                urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
+                        GooglePlace.getAccommodationCategories()));
+                urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
+                        GooglePlace.getDiningCategories()));
+                urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
+                        GooglePlace.getAttractionCategories()));
+            } else {
+                switch (_currentCategory) {
+                    // Change _currentCategory to enum?
+                    case "accommodation":
+                        urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
+                                GooglePlace.getAccommodationCategories()));
+                        break;
+                    case "dining":
+                        urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
+                                GooglePlace.getDiningCategories()));
+                        break;
+                    case "attractions":
+                        urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
+                                GooglePlace.getAttractionCategories()));
+                        break;
+                    default:
+                        urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
+                                GooglePlace.getAccommodationCategories()));
+                        urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
+                                GooglePlace.getDiningCategories()));
+                        urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
+                                GooglePlace.getAttractionCategories()));
+                }
+            }
 
             for (String url: urls) {
                 // Query the Google Places API to get nearby places
@@ -530,12 +560,18 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
             for (Suggestion s : _suggestionsByMarkerId.values()) {
                 Marker m = s.getMarker();
+
+                Integer priceLevel = s.getPriceLevel();
+                boolean markerIsVisible = m.isVisible();
+
                 // getPriceLevel will return null if there was no price level provided
-                if (s.getPriceLevel() == null || ((s.getPriceLevel() > level) && m.isVisible())) {
+                if (priceLevel == null || ((priceLevel > level) && markerIsVisible)) {
                     m.setVisible(false);
-                } else if (!m.isVisible() && (categorySet == null || categorySet.contains(m))) {
-                    // Marker was turned off because it didn't meet a lower price bracket
-                    m.setVisible(true);
+                } else {
+                    if (!markerIsVisible && (categorySet == null || categorySet.contains(m))) {
+                        // Marker was turned off because it didn't meet a lower price bracket
+                        m.setVisible(true);
+                    }
                 }
             }
         }

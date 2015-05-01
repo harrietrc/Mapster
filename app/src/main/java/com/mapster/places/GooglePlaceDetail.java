@@ -20,6 +20,9 @@ public class GooglePlaceDetail {
     // TODO: show today's hours in InfoWindow of suggestion markers
     private HashMap<String, String> _openHours;
 
+
+    private Integer _priceLevel;
+
     // TODO: reviews summary (Google offers this as a premium service - worth looking into?)
 
     public String toString() {

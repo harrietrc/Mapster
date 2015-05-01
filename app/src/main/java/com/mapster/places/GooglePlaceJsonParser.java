@@ -71,7 +71,7 @@ public class GooglePlaceJsonParser {
 
             // This is more often than not null, or else an integer between 0 and 4 (inclusive)
             if (!jsonPlace.isNull("price_level")) {
-                place.setPriceLevel(jsonPlace.getInt("price_level"));
+                place.parseAndSetPriceLevel(jsonPlace.getString("price_level"));
             }
 
             // Parse the types of the place
