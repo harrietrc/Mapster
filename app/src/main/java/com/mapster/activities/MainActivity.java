@@ -522,15 +522,15 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
         private void drawInstructions(MapInformation mapInformation){
             LinearLayout ll = (LinearLayout)findViewById(R.id.instructions);
-            addChildToLayout(ll, "Total Duration: " + mapInformation.getTotalDuration().getName() + " Total Distance: " + mapInformation.getTotalDistance().getName(), 17);
+            addChildToLayout(ll, "Total Duration: " + mapInformation.getTotalDuration().getName() + " Total Distance: " + mapInformation.getTotalDistance().getName(), 18);
             for(int i = 0; i < mapInformation.getInstructions().size(); i++){
                 if(!mapInformation.getInstructions().get(i).isEmpty()) {
                     String name = new String();
                     name += mapInformation.getDuration().get(i).getName();
                     name += "        ";
                     name += mapInformation.getDistance().get(i).getName();
-                    addChildToLayout(ll, name, 20);
-                    addChildToLayout(ll, mapInformation.getInstructions().get(i), 15);
+                    addChildToLayout(ll, name, 16);
+                    addChildToLayout(ll, mapInformation.getInstructions().get(i), 16);
                 }
             }
         }

@@ -34,7 +34,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     private ArrayList<String> _coordinateArrayList;
     private List<RadioGroup> _transportModeViewList;
     private ArrayList<String> _transportModeList;
-    
+
     public enum TravelMode{
         DRIVING("driving"), WALKING("walking"), BIKING("bicycling"), TRANSIT("transit");
         private final String name;
