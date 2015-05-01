@@ -189,6 +189,8 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                     _coordinateArrayList.add(coordinate[0]);
                     _coordinateArrayList.add(coordinate[1]);
                 }
+                System.out.println("ADDRESS: " + acTextView.getText().toString());
+                System.out.println("COORDINATE ARRAY: " + _coordinateArrayList);
             } catch(InterruptedException e){
                 e.printStackTrace();
             } catch(ExecutionException e){
@@ -216,6 +218,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
             case R.id.bike_mode:
                 if (rb.isChecked()) {
                     _transportModeList.add(TravelMode.BIKING.name);
+                    System.out.println(true);
                 }
                 break;
             case R.id.drive_mode:

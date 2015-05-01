@@ -85,7 +85,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         convertStringArrayListToLatLngArrayList();
         _userMarkers = new HashMap<>();
         for(int i = 0; i < _latLngArrayList.size(); i++){
+            System.out.println("SIZE " + _latLngArrayList.size());
             DirectionsTask downloadTask = new DirectionsTask();
+            System.out.println("COODINATE AND TRANSPORT MODE: " + i + " " +_latLngArrayList.get(i) + " " + _sortedTransportMode.get(i));
             String url = getMapsApiDirectionsUrl(_latLngArrayList.get(i), _sortedTransportMode.get(i));
             downloadTask.execute(url);
         }
@@ -130,6 +132,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         Intent i = getIntent();
         _coordinateArrayList = i.getStringArrayListExtra(COORDINATE_LIST);
         _transportMode = i.getStringArrayListExtra(TRANSPORT_MODE);
+        System.out.println(_transportMode);
     }
 
     private void convertStringArrayListToLatLngArrayList(){
@@ -158,17 +161,17 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 break;
             }
             if(_transportMode.get(i).equals(_transportMode.get(i + 1))) {
-                _sortedTransportMode.add(_transportMode.get(i));
-                while (_transportMode.get(i).equals(_transportMode.get(i + 1))) {
+                System.out.println(_transportMode.get(i)  + " " + _transportMode.get(i + 1));
+                while (_transportMode.get(i).toString().equals(_transportMode.get(i + 1).toString())) {
                     i++;
                     if (i >= _transportMode.size() - 1) {
                         break;
                     }
                 }
-                helper = addPointToList(i, posInCoordinateArrayList);
-                _sortedCoordinateArrayList.add(helper);
-                posInCoordinateArrayList = i + 1;
             }
+            helper = addPointToList(i, posInCoordinateArrayList);
+            _sortedCoordinateArrayList.add(helper);
+            posInCoordinateArrayList = i + 1;
         }
     }
 
@@ -178,6 +181,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         for(int j = posInCoordinateArray * 2; j <= posCoordinateArrayList; j++){
             helper.add(_coordinateArrayList.get(j));
         }
+        System.out.println(helper);
         return helper;
     }
 
@@ -526,13 +530,16 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             for(int i = 0; i < mapInformation.getInstructions().size(); i++){
                 if(!mapInformation.getInstructions().get(i).isEmpty()) {
                     String name = new String();
-                    name += mapInformation.getDuration().get(i).getName();
-                    name += "        ";
-                    name += mapInformation.getDistance().get(i).getName();
-                    addChildToLayout(ll, name, 16);
+                    if (!mapInformation.getDuration().get(i).getName().isEmpty()) {
+                        name += mapInformation.getDuration().get(i).getName();
+                        name += " ";
+                        name += mapInformation.getDistance().get(i).getName();
+                        addChildToLayout(ll, name, 16);
+                    }
                     addChildToLayout(ll, mapInformation.getInstructions().get(i), 16);
                 }
             }
+            System.out.println(mapInformation.getInstructions());
         }
 
         private void addChildToLayout(LinearLayout ll, String name, int size){
