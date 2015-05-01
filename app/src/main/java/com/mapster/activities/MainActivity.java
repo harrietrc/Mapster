@@ -1,20 +1,25 @@
 package com.mapster.activities;
 
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.text.Html;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.content.Intent;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -28,6 +33,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
 import com.mapster.json.JSONParser;
+import com.mapster.map.information.MapInformation;
 import com.mapster.places.GooglePlace;
 import com.mapster.places.GooglePlaceDetailJsonParser;
 import com.mapster.places.GooglePlaceJsonParser;
@@ -45,14 +51,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener {
     private static final float UNDEFINED_COLOUR = -1;
-    private ArrayList<String> coordinateArrayList;
-    private ArrayList<LatLng> latLngArrayList;
+    private static final String COORDINATE_LIST = "COORDINATE_LIST";
+    private static final String TRANSPORT_MODE = "TRANSPORT_MODE";
+    private ArrayList<String> _coordinateArrayList;
+    private ArrayList<List<LatLng>> _latLngArrayList;
+    private ArrayList<String> _transportMode;
     private GoogleMap _map;
-
+    private ArrayList<List<String>> _sortedCoordinateArrayList;
+    private ArrayList<String> _sortedTransportMode;
     // Markers divided into categories (to make enumeration of categories faster)
     private HashMap<String, List<Marker>> _markersByCategory;
     // All suggestions, keyed by marker ID
@@ -70,18 +81,21 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         setContentView(R.layout.activity_main);
         initializeGoogleMap();
         getDataFromPlaceActivity();
+        sortCoordinateArrayList();
         convertStringArrayListToLatLngArrayList();
         _userMarkers = new HashMap<>();
-        String url = getMapsApiDirectionsUrl();
-        DirectionsTask downloadTask = new DirectionsTask();
-        downloadTask.execute(url);
+        for(int i = 0; i < _latLngArrayList.size(); i++){
+            DirectionsTask downloadTask = new DirectionsTask();
+            String url = getMapsApiDirectionsUrl(_latLngArrayList.get(i), _sortedTransportMode.get(i));
+            downloadTask.execute(url);
+        }
 
-        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngArrayList.get(0),
+        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(_latLngArrayList.get(0).get(0),
                 13));
         addMarkers();
         _map.setOnMarkerClickListener(this);
         _map.setInfoWindowAdapter(new SuggestionInfoAdapter(getLayoutInflater()));
-
+        _map.setMyLocationEnabled(true);
         initSuggestionMarkers();
         _suggestionsByMarkerId = new HashMap<>();
     }
@@ -114,20 +128,65 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     private void getDataFromPlaceActivity(){
         Intent i = getIntent();
-        coordinateArrayList = i.getStringArrayListExtra("COORDINATE_LIST");
+        _coordinateArrayList = i.getStringArrayListExtra(COORDINATE_LIST);
+        _transportMode = i.getStringArrayListExtra(TRANSPORT_MODE);
     }
 
     private void convertStringArrayListToLatLngArrayList(){
-        latLngArrayList = new ArrayList<>();
-        for (int position = 0; position < coordinateArrayList.size() - 1; position += 2){
-            latLngArrayList.add(new LatLng(Double.parseDouble(coordinateArrayList.get(position)),Double.parseDouble(coordinateArrayList.get(position + 1))));
+        _latLngArrayList = new ArrayList<>();
+        List<LatLng> helper = null;
+        for( List<String> coordinate : _sortedCoordinateArrayList) {
+            helper = new ArrayList<>();
+            for (int position = 0; position < coordinate.size() - 1; position += 2) {
+                helper.add(new LatLng(Double.parseDouble(coordinate.get(position)), Double.parseDouble(coordinate.get(position + 1))));
+            }
+            _latLngArrayList.add(helper);
         }
     }
 
-    private MarkerOptions initializeOptionMarker(){
+    private void sortCoordinateArrayList(){
+        //TODO Refactor
+        _sortedTransportMode = new ArrayList<>();
+        _sortedCoordinateArrayList = new ArrayList<>();
+        int posInCoordinateArrayList = 0;
+        List<String> helper = null;
+        for(int i = 0; i <_transportMode.size(); i++){
+            _sortedTransportMode.add(_transportMode.get(i));
+            if (i >= _transportMode.size() - 1) {
+                helper = addPointToList(i, posInCoordinateArrayList);
+                _sortedCoordinateArrayList.add(helper);
+                break;
+            }
+            if(_transportMode.get(i).equals(_transportMode.get(i + 1))) {
+                _sortedTransportMode.add(_transportMode.get(i));
+                while (_transportMode.get(i).equals(_transportMode.get(i + 1))) {
+                    i++;
+                    if (i >= _transportMode.size() - 1) {
+                        break;
+                    }
+                }
+                helper = addPointToList(i, posInCoordinateArrayList);
+                _sortedCoordinateArrayList.add(helper);
+                posInCoordinateArrayList = i + 1;
+            }
+        }
+    }
+
+    private List<String> addPointToList(int position, int posInCoordinateArray){
+        List<String> helper = new ArrayList<>();
+        int posCoordinateArrayList = (position + 1) * 2 + 1;// position of the _coordinateArrayList
+        for(int j = posInCoordinateArray * 2; j <= posCoordinateArrayList; j++){
+            helper.add(_coordinateArrayList.get(j));
+        }
+        return helper;
+    }
+
+    private MarkerOptions initializeOptionMarker() {
         MarkerOptions options = new MarkerOptions();
-        for (LatLng position : latLngArrayList){
-            options.position(position);
+        for (List<LatLng> latLng : _latLngArrayList){
+            for (LatLng position : latLng) {
+                options.position(position);
+            }
         }
         return options;
     }
@@ -203,37 +262,41 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
     }
 
-    private String getMapsApiDirectionsUrl() {
+    private String getMapsApiDirectionsUrl(List<LatLng> latLngArrayList, String transportMode) {
         //TODO refactor String --> StringBuilder
         int size = latLngArrayList.size();
         LatLng originCoordinate = latLngArrayList.get(0);
-        LatLng destinationCoordinate = latLngArrayList.get(1);
-        String origin = "?origin=" + originCoordinate.latitude + "," + originCoordinate.longitude;
-        String destination = "&destination=" + destinationCoordinate.latitude + "," + destinationCoordinate.longitude;
-        String waypoints = "";
+        LatLng destinationCoordinate = latLngArrayList.get(size - 1);
+        StringBuilder origin = new StringBuilder("?origin=" + originCoordinate.latitude + "," + originCoordinate.longitude);
+        StringBuilder destination = new StringBuilder("&destination=" + destinationCoordinate.latitude + "," + destinationCoordinate.longitude);
+        StringBuilder waypoints = new StringBuilder("");
+        StringBuilder mode = new StringBuilder("&mode=" + transportMode);
         if(size > 2){
-            waypoints = "&waypoints=optimize:true";
-            for(int position = 2; position < size; position ++){
+            waypoints.append("&waypoints=optimize:true");
+            for(int position = 1; position < size - 1; position ++){
                 LatLng coordinate = latLngArrayList.get(position);
-                waypoints += "|" + coordinate.latitude + "," + coordinate.longitude ;
+                waypoints.append("|" + coordinate.latitude + "," + coordinate.longitude);
             }
         }
 
         String output = "/json";
-        String url = "https://maps.googleapis.com/maps/api/directions"
-                + output + origin + waypoints + destination;
-        return url;
+        StringBuilder url = new StringBuilder( "https://maps.googleapis.com/maps/api/directions"
+                + output + origin + waypoints + destination + mode);
+        System.out.println(url);
+        return url.toString();
     }
 
     private void addMarkers() {
         if (_map != null) {
             int name = 0;
-            for (LatLng position : latLngArrayList){
-                name++;
-                Marker m = _map.addMarker(new MarkerOptions().position(position)
-                        .title("Marker " + Integer.toString(name)));
-                _userMarkers.put(m.getId(), false);
-//                m.showInfoWindow();
+            for(List<LatLng> latLngs : _latLngArrayList){
+                for (LatLng position : latLngs){
+                    name++;
+                    Marker m = _map.addMarker(new MarkerOptions().position(position)
+                            .title("Marker " + Integer.toString(name)));
+                    _userMarkers.put(m.getId(), false);
+    //                m.showInfoWindow();
+                }
             }
         }
     }
@@ -409,34 +472,38 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     private class ParserTask extends
-            AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
+            AsyncTask<String, Integer, MapInformation> {
 
         @Override
-        protected List<List<HashMap<String, String>>> doInBackground(
+        protected MapInformation doInBackground(
                 String... jsonData) {
 
             JSONObject jObject;
-            List<List<HashMap<String, String>>> routes = null;
+            MapInformation mapInformation = null;
 
             try {
                 jObject = new JSONObject(jsonData[0]);
                 JSONParser parser = new JSONParser();
-                routes = parser.parse(jObject);
+                mapInformation = parser.parse(jObject);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            return routes;
+            return mapInformation;
         }
 
         @Override
-        protected void onPostExecute(List<List<HashMap<String, String>>> routes) {
+        protected void onPostExecute(MapInformation mapInformation) {
+            if(mapInformation == null){
+                createToast("Routes not found", Toast.LENGTH_SHORT);
+                return;
+            }
             ArrayList<LatLng> points;
             PolylineOptions polyLineOptions = null;
             // traversing through routes
-            for (int i = 0; i < routes.size(); i++) {
+            for (int i = 0; i < mapInformation.getRoutes().size(); i++) {
                 points = new ArrayList<LatLng>();
                 polyLineOptions = new PolylineOptions();
-                List<HashMap<String, String>> path = routes.get(i);
+                List<HashMap<String, String>> path = mapInformation.getRoutes().get(i);
 
                 for (int j = 0; j < path.size(); j++) {
                     HashMap<String, String> point = path.get(j);
@@ -449,10 +516,44 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 polyLineOptions.width(2);
                 polyLineOptions.color(Color.BLUE);
             }
+            drawInstructions(mapInformation);
             _map.addPolyline(polyLineOptions);
+        }
+
+        private void drawInstructions(MapInformation mapInformation){
+            LinearLayout ll = (LinearLayout)findViewById(R.id.instructions);
+            addChildToLayout(ll, "Total Duration: " + mapInformation.getTotalDuration().getName() + " Total Distance: " + mapInformation.getTotalDistance().getName(), 17);
+            for(int i = 0; i < mapInformation.getInstructions().size(); i++){
+                if(!mapInformation.getInstructions().get(i).isEmpty()) {
+                    String name = new String();
+                    name += mapInformation.getDuration().get(i).getName();
+                    name += "        ";
+                    name += mapInformation.getDistance().get(i).getName();
+                    addChildToLayout(ll, name, 20);
+                    addChildToLayout(ll, mapInformation.getInstructions().get(i), 15);
+                }
+            }
+        }
+
+        private void addChildToLayout(LinearLayout ll, String name, int size){
+            ll.addView(createTextView(name, size));
         }
     }
 
+    protected TextView createTextView(String name, int size){
+        TextView valueTV = new TextView(this);
+        valueTV.setText(Html.fromHtml(name));
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT
+                ,LinearLayout.LayoutParams.WRAP_CONTENT);
+        params.setMargins(0, 10, 0, 10);
+        valueTV.setTextSize(size);
+        valueTV.setLayoutParams(params);
+        return valueTV;
+    }
+
+    protected void createToast(String name, int duration){
+        Toast.makeText(this, name, duration).show();
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.

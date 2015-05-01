@@ -22,6 +22,7 @@ import com.mapster.geocode.GeoCode;
 import com.mapster.places.autocomplete.PlacesAutoCompleteAdapter;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -29,10 +30,11 @@ import static junit.framework.Assert.assertTrue;
 
 public class PlacesActivity extends ActionBarActivity implements OnItemClickListener{
     private PlacesAutoCompleteAdapter _autoCompAdapter;
-    private ArrayList<AutoCompleteTextView> _autoCompleteTextViewArrayList;
+    private LinkedList<AutoCompleteTextView> _autoCompleteTextViewLinkedList;
     private ArrayList<String> _coordinateArrayList;
     private List<RadioGroup> _transportModeViewList;
-    private List<String> _transportModeList;
+    private ArrayList<String> _transportModeList;
+    
     public enum TravelMode{
         DRIVING("driving"), WALKING("walking"), BIKING("bicycling"), TRANSIT("transit");
         private final String name;
@@ -43,7 +45,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        _autoCompleteTextViewArrayList = new ArrayList<>();
+        _autoCompleteTextViewLinkedList = new LinkedList<>();
         _transportModeViewList = new ArrayList<>();
         _autoCompAdapter = new PlacesAutoCompleteAdapter(this, R.layout.list_item);
         super.onCreate(savedInstanceState);
@@ -55,7 +57,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     private void addViewsInLayoutToArrayList(LinearLayout llayout){
         for (int i = 0; i < llayout.getChildCount(); i++) {
             if (llayout.getChildAt(i) instanceof AutoCompleteTextView) {
-                _autoCompleteTextViewArrayList.add((AutoCompleteTextView) llayout.getChildAt(i));
+                _autoCompleteTextViewLinkedList.add((AutoCompleteTextView) llayout.getChildAt(i));
             } else if(llayout.getChildAt(i) instanceof RadioGroup) {
                 _transportModeViewList.add((RadioGroup) llayout.getChildAt(i));
             }
@@ -63,7 +65,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     }
 
     private void initializeAutoCompleteTextViewInArrayList(){
-        for (AutoCompleteTextView acTextView : _autoCompleteTextViewArrayList){
+        for (AutoCompleteTextView acTextView : _autoCompleteTextViewLinkedList){
             initializeAutoCompleteTextViews(acTextView);
         }
     }
@@ -103,7 +105,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                 final int positionOfAutoCompleteTextView = 1;
                 final int positionOfRadioGroupView = 2;
                 LinearLayout linearLayout = addStopPoints();
-                addAutoCompleteTextViewToArrayList((AutoCompleteTextView)linearLayout.getChildAt(positionOfAutoCompleteTextView));
+                addAutoCompleteTextViewToLinkedList((AutoCompleteTextView) linearLayout.getChildAt(positionOfAutoCompleteTextView));
                 initializeAutoCompleteTextViews((AutoCompleteTextView)linearLayout.getChildAt(positionOfAutoCompleteTextView));
                 addRadioGroupToList((RadioGroup)linearLayout.getChildAt(positionOfRadioGroupView));
                 return true;
@@ -122,8 +124,8 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         return inflateLayout;
     }
 
-    private void addAutoCompleteTextViewToArrayList(AutoCompleteTextView autoCompleteTextView){
-        _autoCompleteTextViewArrayList.add(autoCompleteTextView);
+    private void addAutoCompleteTextViewToLinkedList(AutoCompleteTextView autoCompleteTextView){
+        _autoCompleteTextViewLinkedList.add(_autoCompleteTextViewLinkedList.size() - 1, autoCompleteTextView);
     }
 
     private void addRadioGroupToList(RadioGroup radioGroup){
@@ -145,7 +147,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     }
 
     public void clearAll(View view){
-        for (AutoCompleteTextView acTextView : _autoCompleteTextViewArrayList){
+        for (AutoCompleteTextView acTextView : _autoCompleteTextViewLinkedList){
             acTextView.setText("");
         }
     }
@@ -162,8 +164,8 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     }
 
     private boolean isNotOriginAndDestinationEmpty(){
-        AutoCompleteTextView originInList = _autoCompleteTextViewArrayList.get(0);
-        AutoCompleteTextView destinationInList = _autoCompleteTextViewArrayList.get(1);
+        AutoCompleteTextView originInList = _autoCompleteTextViewLinkedList.get(0);
+        AutoCompleteTextView destinationInList = _autoCompleteTextViewLinkedList.get(_autoCompleteTextViewLinkedList.size() - 1);
         AutoCompleteTextView originInLayout =
                 (AutoCompleteTextView) findViewById(R.id.autocomplete_origin);
         AutoCompleteTextView destinationInLayout =
@@ -179,7 +181,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     private void addUserCoordinateToArrayList(){
         _coordinateArrayList = new ArrayList<>();
-        for (AutoCompleteTextView acTextView : _autoCompleteTextViewArrayList){
+        for (AutoCompleteTextView acTextView : _autoCompleteTextViewLinkedList){
             try {
                 if(!acTextView.getText().toString().isEmpty()) {
                     String[] coordinate = new GeoCode().execute(
@@ -198,8 +200,8 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     private void addTransportModeToList(){
         _transportModeList = new ArrayList<>();
         for(int i = 0; i < _transportModeViewList.size(); i++){
-            if(_autoCompleteTextViewArrayList.get(i).getId() != R.id.autocomplete_destination) {
-                if (!_autoCompleteTextViewArrayList.get(i + 1).getText().toString().isEmpty()) {
+            if(_autoCompleteTextViewLinkedList.get(i).getId() != R.id.autocomplete_destination) {
+                if (!_autoCompleteTextViewLinkedList.get(i + 1).getText().toString().isEmpty()) {
                     for (int j = 0; j < _transportModeViewList.get(i).getChildCount(); j++) {
                         RadioButton rb = (RadioButton) _transportModeViewList.get(i).getChildAt(j);
                         addToTranposportModeList(rb);
@@ -240,6 +242,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     private void moveToMainActivityWithData(){
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("COORDINATE_LIST", _coordinateArrayList);
+        intent.putExtra("TRANSPORT_MODE", _transportModeList);
         startActivity(intent);
     }
 }

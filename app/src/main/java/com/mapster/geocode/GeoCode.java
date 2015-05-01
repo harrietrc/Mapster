@@ -50,7 +50,6 @@ public class GeoCode extends AsyncTask<String, Void, String[]> {
             } catch(IOException e){
                 e.printStackTrace();
             }
-            System.out.println(in.toString());
             jsonResults = convertJsonResultsToStringBuilder(in);
             coordinate = extractLatLngFromResults(jsonResults);
         } catch (MalformedURLException e) {
@@ -92,7 +91,6 @@ public class GeoCode extends AsyncTask<String, Void, String[]> {
         try {
             // Create a JSON object hierarchy from the results
             JSONObject jsonObj = new JSONObject(jsonResults.toString());
-            System.out.println(jsonObj.toString());
             JSONArray jsonArray = jsonObj.getJSONArray("results");
             for (int i = 0; i < jsonArray.length(); i++) {
                 coordinate[0] = jsonArray.getJSONObject(i).getJSONObject("geometry").getJSONObject("location").getString("lat");

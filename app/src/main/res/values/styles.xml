@@ -5,6 +5,7 @@
         <item name="colorControlNormal">#c5c5c5</item>
         <item name="colorControlActivated">#287AA9</item>
         <item name="colorControlHighlight">#FF0000</item>
+        <item name="android:windowActionBarOverlay">true</item>
         <!--<item name="android:icon">@android:color/transparent</item>-->
     </style>
 
