@@ -491,23 +491,18 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             case R.id.priceLevelOne:
                 // Expects an Integer, but autoboxing is cool.
                 _priceLevel = 1;
-                setVisibilityByPriceLevel();
                 break;
             case R.id.priceLevelTwo:
                 _priceLevel = 2;
-                setVisibilityByPriceLevel();
                 break;
             case R.id.priceLevelThree:
                 _priceLevel = 3;
-                setVisibilityByPriceLevel();
-                break;
-            case R.id.priceLevelNone:
-                setVisibilityByPriceLevel();
                 break;
             default:
                 super.onOptionsItemSelected(item);
                 break;
         }
+        setVisibilityByFilters();
     }
 
     /**
@@ -584,44 +579,40 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             case R.id.accommodation:
                 // Set accommodation markers visible
                 setAllMarkersVisible(false);
-                List<Marker> accommodationMarkers = _markersByCategory.get("accommodation");
                 _currentCategory = "accommodation";
-                setMarkerListVisible(true, accommodationMarkers);
                 break;
             case R.id.attraction:
                 // Set attraction markers visible
                 setAllMarkersVisible(false);
-                List<Marker> attractionMarkers = _markersByCategory.get("attractions");
                 _currentCategory = "attractions";
-                setMarkerListVisible(true, attractionMarkers);
                 break;
             case R.id.dining:
                 // Set dining markers visible
                 setAllMarkersVisible(false);
-                List<Marker> diningMarkers = _markersByCategory.get("dining");
                 _currentCategory = "dining";
-                setMarkerListVisible(true, diningMarkers);
                 break;
             default:
                 super.onOptionsItemSelected(item);
                 break;
         }
+        setVisibilityByFilters();
     }
 
     public void onFilterClearClicked(MenuItem item) {
         // Clear the markers
         setAllMarkersVisible(false);
+
         // Reset the menu
-        // TODO what would be the appropriate action when any of the following is false? Force invalidate the menu?
         Menu filters = _filterItem.getSubMenu();
         filters.findItem(R.id.all).setChecked(true);
-        filters.findItem(R.id.priceLevelNone).setChecked(false);
+        filters.findItem(R.id.priceLevelNone).setChecked(true);
 
         // Hide the filter button - no suggestions to filter
         _filterItem.setVisible(false);
 
-        // Set the currently selected category to null
+        // Set the filters back to null
         _currentCategory = null;
+        _priceLevel = null;
     }
 
     /**

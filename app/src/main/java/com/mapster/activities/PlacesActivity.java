@@ -166,6 +166,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                     String text = acTextView.getText().toString();
                     String[] coordinate = new GeoCode().execute(text).get();
                     String placeName = text.split(",")[0];
+                    placeName = placeName == null? text : placeName;
                     nameList.add(placeName);
                     coordinateArrayList.add(coordinate[0]);
                     coordinateArrayList.add(coordinate[1]);
@@ -182,6 +183,11 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("COORDINATE_LIST", coordinateArrayList);
         intent.putExtra("NAME_LIST", nameList);
+
+        // Reset name list, otherwise the wrong names will correspond with
+        // TODO The coordinates and names should really be stored in the same data structure
+        nameList = new ArrayList<>();
+
         startActivity(intent);
     }
 }
