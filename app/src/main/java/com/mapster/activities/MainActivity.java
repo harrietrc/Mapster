@@ -208,8 +208,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             _filterItem.setVisible(true);
             return false;
         } else {
-            // Marker has been clicked before
+            // Marker has been clicked before - display any suggestions that aren't already visible
+            setCurrentCategoryMarkersVisible(); // TODO fix so this takes multiple markers into account
             marker.showInfoWindow();
+            _filterItem.setVisible(true);
             return false;
         }
     }
@@ -535,6 +537,21 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     /**
+     * Set all the markers in the current category to be visible. If the current category is null,
+     * set all markers to be visible.
+     */
+    public void setCurrentCategoryMarkersVisible() {
+        // All the markers in the current category (accommodation, attractions, or dining)
+        List<Marker> markers = _markersByCategory.get(_currentCategory);
+
+        if (_currentCategory == null) {
+            setAllMarkersVisible(true);
+        } else {
+            setMarkerListVisible(true, markers);
+        }
+    }
+
+    /**
      * Sets visibility of markers based on a price level
      * TODO Decide whether this method is preferable to maintaining a separate data structure like _markersByCategory
      * @param level = Price level, as a string. Null will be interpreted as 'all'
@@ -545,13 +562,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
         // A 'null' level should be interpreted as no filter
         if (level == null) {
-            // Set all the markers from the current category to visible
-            if (_currentCategory == null) {
-                // No category selected - all markers should be visible
-                setAllMarkersVisible(true);
-            } else {
-                setMarkerListVisible(true, markers);
-            }
+            setCurrentCategoryMarkersVisible();
         } else {
             // Set to speed up accesses - null if markers aren't categorised.
             Set<Marker> categorySet = null;
@@ -623,9 +634,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
         // Hide the filter button - no suggestions to filter
         _filterItem.setVisible(false);
-
-        // Reset 'clicked' values for all user-defined markers (all suggestions cleared)
-        resetMarkersClicked();
 
         // Set the currently selected category to null
         _currentCategory = null;
