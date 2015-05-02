@@ -51,7 +51,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener {
-    private static final float UNDEFINED_COLOUR = -1;
     private ArrayList<String> coordinateArrayList;
     private List<String> nameList;
     private ArrayList<LatLng> latLngArrayList;
@@ -128,6 +127,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     private void convertStringArrayListToLatLngArrayList(){
+        // TODO Error checking
         latLngArrayList = new ArrayList<>();
         for (int position = 0; position < coordinateArrayList.size() - 1; position += 2){
             latLngArrayList.add(new LatLng(Double.parseDouble(coordinateArrayList.get(position)),Double.parseDouble(coordinateArrayList.get(position + 1))));

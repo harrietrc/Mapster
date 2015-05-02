@@ -11,9 +11,10 @@
         android:layout_height="match_parent"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         />
+    <fragment
+        android:id="@+id/filters"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:name="com.mapster.filters.FiltersFragment"
+        />
 </RelativeLayout>
-<!--
-- See here for xml attributes: https://developers.google.com/maps/documentation/android/map#add_map_code
-- Camera positioning: https://developers.google.com/maps/documentation/android/views#bearing_orientation
-- Try hybrid, satellite, and terrain for mapType
--->

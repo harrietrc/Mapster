@@ -75,11 +75,13 @@ public class GooglePlace {
         int level = Integer.parseInt(priceLevel);
 
         if (level < 2) {
+            // Cheap or free
             return new Integer(1);
         } else if (level < 4) {
+            // Moderate to expensive
             return new Integer(2);
         } else {
-            // Catch all, but not expected to be more than 4.
+            // Catch all, but not expected to be more than 4 (very expensive)
             return new Integer(3);
         }
     }
