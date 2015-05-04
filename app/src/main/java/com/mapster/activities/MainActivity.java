@@ -12,8 +12,10 @@ import android.view.Menu;
 import android.content.Intent;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.CheckedTextView;
 import android.widget.ImageView;
 import android.widget.RatingBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -27,6 +29,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
+import com.mapster.filters.CheckableLinearLayout;
 import com.mapster.json.JSONParser;
 import com.mapster.places.GooglePlace;
 import com.mapster.places.GooglePlaceDetail;
@@ -566,6 +569,68 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 }
             }
         }
+    }
+
+    /**
+     * onClick listener for an item in a list of filter options.
+     * @param layout Contains a checkbox/radiobutton and option text.
+     */
+    public void onFilterItemClick(View layout) {
+        // TODO Error checking - assumes a certain structure
+        CheckedTextView checkBox = (CheckedTextView) layout.findViewById(android.R.id.text1);
+        TextView filterOption = (TextView) layout.findViewById(R.id.filter_option_text);
+        String filterOptionName = filterOption.getText().toString();
+
+        // TODO If necessary, check which filter the item belongs to. Worth refactoring.
+        // TODO Refactor - too dependent on filter names.
+        // The giant switch statement isn't ideal.
+
+        switch (filterOptionName) {
+            // Categories
+            case "Accommodation":
+                _currentCategory = "accommodation";
+                break;
+            case "Attractions":
+                _currentCategory = "attractions";
+                break;
+            case "Dining":
+                _currentCategory = "dining";
+                break;
+
+            // Price levels
+            case "Cheap or free":
+                _priceLevel = 1;
+                break;
+            case "Moderately priced":
+                _priceLevel = 2;
+                break;
+            case "Expensive":
+                _priceLevel = 3;
+                break;
+
+            default:
+                break;
+        }
+        setVisibilityByFilters();
+    }
+
+    public void onFilterClearClick(View view) {
+        // TODO Makes a bunch of assumptions that need to be checked.
+        RelativeLayout parent = (RelativeLayout) view.getParent();
+        TextView filterTitle = (TextView) parent.findViewById(R.id.filter_title);
+        String filterTitleString = filterTitle.getText().toString();
+
+        switch (filterTitleString) {
+            case "Category":
+                _currentCategory = null;
+                break;
+            case "Price level":
+                _priceLevel = null;
+                break;
+            default:
+                break;
+        }
+        setVisibilityByFilters();
     }
 
     public void onFilterItemClick(MenuItem item) {
