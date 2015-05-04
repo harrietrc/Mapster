@@ -82,9 +82,9 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
         final String filterText = (String) getChild(groupPosition, childPosition);
         if (convertView == null) {
             LayoutInflater inflater = (LayoutInflater) this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            convertView = inflater.inflate(R.layout.test_item, null);
+            convertView = inflater.inflate(R.layout.filter_item, null);
         }
-        TextView text = (TextView) convertView.findViewById(R.id.test_item);
+        TextView text = (TextView) convertView.findViewById(R.id.filter_option_text);
         text.setText(filterText);
         return convertView;
     }

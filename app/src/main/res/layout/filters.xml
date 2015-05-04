@@ -7,6 +7,7 @@
     <!--android:layout_alignParentLeft="true" - also change back to wrap_content-->
     <ExpandableListView
         android:id="@+id/filter_list"
+        android:choiceMode="singleChoice"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
     </ExpandableListView>
