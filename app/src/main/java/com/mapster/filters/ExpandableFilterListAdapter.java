@@ -10,6 +10,7 @@ import android.widget.TextView;
 import com.mapster.R;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,45 +19,34 @@ import java.util.Map;
 public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
 
     private Context context;
+    private List<String> filterTitles;
+    private Map<String, List<String>> filterChildren;
 
-    // Filter group names - e.g. 'Price level', 'Category'
-    private static final String[] filterGroupNames = {"Category", "Price level"};
-
-    // TODO Currently each new filter group corresponds with a separate layout file. Change this
-    // (i.e. share a layout file and populate with text dynamically) if this gets unwieldy.
-    private Map<String, Integer> layoutIdsByName = new HashMap<String, Integer>(){{
-        put("Category", R.layout.category_filter_options);
-        put("Price level", R.layout.price_level_filter_options);
-    }};
-
-    // Alternative implementation:
-    // Names of options within the filter groups (e.g. 'attractions' inside 'Catgeory')
-//    private Map<String, List<String>> filterOptions;
-
-    public ExpandableFilterListAdapter(Context context) {
+    public ExpandableFilterListAdapter(Context context, List<String> filterTitles, HashMap<String,
+            List<String>> filterChildren) {
         this.context = context;
+        this.filterTitles = filterTitles;
+        this.filterChildren = filterChildren;
     }
 
     @Override
     public int getGroupCount() {
-        return filterGroupNames.length;
+        return filterTitles.size();
     }
 
     @Override
     public int getChildrenCount(int groupPosition) {
-        // TODO
-        return 0;
+        return this.filterChildren.get(this.filterTitles.get(groupPosition)).size();
     }
 
     @Override
     public Object getGroup(int groupPosition) {
-        return filterGroupNames[groupPosition];
+        return filterTitles.get(groupPosition);
     }
 
     @Override
     public Object getChild(int groupPosition, int childPosition) {
-        // TODO
-        return null;
+        return this.filterChildren.get(this.filterTitles.get(groupPosition)).get(childPosition);
     }
 
     @Override
@@ -88,17 +78,19 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
 
     @Override
     public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
+        // Populate the radio group from the list of filter option text
+        final String filterText = (String) getChild(groupPosition, childPosition);
         if (convertView == null) {
-            String groupName = (String) getGroup(groupPosition);
-            int layoutId = layoutIdsByName.get(groupName);
-            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            convertView = inflater.inflate(layoutId, null);
+            LayoutInflater inflater = (LayoutInflater) this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            convertView = inflater.inflate(R.layout.test_item, null);
         }
+        TextView text = (TextView) convertView.findViewById(R.id.test_item);
+        text.setText(filterText);
         return convertView;
     }
 
     @Override
     public boolean isChildSelectable(int groupPosition, int childPosition) {
-        return false;
+        return true;
     }
 }
