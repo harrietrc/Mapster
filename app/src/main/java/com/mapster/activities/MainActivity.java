@@ -1,5 +1,6 @@
 package com.mapster.activities;
 
+import android.app.FragmentTransaction;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -68,7 +69,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     // Contains marker ids and a boolean to indicate whether it has been clicked
     private HashMap<String, Boolean> _userMarkers;
 
-    private MenuItem _filterItem; // Filters button and menu
+    private MenuItem _filterItem; // Filters button
+
     // TODO Issue with these is that with each new filter a new field will need to be added -
     // consider changing to a HashMap of different filter values if enough filters are added for
     // fields to be unwieldy
@@ -101,6 +103,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _suggestionsByMarkerId = new HashMap<>();
 
         filtersFragment = (FiltersFragment) getFragmentManager().findFragmentById(R.id.filters);
+        // Setting the visibility in the XML doesn't seem to have effect, so hide it here
+        getFragmentManager().beginTransaction().hide(filtersFragment).commit();
     }
 
     /**
@@ -143,14 +147,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
     }
 
-    private MarkerOptions initializeOptionMarker(){
-        MarkerOptions options = new MarkerOptions();
-        for (LatLng position : latLngArrayList){
-            options.position(position);
-        }
-        return options;
-    }
-
     public String buildPlacesUrl(double lat, double lng, int radius, String[] types) {
         StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place"
                                              + "/nearbysearch/json?");
@@ -177,6 +173,19 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         sb.append("&placeid=" + placeId);
         String url = sb.toString();
         return url;
+    }
+
+    /**
+     * Triggered when the button in the actionbar that opens the filters menu is clicked
+     */
+    public void onFilterButtonClick() {
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        if (filtersFragment.isVisible()) {
+            ft.hide(filtersFragment);
+        } else {
+            ft.show(filtersFragment);
+        }
+        ft.commit();
     }
 
     public boolean onMarkerClick(Marker marker) {
@@ -490,6 +499,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        } else if (id == R.id.filter) {
+            onFilterButtonClick();
         }
         return super.onOptionsItemSelected(item);
     }

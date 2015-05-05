@@ -123,6 +123,13 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
         // Also check that the child view hasn't already been saved
         HashSet<String> childNames = filterChildViewNames.get(groupName);
 
+        //debug
+        List<String> texts = new ArrayList<>();
+        for (View x: childViews)
+            texts.add(((TextView)x.findViewById(R.id.filter_option_text)).getText().toString());
+        //just to check
+        String thisText = ((TextView) convertView.findViewById(R.id.filter_option_text)).getText().toString();
+
         if (inflatedView && !childNames.contains(childText)) {
             childViews.add(convertView);
             childNames.add(childText);
