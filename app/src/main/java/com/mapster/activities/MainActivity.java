@@ -30,6 +30,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
 import com.mapster.filters.CheckableLinearLayout;
+import com.mapster.filters.FiltersFragment;
 import com.mapster.json.JSONParser;
 import com.mapster.places.GooglePlace;
 import com.mapster.places.GooglePlaceDetail;
@@ -74,6 +75,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private String _currentCategory;
     private Integer _priceLevel;
 
+    // The fragment with the list of filters
+    FiltersFragment filtersFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         //TODO refactor
@@ -95,6 +99,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
         initSuggestionMarkers();
         _suggestionsByMarkerId = new HashMap<>();
+
+        filtersFragment = (FiltersFragment) getFragmentManager().findFragmentById(R.id.filters);
     }
 
     /**
@@ -488,26 +494,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         return super.onOptionsItemSelected(item);
     }
 
-    public void onPriceFilterItemClick(MenuItem item) {
-        item.setChecked(true);
-        switch(item.getItemId()) {
-            case R.id.priceLevelOne:
-                // Expects an Integer, but autoboxing is cool.
-                _priceLevel = 1;
-                break;
-            case R.id.priceLevelTwo:
-                _priceLevel = 2;
-                break;
-            case R.id.priceLevelThree:
-                _priceLevel = 3;
-                break;
-            default:
-                super.onOptionsItemSelected(item);
-                break;
-        }
-        setVisibilityByFilters();
-    }
-
     /**
      * Sets the visibility of markers, taking into account all applicable filters
      * TODO Currently each filter needs to take into account previous ones - change this so it's
@@ -572,14 +558,15 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     /**
-     * onClick listener for an item in a list of filter options.
+     * onClick listener for an item in a list of filter options. Filters markers, displaying those
+     * that match that filter.
      * @param layout Contains a checkbox/radiobutton and option text.
      */
     public void onFilterItemClick(View layout) {
         // TODO Error checking - assumes a certain structure
-        CheckedTextView checkBox = (CheckedTextView) layout.findViewById(android.R.id.text1);
         TextView filterOption = (TextView) layout.findViewById(R.id.filter_option_text);
         String filterOptionName = filterOption.getText().toString();
+        String filterName = null;
 
         // TODO If necessary, check which filter the item belongs to. Worth refactoring.
         // TODO Refactor - too dependent on filter names.
@@ -589,36 +576,52 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             // Categories
             case "Accommodation":
                 _currentCategory = "accommodation";
+                filterName = "Category";
                 break;
             case "Attractions":
                 _currentCategory = "attractions";
+                filterName = "Category";
                 break;
             case "Dining":
                 _currentCategory = "dining";
+                filterName = "Category";
                 break;
 
             // Price levels
             case "Cheap or free":
                 _priceLevel = 1;
+                filterName = "Price level";
                 break;
             case "Moderately priced":
                 _priceLevel = 2;
+                filterName = "Price level";
                 break;
             case "Expensive":
                 _priceLevel = 3;
+                filterName = "Price level";
                 break;
 
             default:
                 break;
         }
+        // Uncheck everything before checking this option's checkbox
+        filtersFragment.clearFilterRadioButtons(filterName);
+        ((CheckableLinearLayout)layout).setChecked(true);
         setVisibilityByFilters();
     }
 
+    /**
+     * Called when the 'clear' button on a single filter is clicked. Clears/resets that filter.
+     * @param view
+     */
     public void onFilterClearClick(View view) {
         // TODO Makes a bunch of assumptions that need to be checked.
         RelativeLayout parent = (RelativeLayout) view.getParent();
         TextView filterTitle = (TextView) parent.findViewById(R.id.filter_title);
         String filterTitleString = filterTitle.getText().toString();
+
+        // Uncheck all the checkboxes in the group
+        filtersFragment.clearFilterRadioButtons(filterTitleString);
 
         switch (filterTitleString) {
             case "Category":
@@ -626,6 +629,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 break;
             case "Price level":
                 _priceLevel = null;
+
                 break;
             default:
                 break;
@@ -633,44 +637,18 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         setVisibilityByFilters();
     }
 
-    public void onFilterItemClick(MenuItem item) {
-        item.setChecked(true);
-        switch(item.getItemId()) {
-            case R.id.all:
-                // Display all the markers
-                setAllMarkersVisible(true);
-                _currentCategory = null;
-                break;
-            case R.id.accommodation:
-                // Set accommodation markers visible
-                setAllMarkersVisible(false);
-                _currentCategory = "accommodation";
-                break;
-            case R.id.attraction:
-                // Set attraction markers visible
-                setAllMarkersVisible(false);
-                _currentCategory = "attractions";
-                break;
-            case R.id.dining:
-                // Set dining markers visible
-                setAllMarkersVisible(false);
-                _currentCategory = "dining";
-                break;
-            default:
-                super.onOptionsItemSelected(item);
-                break;
-        }
-        setVisibilityByFilters();
-    }
-
-    public void onFilterClearClicked(MenuItem item) {
+    /**
+     * Called when the 'clear' button (which clears all the markers) is clicked.
+     * @param item
+     */
+    public void onClearClicked(MenuItem item) {
         // Clear the markers
         setAllMarkersVisible(false);
 
-        // Reset the menu
+        // Reset the menu TODO nope
         Menu filters = _filterItem.getSubMenu();
-        filters.findItem(R.id.all).setChecked(true);
-        filters.findItem(R.id.priceLevelNone).setChecked(true);
+//        filters.findItem(R.id.all).setChecked(true);
+//        filters.findItem(R.id.priceLevelNone).setChecked(true);
 
         // Hide the filter button - no suggestions to filter
         _filterItem.setVisible(false);
@@ -678,15 +656,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         // Set the filters back to null
         _currentCategory = null;
         _priceLevel = null;
-    }
-
-    /**
-     * Change this to something more generic if reusing it would be useful. Resets all the booleans
-     * that track whether a user-defined marker has been clicked to false.
-     */
-    private void resetMarkersClicked() {
-        for (HashMap.Entry<String, Boolean> e: _userMarkers.entrySet())
-            _userMarkers.put(e.getKey(), false);
     }
 
     private void setMarkerListVisible(boolean isVisible, List<Marker> markers) {
@@ -716,22 +685,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         sb.append("&maxheight=" + maxHeight);
 
         return sb.toString();
-    }
-
-    /**
-     * Markers are currently removed instead of hidden, to avoid the computation costs involved in
-     * checking whether a marker already exists before creating it and adding it to the HashMap of
-     * suggestions markers.
-     * TODO: Keep track of the user markers that have been clicked and check that instead
-     */
-    private void removeAllSuggestionsMarkers() {
-        Collection all = _markersByCategory.values();
-        for (Object o: all) {
-            ArrayList<Marker> markerList = (ArrayList) o;
-            for (Marker m: markerList)
-                m.remove();
-        }
-        initSuggestionMarkers();
     }
 
     private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {

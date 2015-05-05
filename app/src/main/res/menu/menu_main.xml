@@ -9,59 +9,5 @@
         android:icon="@drawable/ic_menu_star"
         android:visible="false"
         app:showAsAction="always">
-        <menu>
-            <!-- Category filters -->
-            <group
-                android:id="@+id/filterGroup"
-                android:checkableBehavior="single">
-                <item
-                    android:id="@+id/all"
-                    android:onClick="onFilterItemClick"
-                    android:checked="true"
-                    android:title="@string/all"/>
-                <item
-                    android:id="@+id/dining"
-                    android:onClick="onFilterItemClick"
-                    android:title="@string/dining"/>
-                <item
-                    android:id="@+id/attraction"
-                    android:onClick="onFilterItemClick"
-                    android:title="@string/attractions"/>
-                <item
-                    android:id="@+id/accommodation"
-                    android:onClick="onFilterItemClick"
-                    android:title="@string/accommodation"/>
-            </group>
-            <!-- Empty space (divides submenus. Not ideal. -->
-            <item
-                android:title=""/>
-            <!-- Price filters -->
-            <group
-                android:id="@+id/priceFilterGroup"
-                android:checkableBehavior="single">
-                <item
-                    android:id="@+id/priceLevelNone"
-                    android:onClick="onPriceFilterItemClick"
-                    android:title="@string/price_level_none"
-                    android:checked="true"/>
-                <item
-                    android:id="@+id/priceLevelOne"
-                    android:onClick="onPriceFilterItemClick"
-                    android:title="@string/price_level_one"/>
-                <item
-                    android:id="@+id/priceLevelTwo"
-                    android:onClick="onPriceFilterItemClick"
-                    android:title="@string/price_level_two"/>
-                <item
-                    android:id="@+id/priceLevelThree"
-                    android:onClick="onPriceFilterItemClick"
-                    android:title="@string/price_level_three"/>
-            </group>
-            <!-- Clear all markers -->
-            <item
-                android:id="@+id/clear"
-                android:onClick="onFilterClearClicked"
-                android:title="@string/clear"/>
-        </menu>
     </item>
 </menu>

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.view.View;
 import android.view.ViewParent;
 import android.widget.Checkable;
 import android.widget.CheckedTextView;
@@ -21,7 +22,6 @@ public class CheckableLinearLayout extends LinearLayout implements Checkable {
     private final Drawable mCheckDrawable;
     private final Drawable mRadioDrawable;
     private boolean mIsChecked;
-
 
     /**
      * Constructor.

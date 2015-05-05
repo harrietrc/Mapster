@@ -2,9 +2,11 @@ package com.mapster.filters;
 
 import android.app.Fragment;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckedTextView;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 
@@ -20,7 +22,8 @@ import java.util.List;
 public class FiltersFragment extends Fragment {
 
     List<String> filterTitles; // The names of each filter
-    HashMap<String, List<String>> filterOptions;
+    HashMap<String, List<String>> filterOptions; // Options for each filter (e.g. 'Accommodation')
+    ExpandableFilterListAdapter adapter; // List adapter - has methods for operating on the filter list
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -36,10 +39,34 @@ public class FiltersFragment extends Fragment {
         ExpandableListView list = (ExpandableListView) view.findViewById(R.id.filter_list);
 
         // Adapter to allow expandable list behaviour
-        ExpandableListAdapter adapter = new ExpandableFilterListAdapter(getActivity(), filterTitles, filterOptions);
+        adapter = new ExpandableFilterListAdapter(getActivity(), filterTitles, filterOptions);
         list.setAdapter(adapter);
 
         return view;
+    }
+
+    /**
+     * Returns the filter options that are grouped under a certain filter name
+     * @param filterName Name of filter, e.g. 'Category'
+     * @return List of filter children as Views
+     */
+    public List<View> getChildrenByFilterName(String filterName) {
+        return adapter.getGroupChildren(filterName);
+    }
+
+    /**
+     * Unchecks all the filter options in a filter group
+     * @param filterName The name of the filter group
+     */
+    public void clearFilterRadioButtons(String filterName) {
+        List<View> children = adapter.getGroupChildren(filterName);
+        if (children != null) {
+            for (View v : children) {
+                ((CheckableLinearLayout) v).setChecked(false);
+            }
+        } else {
+            Log.w("FiltersFragment", "Expected non-null list of filter options");
+        }
     }
 
     /**
