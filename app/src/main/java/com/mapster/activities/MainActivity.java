@@ -78,7 +78,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private Integer _priceLevel;
 
     // The fragment with the list of filters
-    FiltersFragment filtersFragment;
+    FiltersFragment _filtersFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,9 +102,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         initSuggestionMarkers();
         _suggestionsByMarkerId = new HashMap<>();
 
-        filtersFragment = (FiltersFragment) getFragmentManager().findFragmentById(R.id.filters);
-        // Setting the visibility in the XML doesn't seem to have effect, so hide it here
-        getFragmentManager().beginTransaction().hide(filtersFragment).commit();
+        _filtersFragment = (FiltersFragment) getFragmentManager().findFragmentById(R.id.filters);
+        // Setting the visibility in the XML doesn't have effect, so hide it here
+        getFragmentManager().beginTransaction().hide(_filtersFragment).commit();
     }
 
     /**
@@ -180,10 +180,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
      */
     public void onFilterButtonClick() {
         FragmentTransaction ft = getFragmentManager().beginTransaction();
-        if (filtersFragment.isVisible()) {
-            ft.hide(filtersFragment);
+        if (_filtersFragment.isVisible()) {
+            ft.hide(_filtersFragment);
         } else {
-            ft.show(filtersFragment);
+            ft.show(_filtersFragment);
         }
         ft.commit();
     }
@@ -616,7 +616,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 break;
         }
         // Uncheck everything before checking this option's checkbox
-        filtersFragment.clearFilterRadioButtons(filterName);
+        _filtersFragment.clearFilterRadioButtons(filterName);
         ((CheckableLinearLayout)layout).setChecked(true);
         setVisibilityByFilters();
     }
@@ -632,7 +632,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         String filterTitleString = filterTitle.getText().toString();
 
         // Uncheck all the checkboxes in the group
-        filtersFragment.clearFilterRadioButtons(filterTitleString);
+        _filtersFragment.clearFilterRadioButtons(filterTitleString);
 
         switch (filterTitleString) {
             case "Category":
@@ -640,7 +640,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 break;
             case "Price level":
                 _priceLevel = null;
-
                 break;
             default:
                 break;
@@ -650,19 +649,19 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     /**
      * Called when the 'clear' button (which clears all the markers) is clicked.
-     * @param item
      */
-    public void onClearClicked(MenuItem item) {
+    public void onClearClick(View v) {
         // Clear the markers
         setAllMarkersVisible(false);
 
-        // Reset the menu TODO nope
-        Menu filters = _filterItem.getSubMenu();
-//        filters.findItem(R.id.all).setChecked(true);
-//        filters.findItem(R.id.priceLevelNone).setChecked(true);
+        // Reset the RadioButtons
+        _filtersFragment.clearAllFilterRadioButtons();
 
         // Hide the filter button - no suggestions to filter
         _filterItem.setVisible(false);
+
+        // Hide the filters fragment
+        getFragmentManager().beginTransaction().hide(_filtersFragment).commit();
 
         // Set the filters back to null
         _currentCategory = null;

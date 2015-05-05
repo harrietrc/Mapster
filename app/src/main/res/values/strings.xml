@@ -23,7 +23,4 @@
     <string name="price_level_three">$$$</string>
     <string name="price_level_none">All prices</string>
 
-    <!-- Filter titles -->
-    <string name="price_level_title">Price level</string>
-
 </resources>

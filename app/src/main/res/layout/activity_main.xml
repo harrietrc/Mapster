@@ -11,10 +11,13 @@
         android:layout_height="match_parent"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         />
+    <!-- TODO Should change width from hardcoded value -->
     <fragment
         android:id="@+id/filters"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="200dp"
+        android:layout_height="fill_parent"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
         android:name="com.mapster.filters.FiltersFragment"
         />
 </RelativeLayout>

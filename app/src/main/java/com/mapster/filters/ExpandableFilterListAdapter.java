@@ -9,8 +9,6 @@ import android.widget.TextView;
 
 import com.mapster.R;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -84,7 +82,13 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
 
     @Override
     public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
+        // E.g. 'Category', 'Price level', 'Clear suggestions'
         String groupTitle = (String) getGroup(groupPosition);
+
+        // As opposed to the 'Clear suggestions' item
+        boolean isFilterOption = false;
+        if (convertView != null)
+            isFilterOption = convertView.findViewById(R.id.clear) != null;
 
         // Save the group so that we can save its children later
         if (filterChildViews.get(groupTitle) == null) {
@@ -92,10 +96,20 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
             filterChildViewNames.put(groupTitle, new HashSet<String>());
         }
 
-        if (convertView == null) {
-            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        // Inflate the correct layout - either a filter option or the clear suggestions option
+        // TODO Ideally we wouldn't have to reinflate convertview when the option type switches - save it?
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        if (groupPosition == (getGroupCount()-1)) {
+            // The last group is always 'Clear suggestions'
+            if (isFilterOption) {
+                // Reinflate if convertView is a filter option
+                convertView = inflater.inflate(R.layout.filter_group_clear, null);
+            }
+        } else if (convertView == null || !isFilterOption) {
+            // Inflate filter option layout if the view is null or the 'Clear suggestions' item
             convertView = inflater.inflate(R.layout.filter_group, null);
         }
+
         TextView viewTitle = (TextView) convertView.findViewById(R.id.filter_title);
         viewTitle.setText(groupTitle);
         return convertView;

@@ -64,8 +64,12 @@ public class FiltersFragment extends Fragment {
             for (View v : children) {
                 ((CheckableLinearLayout) v).setChecked(false);
             }
-        } else {
-            Log.w("FiltersFragment", "Expected non-null list of filter options");
+        }
+    }
+
+    public void clearAllFilterRadioButtons() {
+        for (String s: filterTitles) {
+            clearFilterRadioButtons(s);
         }
     }
 
@@ -80,6 +84,7 @@ public class FiltersFragment extends Fragment {
         // Filter names
         filterTitles.add("Category");
         filterTitles.add("Price level");
+        filterTitles.add("Clear suggestions");
 
         // Filter options - category
         List<String> categories = new ArrayList<>();
@@ -96,5 +101,6 @@ public class FiltersFragment extends Fragment {
         // Associate filter titles with filter options
         filterOptions.put(filterTitles.get(0), categories);
         filterOptions.put(filterTitles.get(1), priceLevels);
+        filterOptions.put(filterTitles.get(2), new ArrayList<String>());
     }
 }

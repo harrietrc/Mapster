@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.mapster.filters.CheckableLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="55dip"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
               android:clickable="true"
               android:onClick="onFilterItemClick"
               android:orientation="horizontal"
@@ -17,7 +17,8 @@
         android:id="@+id/filter_option_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="17dip"
+        android:layout_gravity="center_vertical"
+        android:textSize="17sp"
         />
 
 </com.mapster.filters.CheckableLinearLayout>
