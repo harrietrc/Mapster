@@ -101,9 +101,6 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
             filterChildViewNames.put(groupTitle, new HashSet<String>());
         }
 
-        if (groupTitle.equals("Clear suggestions"))
-            System.out.println("hey");
-
         // Inflate the correct layout - either a filter option or the clear suggestions option
         // TODO Ideally we wouldn't have to reinflate convertview when the option type switches - save it?
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
