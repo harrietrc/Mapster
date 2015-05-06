@@ -2,19 +2,18 @@ package com.mapster.filters;
 
 import android.app.Fragment;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckedTextView;
-import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
+import android.widget.TextView;
 
 import com.mapster.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Harriet on 5/2/2015.
@@ -46,31 +45,25 @@ public class FiltersFragment extends Fragment {
     }
 
     /**
-     * Returns the filter options that are grouped under a certain filter name
-     * @param filterName Name of filter, e.g. 'Category'
-     * @return List of filter children as Views
-     */
-    public List<View> getChildrenByFilterName(String filterName) {
-        return adapter.getGroupChildren(filterName);
-    }
-
-    /**
-     * Unchecks all the filter options in a filter group
+     * Unchecks all the filter options in a filter group. Called when 'Clear' is clicked
      * @param filterName The name of the filter group
      */
     public void clearFilterRadioButtons(String filterName) {
-        List<View> children = adapter.getGroupChildren(filterName);
-        if (children != null) {
-            for (View v : children) {
-                ((CheckableLinearLayout) v).setChecked(false);
-            }
-        }
+        adapter.clearFilterRadioButtons(filterName);
     }
 
     public void clearAllFilterRadioButtons() {
-        for (String s: filterTitles) {
-            clearFilterRadioButtons(s);
-        }
+        adapter.clearAllFilterRadioButtons();
+    }
+
+    /**
+     * Call this when setting a filter option's radio button to checked. Sets the correct checked
+     * state for all
+     * @param group
+     * @param checkedChild
+     */
+    public void setFilterOptionChecked(String group, String checkedChild) {
+        adapter.setFilterOptionChecked(group, checkedChild);
     }
 
     /**

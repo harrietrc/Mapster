@@ -13,7 +13,6 @@ import android.view.Menu;
 import android.content.Intent;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.CheckedTextView;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.RelativeLayout;
@@ -30,7 +29,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
-import com.mapster.filters.CheckableLinearLayout;
 import com.mapster.filters.FiltersFragment;
 import com.mapster.json.JSONParser;
 import com.mapster.places.GooglePlace;
@@ -105,16 +103,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _filtersFragment = (FiltersFragment) getFragmentManager().findFragmentById(R.id.filters);
         // Setting the visibility in the XML doesn't have effect, so hide it here
         getFragmentManager().beginTransaction().hide(_filtersFragment).commit();
-    }
-
-    /**
-     * Does what it says on the tin. Required by SuggestionInfoAdapter, as Marker can't be
-     * extended.
-     * @param markerId = ID of a marker
-     * @return = Suggestion object corresponding to that Marker id.
-     */
-    public Suggestion getSuggestionByMarkerId(String markerId) {
-        return _suggestionsByMarkerId.get(markerId);
     }
 
     /**
@@ -616,8 +604,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 break;
         }
         // Uncheck everything before checking this option's checkbox
-        _filtersFragment.clearFilterRadioButtons(filterName);
-        ((CheckableLinearLayout)layout).setChecked(true);
+        _filtersFragment.setFilterOptionChecked(filterName, filterOptionName);
         setVisibilityByFilters();
     }
 
@@ -645,10 +632,11 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 break;
         }
         setVisibilityByFilters();
+        _filtersFragment.clearFilterRadioButtons(filterTitleString);
     }
 
     /**
-     * Called when the 'clear' button (which clears all the markers) is clicked.
+     * Called when the 'Clear suggestions' button (which clears all the markers) is clicked.
      */
     public void onClearClick(View v) {
         // Clear the markers
@@ -656,6 +644,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
         // Reset the RadioButtons
         _filtersFragment.clearAllFilterRadioButtons();
+
+        System.out.println("CLEAR");
 
         // Hide the filter button - no suggestions to filter
         _filterItem.setVisible(false);
