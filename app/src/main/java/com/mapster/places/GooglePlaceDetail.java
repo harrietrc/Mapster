@@ -1,5 +1,7 @@
 package com.mapster.places;
 
+import android.util.Log;
+
 import java.util.HashMap;
 
 /**
@@ -10,6 +12,7 @@ import java.util.HashMap;
  * Note: Photo and rating are stored in GooglePlace. This only populates the InfoWindow snippet.
  */
 public class GooglePlaceDetail {
+    // TODO Make these private
     public String shortAddress;
     public String website; // May be null
     public String phoneNumber; // May be null
@@ -17,6 +20,19 @@ public class GooglePlaceDetail {
     // TODO: show today's hours in InfoWindow of suggestion markers
     private HashMap<String, String> _openHours;
 
+
+    private Integer _priceLevel;
+
     // TODO: reviews summary (Google offers this as a premium service - worth looking into?)
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(shortAddress);
+        if (phoneNumber != null)
+            sb.append("\n" + phoneNumber);
+        if (website != null)
+            sb.append("\n" + website);
+        return sb.toString();
+    }
 
 }

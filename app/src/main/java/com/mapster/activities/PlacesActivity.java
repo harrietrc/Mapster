@@ -33,7 +33,8 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     private LinkedList<AutoCompleteTextView> _autoCompleteTextViewLinkedList;
     private ArrayList<String> _coordinateArrayList;
     private List<RadioGroup> _transportModeViewList;
-    private ArrayList<String> _transportModeList;
+    private ArrayList<String> _transportModeList;  
+    private ArrayList<String> _nameList;
 
     public enum TravelMode{
         DRIVING("driving"), WALKING("walking"), BIKING("bicycling"), TRANSIT("transit");
@@ -52,6 +53,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         setContentView(R.layout.activity_places);
         addViewsInLayoutToArrayList((LinearLayout) findViewById(R.id.place_activity_layout));
         initializeAutoCompleteTextViewInArrayList();
+        _nameList = new ArrayList<>();
     }
 
     private void addViewsInLayoutToArrayList(LinearLayout llayout){
@@ -184,13 +186,14 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         for (AutoCompleteTextView acTextView : _autoCompleteTextViewLinkedList){
             try {
                 if(!acTextView.getText().toString().isEmpty()) {
-                    String[] coordinate = new GeoCode().execute(
-                                                        acTextView.getText().toString()).get();
+                    String text = acTextView.getText().toString();
+                    String[] coordinate = new GeoCode().execute(text).get();
+                    String placeName = text.split(",")[0];
+                    placeName = placeName == null? text : placeName;
+                    _nameList.add(placeName);
                     _coordinateArrayList.add(coordinate[0]);
                     _coordinateArrayList.add(coordinate[1]);
                 }
-                System.out.println("ADDRESS: " + acTextView.getText().toString());
-                System.out.println("COORDINATE ARRAY: " + _coordinateArrayList);
             } catch(InterruptedException e){
                 e.printStackTrace();
             } catch(ExecutionException e){
@@ -246,6 +249,11 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("COORDINATE_LIST", _coordinateArrayList);
         intent.putExtra("TRANSPORT_MODE", _transportModeList);
+        intent.putExtra("NAME_LIST", _nameList);
+
+        // Reset name list, otherwise the wrong names will correspond with
+        // TODO The coordinates and names should really be stored in the same data structure
+        _nameList = new ArrayList<>();
         startActivity(intent);
     }
 }

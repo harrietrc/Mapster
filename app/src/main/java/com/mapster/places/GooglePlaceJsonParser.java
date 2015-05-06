@@ -69,6 +69,11 @@ public class GooglePlaceJsonParser {
             if (!jsonPlace.isNull("rating"))
                 place.rating = (float) jsonPlace.getDouble("rating");
 
+            // This is more often than not null, or else an integer between 0 and 4 (inclusive)
+            if (!jsonPlace.isNull("price_level")) {
+                place.parseAndSetPriceLevel(jsonPlace.getString("price_level"));
+            }
+
             // Parse the types of the place
             String[] categories = jsonPlace.getJSONArray("types").join(",").split(",");
             String[] trimmedArray = new String[categories.length];

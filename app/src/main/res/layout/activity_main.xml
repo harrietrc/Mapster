@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".TaskRoadMap" >
-
     <com.sothree.slidinguppanel.SlidingUpPanelLayout
         xmlns:sothree="http://schemas.android.com/apk/res-auto"
         android:id="@+id/sliding_layout"
@@ -15,12 +14,25 @@
         sothree:umanoFadeColor="#287AA9"
         sothree:umanoPanelHeight="68dp"
         sothree:umanoShadowHeight="4dp">
-        <fragment
-            android:id="@+id/map"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:name="com.google.android.gms.maps.SupportMapFragment"
-            />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <fragment
+                android:id="@+id/filters"
+                android:layout_width="200dp"
+                android:layout_height="fill_parent"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:name="com.mapster.filters.FiltersFragment"
+                />
+            <fragment
+                android:id="@+id/map"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                />
+        </LinearLayout>
         <ScrollView
             android:layout_width="fill_parent"
             android:layout_height="fill_parent">
@@ -35,12 +47,5 @@
                 android:paddingBottom="10pt">
             </LinearLayout>
         </ScrollView>
-
     </com.sothree.slidinguppanel.SlidingUpPanelLayout>
-
 </RelativeLayout>
-<!--
-- See here for xml attributes: https://developers.google.com/maps/documentation/android/map#add_map_code
-- Camera positioning: https://developers.google.com/maps/documentation/android/views#bearing_orientation
-- Try hybrid, satellite, and terrain for mapType
--->
