@@ -3,6 +3,8 @@ package com.mapster.places.autocomplete;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.mapster.R;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,10 +24,20 @@ import java.util.HashMap;
  */
 public class AutoCompletePlaces {
     private static final String LOG_TAG = "Mapster";
-    private static final String API_KEY = "AIzaSyBM7NSP59Z4Lhfk975jtoMR2O1g4BPTos4";
     private static final String PLACES_API_BASE = "https://maps.googleapis.com/maps/api/place";
     private static final String TYPE_AUTOCOMPLETE = "/autocomplete";
     private static final String OUT_JSON = "/json";
+
+    private String _apiKey;
+
+    public AutoCompletePlaces() {
+        // Use the default API key. May not want to hardcode it like this.
+        this._apiKey = "AIzaSyDGbryAn8AT_UliJQk6OnCQ0b-CMLJhNFw";
+    }
+
+    public AutoCompletePlaces(String apiKey) {
+        this._apiKey = apiKey;
+    }
 
     public ArrayList<String> autocomplete(String input) {
         HttpURLConnection conn = null;
@@ -64,7 +76,7 @@ public class AutoCompletePlaces {
         StringBuilder sb = new StringBuilder(PLACES_API_BASE + TYPE_AUTOCOMPLETE + OUT_JSON);
         try {
             sb.append("?input=" + URLEncoder.encode(input, "utf8"));
-            sb.append("&key=" + API_KEY);
+            sb.append("&key=" + _apiKey);
         } catch (UnsupportedEncodingException e){
             e.printStackTrace();
         }

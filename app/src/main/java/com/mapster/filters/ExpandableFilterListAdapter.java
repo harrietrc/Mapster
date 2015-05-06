@@ -117,7 +117,16 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
 
         TextView viewTitle = (TextView) convertView.findViewById(R.id.filter_title);
         viewTitle.setText(groupTitle);
+
+        refreshRadioButtons();
+
         return convertView;
+    }
+
+    public void refreshRadioButtons() {
+        for (String s: filterTitles) {
+            setFilterGroupChecked(s);
+        }
     }
 
     @Override
@@ -144,8 +153,11 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
 
         // Check whether the child should be checked or not
         String checkedOption = checkedFilterOptions.get(groupName);
-        if (checkedOption != null && checkedOption.equals(childText))
+        if (checkedOption != null && checkedOption.equals(childText)) {
             ((CheckableLinearLayout) convertView).setChecked(true);
+        } else {
+            ((CheckableLinearLayout) convertView).setChecked(false);
+        }
 
         return convertView;
     }
@@ -161,10 +173,12 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
         List<String> childNames = filterChildren.get(groupName);
         HashSet<View> updated = new HashSet<>();
 
-        for (View v: children) {
-            String name = ((TextView)v.findViewById(R.id.filter_option_text)).getText().toString();
-            if (childNames.contains(name))
-                updated.add(v);
+        if (children != null) {
+            for (View v : children) {
+                String name = ((TextView) v.findViewById(R.id.filter_option_text)).getText().toString();
+                if (childNames.contains(name))
+                    updated.add(v);
+            }
         }
 
         // Update the list of children
@@ -215,11 +229,6 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
     public void  setFilterGroupChecked(String group) {
         HashSet<View> children = filterChildViews.get(group);
         String checkedChild = checkedFilterOptions.get(group);
-
-        // debug
-//        List<String> childViewNames = new ArrayList<>();
-//        for (View v: children)
-//            childViewNames.add(((TextView)v.findViewById(R.id.filter_option_text)).getText().toString());
 
         if (checkedChild == null) {
             // Clear all the radio buttons - no item is checked

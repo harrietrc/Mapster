@@ -6,6 +6,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Filter;
 import android.widget.Filterable;
 
+import com.mapster.R;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
@@ -15,9 +17,11 @@ import java.util.Set;
  */
 public class PlacesAutoCompleteAdapter extends ArrayAdapter<String> implements Filterable{
     private ArrayList<String> resultList;
+    private Context _context;
 
     public PlacesAutoCompleteAdapter(Context context, int textViewResourceId) {
         super(context, textViewResourceId);
+        this._context = context;
     }
 
     @Override
@@ -36,7 +40,8 @@ public class PlacesAutoCompleteAdapter extends ArrayAdapter<String> implements F
             @Override
             protected FilterResults performFiltering(CharSequence constraint) {
                 FilterResults filterResults = new FilterResults();
-                AutoCompletePlaces autoCompletePlaces = new AutoCompletePlaces();
+                String apiKey = _context.getString(R.string.API_KEY);
+                AutoCompletePlaces autoCompletePlaces = new AutoCompletePlaces(apiKey);
                 if (constraint != null) {
                     // Retrieve the autocomplete results.
                     resultList = autoCompletePlaces.autocomplete(constraint.toString());
