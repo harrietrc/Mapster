@@ -9,7 +9,6 @@
         android:id="@+id/filter_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:onClick="onClearClick"
         android:paddingLeft="?android:attr/expandableListPreferredItemPaddingLeft"
         android:textSize="17sp"/>
 </RelativeLayout>

@@ -9,6 +9,7 @@ import android.widget.ExpandableListView;
 import android.widget.TextView;
 
 import com.mapster.R;
+import com.mapster.activities.MainActivity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,6 +41,16 @@ public class FiltersFragment extends Fragment {
         // Adapter to allow expandable list behaviour
         adapter = new ExpandableFilterListAdapter(getActivity(), filterTitles, filterOptions);
         list.setAdapter(adapter);
+
+        list.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+            // TODO There might be a more appropriate place to put this
+            @Override
+            public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+                if (groupPosition == (adapter.getGroupCount()-1))
+                    ((MainActivity) getActivity()).onClearClick(v);
+                return false;
+            }
+        });
 
         return view;
     }
