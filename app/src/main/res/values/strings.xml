@@ -28,4 +28,9 @@
     <string name="price_level_three">$$$</string>
     <string name="price_level_none">All prices</string>
 
+    <!-- Expedia -->
+    <string name="EXPEDIA_API_KEY">2fp0is48pt2tmnl7sjehfaeuja</string>
+    <string name="EXPEDIA_CID">487641</string>
+    <string name="EXPEDIA_SECRET">3c2s654ll7aa0</string> <!-- MOVE THIS! -->
+
 </resources>

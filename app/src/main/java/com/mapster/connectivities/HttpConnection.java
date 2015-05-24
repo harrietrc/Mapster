@@ -13,12 +13,12 @@ import java.net.URL;
  * Created by tommyngo on 14/03/15.
  */
 public class HttpConnection {
-    public String readUrl(String mapsApiDirectionsUrl) throws IOException {
+    public String readUrl(String urlString) throws IOException {
         String data = "";
         InputStream iStream = null;
         HttpURLConnection urlConnection = null;
         try {
-            URL url = new URL(mapsApiDirectionsUrl);
+            URL url = new URL(urlString);
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.connect();
             iStream = urlConnection.getInputStream();
@@ -32,10 +32,12 @@ public class HttpConnection {
             data = sb.toString();
             br.close();
         } catch (Exception e) {
-            Log.d("Exception while reading url", e.toString());
+            Log.d("HttpConnection", e.toString());
         } finally {
-            iStream.close();
-            urlConnection.disconnect();
+            if (iStream != null)
+                iStream.close();
+            if (urlConnection != null)
+                urlConnection.disconnect();
         }
         return data;
     }

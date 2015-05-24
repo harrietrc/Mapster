@@ -1,25 +1,17 @@
 package com.mapster.activities;
 
-import android.content.res.ColorStateList;
-
 import android.app.FragmentTransaction;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.content.Intent;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RatingBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,23 +27,20 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
+import com.mapster.connectivities.tasks.ReadTask;
 import com.mapster.filters.FiltersFragment;
 import com.mapster.json.JSONParser;
 import com.mapster.map.information.MapInformation;
 import com.mapster.places.GooglePlace;
 import com.mapster.places.GooglePlaceDetail;
-import com.mapster.places.GooglePlaceDetailJsonParser;
 import com.mapster.places.GooglePlaceJsonParser;
+import com.mapster.connectivities.tasks.PlaceDetailTask;
 import com.mapster.suggestions.Suggestion;
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
+import com.mapster.suggestions.SuggestionInfoAdapter;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -110,7 +99,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 13));
         addMarkers();
         _map.setOnMarkerClickListener(this);
-        _map.setInfoWindowAdapter(new SuggestionInfoAdapter(getLayoutInflater()));
+        _map.setInfoWindowAdapter(new SuggestionInfoAdapter(getLayoutInflater(),
+                this));
         _map.setMyLocationEnabled(true);
         initSuggestionMarkers();
         _suggestionsByMarkerId = new HashMap<>();
@@ -118,6 +108,11 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _filtersFragment = (FiltersFragment) getFragmentManager().findFragmentById(R.id.filters);
         // Setting the visibility in the XML doesn't have effect, so hide it here
         getFragmentManager().beginTransaction().hide(_filtersFragment).commit();
+    }
+
+    public Suggestion getSuggestionByMarker(Marker marker) {
+        String id = marker.getId();
+        return _suggestionsByMarkerId.get(id);
     }
 
     /**
@@ -192,16 +187,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         return helper;
     }
 
-    private MarkerOptions initializeOptionMarker() {
-        MarkerOptions options = new MarkerOptions();
-        for (List<LatLng> latLng : _latLngArrayList){
-            for (LatLng position : latLng) {
-                options.position(position);
-            }
-        }
-        return options;
-    }
-
     public String buildPlacesUrl(double lat, double lng, int radius, String[] types) {
         StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place"
                                              + "/nearbysearch/json?");
@@ -218,14 +203,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 delim = "|";
             }
         }
-        String url = sb.toString();
-        return url;
-    }
-
-    public String buildDetailUrl(String placeId) {
-        StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place/details/json?");
-        sb.append("key=" + getResources().getString(R.string.API_KEY));
-        sb.append("&placeid=" + placeId);
         String url = sb.toString();
         return url;
     }
@@ -258,7 +235,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             Suggestion s = _suggestionsByMarkerId.get(id);
 
             if (marker.getSnippet() == null) {
-                PlaceDetailTask detailTask = new PlaceDetailTask();
+                PlaceDetailTask detailTask = new PlaceDetailTask(this.getApplicationContext());
                 GooglePlaceDetail detail = null;
                 String infoWindowString;
 
@@ -355,35 +332,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _suggestionsByMarkerId.put(marker.getId(), suggestion);
         List<Marker> cat = _markersByCategory.get(category);
         cat.add(marker);
-    }
-
-    /**
-     * Extend this if your task involves getting a response from a URL
-     */
-    private class ReadTask extends AsyncTask<String, Void, String> {
-        @Override
-        protected String doInBackground(String... url) {
-            return downloadUrl(url[0]);
-        }
-    }
-
-    private class PlaceDetailTask extends AsyncTask<String, Void, GooglePlaceDetail> {
-
-        @Override
-        protected GooglePlaceDetail doInBackground(String... placeIds) {
-            GooglePlaceDetailJsonParser detailJsonParser = new GooglePlaceDetailJsonParser();
-            String url = buildDetailUrl(placeIds[0]);
-            String response = downloadUrl(url);
-            GooglePlaceDetail detail = null;
-
-            try {
-                JSONObject jsonResponse = new JSONObject(response);
-                detail = detailJsonParser.parse(jsonResponse);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            return detail;
-        }
     }
 
     private class PlacesTask extends AsyncTask<LatLng, Void, List<GooglePlace>> {
@@ -634,7 +582,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     /**
      * Sets visibility of markers based on a price level (retrieved from the _priceLevel field)
-     * TODO Decide whether this method is preferable to maintaining a separate data structure like _markersByCategory
      */
     public void setVisibilityByPriceLevel() {
         // All the markers in the current category (accommodation, attractions, or dining)
@@ -783,144 +730,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             ArrayList<Marker> markerList = (ArrayList) o;
             for (Marker m: markerList)
                 m.setVisible(isVisible);
-        }
-    }
-
-    private String buildPhotoUrl(String photoReference) {
-        int maxWidth = 200;
-        int maxHeight = 200;
-
-        StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place/photo?");
-        sb.append("key=" + getResources().getString(R.string.API_KEY));
-        sb.append("&photoreference=" + photoReference);
-        sb.append("&maxwidth=" + maxWidth);
-        sb.append("&maxheight=" + maxHeight);
-
-        return sb.toString();
-    }
-
-    private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
-        private ImageView _image;
-
-        public DownloadImageTask(ImageView image) {
-            _image = image;
-        }
-
-        @Override
-        protected Bitmap doInBackground(String... urls) {
-            String url = urls[0];
-            Bitmap icon = null;
-            try {
-                InputStream in = new URL(url).openStream();
-                icon = BitmapFactory.decodeStream(in);
-            } catch (IOException e) {
-                Log.e("DownloadImageTask", e.getMessage());
-                e.printStackTrace();
-            }
-            return icon;
-        }
-
-        @Override
-        protected void onPostExecute(Bitmap result) {
-            _image.setImageBitmap(result);
-        }
-    }
-
-
-    public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter {
-
-        private LayoutInflater _inflater;
-
-        // This field prevents the ImageView from being garbage collected before its drawable can be
-        // set, and the image returned by Picasso displayed.
-        private ImageView _currentInfoWindowImage;
-
-        public SuggestionInfoAdapter(LayoutInflater inflater) {
-            _inflater = inflater;
-        }
-
-        @Override
-        public View getInfoWindow(Marker marker) {
-            return null;
-        }
-
-        @Override
-        /**
-         * This is only called if getInfoWindow() returns null. If this returns null, the default info
-         * window will be displayed.
-         */
-        public View getInfoContents(Marker marker) {
-            String markerId = marker.getId();
-            Suggestion s = _suggestionsByMarkerId.get(markerId);
-            View info = _inflater.inflate(R.layout.suggestion_info_window, null);
-
-            TextView title = (TextView) info.findViewById(R.id.title);
-            title.setText(marker.getTitle());
-
-            TextView snippet = (TextView) info.findViewById(R.id.snippet);
-            snippet.setText(marker.getSnippet());
-
-            // Set the rating of the place, if the place is not user-defined
-            RatingBar ratingBar = (RatingBar) info.findViewById(R.id.rating_bar);
-            float rating;
-            if (s != null) {
-                rating = s.getRating();
-            } else {
-                rating = 0;
-            }
-
-            // Hide rating if none if given
-            if (rating == 0) {
-                ratingBar.setVisibility(View.GONE);
-            } else {
-                ratingBar.setRating(rating);
-            }
-
-            ImageView image = (ImageView) info.findViewById(R.id.image);
-
-            // Load the icon into the ImageView of the InfoWindow
-            if (s != null) {
-                String photoReference = s.getPhotoReference();
-                if (photoReference != null) {
-                    String imageUrl = buildPhotoUrl(photoReference);
-                    if (s.isClicked()) {
-                        // Marker has been clicked before - don't need to call the callback to load icon
-                        // Picasso has a fit() method for fitting to an ImageView, but it doesn't seem to work.
-                        Picasso.with(MainActivity.this).load(imageUrl).resize(150,150).centerCrop().into(image);
-                    } else {
-                        // Marker clicked for first time - download the icon and load it into the view
-                        s.setClicked(true);
-                        _currentInfoWindowImage = image;
-                        Picasso.with(MainActivity.this).load(imageUrl).resize(150, 150).centerCrop()
-                                .into(_currentInfoWindowImage, new InfoWindowRefresher(marker));
-                    }
-                }
-            }
-
-            // Hide the ImageView if it has no image
-            if (image.getDrawable() == null) {
-                image.setVisibility(View.GONE);
-            }
-
-            return info;
-        }
-    }
-
-    private class InfoWindowRefresher implements Callback {
-        private Marker _markerToRefresh;
-
-        private InfoWindowRefresher(Marker markerToRefresh) {
-            _markerToRefresh = markerToRefresh;
-        }
-
-        @Override
-        public void onSuccess() {
-            _markerToRefresh.showInfoWindow();
-        }
-
-        @Override
-        public void onError() {
-
         }
     }
 }
