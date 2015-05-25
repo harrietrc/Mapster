@@ -34,14 +34,18 @@ public class GooglePlace {
     }
 
     /**
+     * Could be expanded to include price detail etc.
+     * @return
+     */
+    public String toString() {
+        return _detail == null ? "" : _detail.toString();
+    }
+
+    /**
      * Returns the price level (null if not provided, which is the usual case in Auckland at least)
      */
     public Integer getPriceLevel() {
         return _priceLevel;
-    }
-
-    public boolean hasDetail() {
-        return _detail != null;
     }
 
     public void setPriceLevel(int priceLevel) {

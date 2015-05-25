@@ -1,6 +1,8 @@
-package com.mapster.places;
+package com.mapster.json;
 
 import android.util.Log;
+
+import com.mapster.places.GooglePlaceDetail;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,7 +36,7 @@ public class GooglePlaceDetailJsonParser {
 
         try {
             // Street address
-            if (!jsonDetail.getString("formatted_address").equals(JSONObject.NULL)) {
+            if (!jsonDetail.isNull("formatted_address")) {
                 String formattedAddress = jsonDetail.getString("formatted_address");
                 detail.shortAddress = formattedAddress.split(",")[0]; // First line of the address
             }

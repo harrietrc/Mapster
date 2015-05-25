@@ -32,9 +32,8 @@ import com.mapster.filters.FiltersFragment;
 import com.mapster.json.JSONParser;
 import com.mapster.map.information.MapInformation;
 import com.mapster.places.GooglePlace;
-import com.mapster.places.GooglePlaceDetail;
-import com.mapster.places.GooglePlaceJsonParser;
-import com.mapster.connectivities.tasks.PlaceDetailTask;
+import com.mapster.json.GooglePlaceJsonParser;
+import com.mapster.suggestions.GooglePlaceSuggestion;
 import com.mapster.suggestions.Suggestion;
 import com.mapster.suggestions.SuggestionInfoAdapter;
 
@@ -47,7 +46,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener {
     private static final float UNDEFINED_COLOUR = -1;
@@ -226,7 +224,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
         // Centre on the marker that was clicked
         int zoom = (int) _map.getCameraPosition().zoom;
-        CameraUpdate cu = CameraUpdateFactory.newLatLngZoom(new LatLng(marker.getPosition().latitude + (double)90/Math.pow(2, zoom), marker.getPosition().longitude), zoom);
+        CameraUpdate cu = CameraUpdateFactory.newLatLngZoom(new LatLng(marker.getPosition().latitude + (double) 90 / Math.pow(2, zoom), marker.getPosition().longitude), zoom);
         _map.animateCamera(cu);
 
         if (isClicked == null) {
@@ -235,22 +233,12 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             Suggestion s = _suggestionsByMarkerId.get(id);
 
             if (marker.getSnippet() == null) {
-                PlaceDetailTask detailTask = new PlaceDetailTask(this.getApplicationContext());
-                GooglePlaceDetail detail = null;
-                String infoWindowString;
+                // Make requests to the web API's, populating suggestion information. Internet access required.
+                s.requestSuggestionInfo(this.getApplicationContext());
 
-                // Query the Places API for detail on place corresponding to marker
-                try {
-                    detail = detailTask.execute(s.getPlaceId()).get();
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                }
                 // Use the detail to set the information displayed in the popup and save it to the place.
-                infoWindowString = detail == null? "" : detail.toString();
+                String infoWindowString = s.getInfoWindowString();
                 marker.setSnippet(infoWindowString);
-                s.setPlaceDetail(detail);
-                // Filter suggestions - all suggestions for this marker should be loaded, but not all
-                // of them need to be visible
             }
             marker.showInfoWindow();
             return false; // Marker toolbar will be shown (returning false allows default behaviour)
@@ -327,11 +315,23 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
      * @param place
      * @param category
      */
-    private void addSuggestion(Marker marker, GooglePlace place, String category) {
-        Suggestion suggestion = new Suggestion(marker, place, category);
+    private void addGooglePlaceSuggestion(Marker marker, GooglePlace place, String category) {
+        GooglePlaceSuggestion suggestion = new GooglePlaceSuggestion(marker, place, category);
         _suggestionsByMarkerId.put(marker.getId(), suggestion);
         List<Marker> cat = _markersByCategory.get(category);
         cat.add(marker);
+    }
+
+    /**
+     * Update the text in a marker's info window. Created in order for tasks to call it, as
+     * setSnippet() must be called from the main thread. Used to avoid waiting for tasks.
+     * @param suggestion A suggestion corresponding with an infowindow/marker to update.
+     */
+    private void updateSuggestionInfoWindow(Suggestion suggestion) {
+        Marker marker = suggestion.getMarker();
+        String info = suggestion.getInfoWindowString();
+        marker.setSnippet(info);
+        marker.showInfoWindow();
     }
 
     private class PlacesTask extends AsyncTask<LatLng, Void, List<GooglePlace>> {
@@ -413,7 +413,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 if (parentCategory != null) {
                     m = drawMarker(latLng, BitmapDescriptorFactory.fromResource(iconId));
                     m.setTitle(place.name);
-                    addSuggestion(m, place, parentCategory);
+                    addGooglePlaceSuggestion(m, place, parentCategory);
                 }
             }
             // Filter suggestions

@@ -1,6 +1,8 @@
-package com.mapster.places;
+package com.mapster.json;
 
 import android.util.Log;
+
+import com.mapster.places.GooglePlace;
 
 import org.json.JSONArray;
 import org.json.JSONException;

@@ -4,28 +4,34 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.google.android.gms.maps.model.Marker;
 import com.mapster.R;
 import com.mapster.places.GooglePlaceDetail;
-import com.mapster.places.GooglePlaceDetailJsonParser;
+import com.mapster.json.GooglePlaceDetailJsonParser;
+import com.mapster.suggestions.GooglePlaceSuggestion;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Created by Harriet on 5/24/2015.
+ * Created by Harriet on 5/24/2015. Takes a suggestion that is expected to correspond with a place
+ * (i.e. have a Google place ID) and sets the detail for that suggestion.
  */
-public class PlaceDetailTask extends AsyncTask<String, Void, GooglePlaceDetail> {
+public class GooglePlaceDetailTask extends AsyncTask<GooglePlaceSuggestion, Void, GooglePlaceSuggestion> {
 
     private Context _context;
 
-    public PlaceDetailTask(Context context) {
+    public GooglePlaceDetailTask(Context context) {
         _context = context;
     }
 
     @Override
-    protected GooglePlaceDetail doInBackground(String... placeIds) {
+    protected GooglePlaceSuggestion doInBackground(GooglePlaceSuggestion... suggestions) {
         GooglePlaceDetailJsonParser detailJsonParser = new GooglePlaceDetailJsonParser();
-        String url = buildDetailUrl(placeIds[0]);
+        GooglePlaceSuggestion suggestion = suggestions[0];
+
+        String placeId = suggestion.getPlaceId();
+        String url = buildDetailUrl(placeId);
         String response = downloadUrl(url);
         GooglePlaceDetail detail = null;
 
@@ -35,7 +41,17 @@ public class PlaceDetailTask extends AsyncTask<String, Void, GooglePlaceDetail> 
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return detail;
+
+        suggestion.setPlaceDetail(detail);
+        return suggestion;
+    }
+
+    @Override
+    protected void onPostExecute(GooglePlaceSuggestion suggestion) {
+        Marker marker = suggestion.getMarker();
+        String info = suggestion.getInfoWindowString();
+        marker.setSnippet(info);
+        marker.showInfoWindow(); // Might run into some timing issues here
     }
 
     private String downloadUrl(String url) {
