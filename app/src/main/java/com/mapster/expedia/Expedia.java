@@ -2,6 +2,7 @@ package com.mapster.expedia;
 
 import android.content.Context;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.mapster.R;
 import com.mapster.connectivities.HttpConnection;
 
@@ -9,8 +10,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Provides an interface to Expedia (used for retrieving suggestions of and information about hotels)
@@ -84,13 +83,12 @@ public class Expedia {
     /**
      * Returns a list of hotels in a specified area. Also returns a summary of information about the
      * hotels, which includes a price range.
-     * @param latitude Format is DD.MMmmm
-     * @param longitude Format is DDD.MMmmm
+     * @param location Latitude and longitude. Format is (DD.MMmmm, DDD.MMmmm)
      * @param radius Search radius - unit is specified through constructor (KM or MI). The documented
      *               minimum value is 2, but I would recommend a higher value; 2 resulted in errors.
      * @return A string representation of the response.
      */
-    public String hotelListRequest(float latitude, float longitude, int radius, int numberOfResults) {
+    public String hotelListRequest(LatLng location, int radius, int numberOfResults) {
         String sig = null;
         try {
             sig = getSignature();
@@ -101,14 +99,16 @@ public class Expedia {
 
         // Format latitude and longitude into the correct format for the request
         // Note that it seems to work with 6dp, but the docs don't indicate that it should.
-        String latString = String.format("%.5f", latitude);
-        String longString = String.format("%.5f", longitude);
+        String latString = String.format("%.5f", location.latitude);
+        String longString = String.format("%.5f", location.longitude);
 
         String url = _service + _version + "list" + "?apikey=" + _apiKey
                 + "&sig=" + sig + _otherElementsStr + "&cid=" + _cid + "&currencyCode="
                 + _currencyCode + "&latitude=" + latString + "&longitude=" + longString +
-                "&searchRadius=" + radius + "&searchRadiusUnit=" + _radiusUnit + "&numberOfResults="
-                + numberOfResults + "&xml=" + _listXml;
+                "&searchRadius=" + radius + "&searchRadiusUnit=" + _radiusUnit + "&xml=" + _listXml;
+//        + "&numberOfResults=" + numberOfResults;
+        // TODO Number of results only applies when a period of stay is provided (may be used later)
+
         System.out.print("URL: " + url);
         // Make the request and return the response as a string
         return downloadUrl(url);

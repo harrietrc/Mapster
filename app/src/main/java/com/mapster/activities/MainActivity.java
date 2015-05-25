@@ -1,6 +1,7 @@
 package com.mapster.activities;
 
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -8,7 +9,6 @@ import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
 import android.util.Log;
 import android.view.Menu;
-import android.content.Intent;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -27,12 +27,13 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
+import com.mapster.connectivities.tasks.ExpediaHotelListTask;
 import com.mapster.connectivities.tasks.ReadTask;
 import com.mapster.filters.FiltersFragment;
+import com.mapster.json.GooglePlaceJsonParser;
 import com.mapster.json.JSONParser;
 import com.mapster.map.information.MapInformation;
 import com.mapster.places.GooglePlace;
-import com.mapster.json.GooglePlaceJsonParser;
 import com.mapster.suggestions.GooglePlaceSuggestion;
 import com.mapster.suggestions.Suggestion;
 import com.mapster.suggestions.SuggestionInfoAdapter;
@@ -246,8 +247,15 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             // Marker is user-defined and has not been clicked before. Record places and add markers.
             _userMarkers.put(id, true);
             LatLng loc = marker.getPosition();
+
+            // Get suggestions from Google Places
             PlacesTask placesTask = new PlacesTask();
             placesTask.execute(loc);
+
+            // Get suggestions from Expedia. Unfortunately this one takes longer than the Google task
+            ExpediaHotelListTask expediaTask = new ExpediaHotelListTask(this, 10, 20);
+            expediaTask.execute(loc);
+
             // Make the filters button in the action bar visible
             _filterItem.setVisible(true);
             return false;
@@ -323,15 +331,18 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     /**
-     * Update the text in a marker's info window. Created in order for tasks to call it, as
-     * setSnippet() must be called from the main thread. Used to avoid waiting for tasks.
-     * @param suggestion A suggestion corresponding with an infowindow/marker to update.
+     * Adds a marker for a suggestion, updates the suggestion with the new marker, and saves the
+     * suggestion.
+     * @param suggestion A suggestion of a destination for the user
+     * @param icon An icon to represent the suggestion on the map
      */
-    private void updateSuggestionInfoWindow(Suggestion suggestion) {
-        Marker marker = suggestion.getMarker();
-        String info = suggestion.getInfoWindowString();
-        marker.setSnippet(info);
-        marker.showInfoWindow();
+    public void addSuggestion(Suggestion suggestion, BitmapDescriptor icon) {
+        Marker marker = drawMarker(suggestion.getLocation(), icon);
+        suggestion.setMarker(marker);
+        _suggestionsByMarkerId.put(marker.getId(), suggestion);
+        String category = suggestion.getCategory();
+        List<Marker> cat = _markersByCategory.get(category);
+        cat.add(marker);
     }
 
     private class PlacesTask extends AsyncTask<LatLng, Void, List<GooglePlace>> {
@@ -347,8 +358,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
             List<String> urls = new ArrayList<>();
 
-            urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
-                    GooglePlace.getAccommodationCategories()));
             urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
                     GooglePlace.getDiningCategories()));
             urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
@@ -384,23 +393,18 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         @Override
         protected void onPostExecute(List<GooglePlace> places) {
             for (GooglePlace place: places) {
-                double lat = Double.parseDouble(place.latitude);
-                double lng = Double.parseDouble(place.longitude);
-                LatLng latLng = new LatLng(lat, lng);
+                LatLng latLng = place.getLatLng();
                 Marker m;
 
                 // Save the marker in the correct categories
-                String[] categories = place.categories;
+                String[] categories = place.getCategories();
                 String parentCategory = null;
                 int iconId = 0;
                 // Find the category for the marker. May find multiple categories - icon will
                 // represent the last one found.
                 for (String c : categories) {
-                    // Not the best way to do this, but ok for 3 categories.
-                    if (GooglePlace.ACCOMMODATION.contains(c)) {
-                        parentCategory = "accommodation";
-                        iconId = R.drawable.lodging_0star;
-                    } else if (GooglePlace.ATTRACTIONS.contains(c)|GooglePlace.EXTRA_ATTRACTIONS.contains(c)) {
+                    // Not the best way to do this, but ok for 2 categories.
+                    if (GooglePlace.ATTRACTIONS.contains(c)|GooglePlace.EXTRA_ATTRACTIONS.contains(c)) {
                         parentCategory = "attractions";
                         iconId = R.drawable.flag_export;
                     } else if (GooglePlace.DINING.contains(c)) {
@@ -412,7 +416,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 // EXTRA_ATTRACTIONS types - if not, discard the Place.
                 if (parentCategory != null) {
                     m = drawMarker(latLng, BitmapDescriptorFactory.fromResource(iconId));
-                    m.setTitle(place.name);
+                    m.setTitle(place.getName());
                     addGooglePlaceSuggestion(m, place, parentCategory);
                 }
             }

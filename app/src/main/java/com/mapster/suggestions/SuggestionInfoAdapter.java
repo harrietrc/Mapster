@@ -77,9 +77,8 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter {
 
         // Load the icon into the ImageView of the InfoWindow
         if (suggestion != null) {
-            String photoReference = suggestion.getPhotoReference();
-            if (photoReference != null) {
-                String imageUrl = buildPhotoUrl(photoReference);
+            String imageUrl = suggestion.getThumbnailUrl(_activity);
+            if (imageUrl != null) {
                 if (suggestion.isClicked()) {
                     // Marker has been clicked before - don't need to call the callback to load icon
                     // Picasso has a fit() method for fitting to an ImageView, but it doesn't seem to work.
@@ -100,19 +99,6 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter {
         }
 
         return info;
-    }
-
-    private String buildPhotoUrl(String photoReference) {
-        int maxWidth = 200;
-        int maxHeight = 200;
-
-        StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place/photo?");
-        sb.append("key=" + _activity.getResources().getString(R.string.API_KEY));
-        sb.append("&photoreference=" + photoReference);
-        sb.append("&maxwidth=" + maxWidth);
-        sb.append("&maxheight=" + maxHeight);
-
-        return sb.toString();
     }
 
     private class InfoWindowRefresher implements Callback {

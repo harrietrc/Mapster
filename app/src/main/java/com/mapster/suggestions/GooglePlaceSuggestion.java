@@ -2,6 +2,7 @@ package com.mapster.suggestions;
 
 import android.content.Context;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.mapster.connectivities.tasks.GooglePlaceDetailTask;
 import com.mapster.places.GooglePlace;
@@ -23,20 +24,26 @@ public class GooglePlaceSuggestion extends Suggestion {
         _place = place;
     }
 
+    @Override
+    public LatLng getLocation() {
+        return _place.getLatLng();
+    }
+
     public float getRating() {
-        return _place.rating;
+        return _place.getRating();
     }
 
     public String getPlaceId() {
-        return _place.id;
+        return _place.getId();
     }
 
     public void setPlaceDetail(GooglePlaceDetail detail) {
         _place.setDetail(detail);
     }
 
-    public String getPhotoReference() {
-        return _place.photoReference;
+    @Override
+    public String getThumbnailUrl(Context context) {
+        return _place.getThumbnailUrl(context);
     }
 
     @Override
@@ -55,7 +62,7 @@ public class GooglePlaceSuggestion extends Suggestion {
     }
 
     public String getName() {
-        return _place.name;
+        return _place.getName();
     }
 
     public Integer getPriceLevel() {

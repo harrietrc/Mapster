@@ -2,6 +2,7 @@ package com.mapster.suggestions;
 
 import android.content.Context;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
 /**
@@ -26,7 +27,7 @@ public abstract class Suggestion {
     /**
      * Returns the url to a photo illustrating the suggestion
      */
-    public abstract String getPhotoReference();
+    public abstract String getThumbnailUrl(Context context);
 
     /**
      * Returns the name of the suggestion place.
@@ -42,6 +43,20 @@ public abstract class Suggestion {
      * Returns the star rating (out of 5)
      */
     public abstract float getRating();
+
+    // TODO Change category to an enum
+    public String getCategory() {
+        return _category;
+    }
+
+    /**
+     * Stored in different places depending on the suggestion
+     */
+    public abstract LatLng getLocation();
+
+    public void setMarker(Marker marker) {
+        _marker = marker;
+    }
 
     public Marker getMarker() {
         return _marker;

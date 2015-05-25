@@ -2,6 +2,8 @@ package com.mapster.suggestions;
 
 import android.content.Context;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.mapster.connectivities.tasks.ExpediaHotelInfoTask;
 import com.mapster.expedia.ExpediaHotel;
 
 /**
@@ -15,25 +17,10 @@ public class ExpediaSuggestion extends Suggestion {
         _hotel = hotel;
     }
 
-    /**
-     * Returns a string representation of the price range to append to the snippet that gets
-     * displayed in a marker's infowindow.
-     * @return
-     */
-    public String priceRangeToString() {
-        String range = "";
-        Double lowRate = _hotel.getLowRate();
-        Double highRate = _hotel.getHighRate();
-        String lowRange = lowRate == null ? "" : "$" + lowRate.intValue();
-        String highRange = highRate == null ? "" : " - $" + highRate.intValue();
-        if (lowRate != null || highRate != null)
-            range = "\n" + lowRange + highRange;
-        return range;
-    }
-
     @Override
     public void requestSuggestionInfo(Context context) {
-
+        ExpediaHotelInfoTask task = new ExpediaHotelInfoTask(context);
+        task.execute(this);
     }
 
     /**
@@ -42,18 +29,27 @@ public class ExpediaSuggestion extends Suggestion {
      * @return
      */
     public String getInfoWindowString() {
-        // TODO
-        return "";
+        return _hotel.toString();
     }
 
     @Override
-    public String getPhotoReference() {
-        return null;
+    public LatLng getLocation() {
+        return _hotel.getLocation();
+    }
+
+    @Override
+    public String getThumbnailUrl(Context context) {
+        return _hotel.getThumbnailUrl();
     }
 
     @Override
     public String getName() {
-        return null;
+        return _hotel.getName();
+    }
+
+    @Override
+    public String getCategory() {
+        return "accommodation";
     }
 
     @Override
@@ -63,7 +59,6 @@ public class ExpediaSuggestion extends Suggestion {
 
     @Override
     public float getRating() {
-        return 0;
+        return _hotel.getRating();
     }
-
 }

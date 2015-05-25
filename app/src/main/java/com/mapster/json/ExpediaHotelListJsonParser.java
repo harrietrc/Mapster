@@ -1,5 +1,6 @@
 package com.mapster.json;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.mapster.expedia.ExpediaHotel;
 
 import org.json.JSONArray;
@@ -13,19 +14,6 @@ import java.util.List;
  * Created by Harriet on 5/25/2015.
  */
 public class ExpediaHotelListJsonParser {
-
-    public List<ExpediaHotel> parse(JSONObject json) {
-        JSONObject jsonHotels = null;
-        StringBuilder sb = new StringBuilder();
-
-        try {
-            jsonHotels = json.getJSONObject("result");
-        } catch(JSONException e) {
-            e.printStackTrace();
-        }
-        List<ExpediaHotel> hotels = getHotels(jsonHotels);
-        return hotels;
-    }
 
     /**
      * Parses a response from Expedia to hotel data.
@@ -41,41 +29,50 @@ public class ExpediaHotelListJsonParser {
 
                 // List of hotel details (summaries)
                 if (mainContent.has("HotelList") && !mainContent.isNull("HotelList")) {
-                    JSONArray hotelList = mainContent.getJSONArray("HotelList");
+                    JSONObject hotelList = mainContent.getJSONObject("HotelList");
 
-                    // Create a hotel object for each result
-                    for (int i=0; i<hotelList.length(); i++) {
-                        JSONObject hotelJson = (JSONObject) hotelList.get(i);
+                    // If we're this deep this shouldn't be null, but check just in case
+                    if (hotelList.has("HotelSummary") && !hotelList.isNull("HotelSummary")) {
+                        JSONArray hotelArray = hotelList.getJSONArray("HotelSummary");
 
-                        // Only optional properties are null-checked.
-                        int hotelId = hotelJson.getInt("hotelId");
-                        String name = hotelJson.getString("name");
-                        String address = hotelJson.getString("address1");
-                        Double latitude = hotelJson.getDouble("latitude");
-                        Double longitude = hotelJson.getDouble("longitude");
+                        // Create a hotel object for each result
+                        for (int i=0; i<hotelArray.length(); i++) {
+                            JSONObject hotelJson = (JSONObject) hotelArray.get(i);
 
-                        Double rating = null;
-                        if (hotelJson.has("hotelRating") && !hotelJson.isNull("hotelRating"))
-                            rating = hotelJson.getDouble("hotelRating");
+                            // Only optional properties are null-checked.
+                            int hotelId = hotelJson.getInt("hotelId");
+                            String name = hotelJson.getString("name");
+                            String address = hotelJson.getString("address1");
+                            Double latitude = hotelJson.getDouble("latitude");
+                            Double longitude = hotelJson.getDouble("longitude");
+                            LatLng location = new LatLng(latitude, longitude);
 
-                        String locationDescription = null;
-                        if (hotelJson.has("locationDescription") && !hotelJson.isNull("locationDescription"))
-                            locationDescription = hotelJson.getString("locationDescription");
+                            Float rating = null;
+                            if (hotelJson.has("hotelRating") && !hotelJson.isNull("hotelRating")) {
+                                // Not a safe cast but it doesn't really matter
+                                rating = (float) hotelJson.getDouble("hotelRating");
+                            }
 
-                        Double highRate = null;
-                        if (hotelJson.has("highRate") && !hotelJson.isNull("highRate"))
-                            highRate = hotelJson.getDouble("highRate");
+                            String locationDescription = null;
+                            if (hotelJson.has("locationDescription") && !hotelJson.isNull("locationDescription"))
+                                locationDescription = hotelJson.getString("locationDescription");
 
-                        Double lowRate = null;
-                        if (hotelJson.has("lowRate") && !hotelJson.isNull("lowRate"))
-                            lowRate = hotelJson.getDouble("lowRate");
+                            Double highRate = null;
+                            if (hotelJson.has("highRate") && !hotelJson.isNull("highRate"))
+                                highRate = hotelJson.getDouble("highRate");
 
-                        String thumbnailUrl = null;
-                        if (hotelJson.has("thumbNailUrl") && !hotelJson.isNull("thumbNailUrl"))
-                            thumbnailUrl = hotelJson.getString("thumbNailUrl");
+                            Double lowRate = null;
+                            if (hotelJson.has("lowRate") && !hotelJson.isNull("lowRate"))
+                                lowRate = hotelJson.getDouble("lowRate");
 
-                        ExpediaHotel hotel = new ExpediaHotel(hotelId, address, latitude, longitude,
-                                rating, lowRate, highRate, locationDescription, thumbnailUrl);
+                            String thumbnailUrl = null;
+                            if (hotelJson.has("thumbNailUrl") && !hotelJson.isNull("thumbNailUrl"))
+                                thumbnailUrl = "http://images.travelnow.com" + hotelJson.getString("thumbNailUrl");
+
+                            ExpediaHotel hotel = new ExpediaHotel(hotelId, name, address, location,
+                                    rating, lowRate, highRate, locationDescription, thumbnailUrl);
+                            hotels.add(hotel);
+                        }
                     }
                 }
             } catch (JSONException e) {

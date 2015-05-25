@@ -2,6 +2,7 @@ package com.mapster.json;
 
 import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.mapster.places.GooglePlace;
 
 import org.json.JSONArray;
@@ -13,7 +14,6 @@ import java.util.List;
 
 /**
  * Created by Harriet on 3/15/2015.
- * Copied from http://wptrafficanalyzer.in/blog/showing-nearby-places-with-photos-at-any-location-in-google-maps-android-api-v2/
  */
 public class GooglePlaceJsonParser {
     public List<GooglePlace> parse(JSONObject json) {
@@ -48,16 +48,19 @@ public class GooglePlaceJsonParser {
      * @return = a GooglePlace (model of Google Place)
      */
     private GooglePlace getPlace(JSONObject jsonPlace) {
-        GooglePlace place = new GooglePlace();
+        String name = null; Double latitude; Double longitude; String id; Float rating = null;
+        String[] categories; String photoRef = null;
+        GooglePlace place = null;
 
         try {
             if (!jsonPlace.isNull("name"))
-                place.name = jsonPlace.getString("name");
+                name = jsonPlace.getString("name");
 
-            place.latitude = jsonPlace.getJSONObject("geometry").getJSONObject("location").getString("lat");
-            place.longitude = jsonPlace.getJSONObject("geometry").getJSONObject("location").getString("lng");
+            latitude = jsonPlace.getJSONObject("geometry").getJSONObject("location").getDouble("lat");
+            longitude = jsonPlace.getJSONObject("geometry").getJSONObject("location").getDouble("lng");
+            LatLng location = new LatLng(latitude, longitude);
 
-            place.id = jsonPlace.getString("place_id");
+            id = jsonPlace.getString("place_id");
 
             // Get the photo reference. Overly cautious, as I can't find any documentation that says
             // whether 'photos' is ever null (or just empty if there are no photos)
@@ -65,23 +68,25 @@ public class GooglePlaceJsonParser {
                 JSONArray jsonPhotos = jsonPlace.getJSONArray("photos");
                 JSONObject jsonPhoto = (JSONObject) jsonPhotos.get(0);
                 if (!jsonPhoto.equals(null))
-                    place.photoReference = jsonPhoto.getString("photo_reference");
+                    photoRef = jsonPhoto.getString("photo_reference");
             }
 
             if (!jsonPlace.isNull("rating"))
-                place.rating = (float) jsonPlace.getDouble("rating");
+                rating = (float) jsonPlace.getDouble("rating");
+
+            // Parse the types of the place
+            categories = jsonPlace.getJSONArray("types").join(",").split(",");
+            String[] trimmedArray = new String[categories.length];
+            for (int i=0; i < categories.length; i++)
+                trimmedArray[i] = categories[i].replaceAll("\"", "");
+            categories = trimmedArray;
+
+            place = new GooglePlace(id, name, location, rating, categories, photoRef);
 
             // This is more often than not null, or else an integer between 0 and 4 (inclusive)
             if (!jsonPlace.isNull("price_level")) {
                 place.parseAndSetPriceLevel(jsonPlace.getString("price_level"));
             }
-
-            // Parse the types of the place
-            String[] categories = jsonPlace.getJSONArray("types").join(",").split(",");
-            String[] trimmedArray = new String[categories.length];
-            for (int i=0; i < categories.length; i++)
-                trimmedArray[i] = categories[i].replaceAll("\"", "");
-            place.categories = trimmedArray;
 
         } catch (JSONException e) {
             e.printStackTrace();

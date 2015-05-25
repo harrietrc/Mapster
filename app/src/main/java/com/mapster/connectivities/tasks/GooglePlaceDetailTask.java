@@ -6,8 +6,8 @@ import android.util.Log;
 
 import com.google.android.gms.maps.model.Marker;
 import com.mapster.R;
-import com.mapster.places.GooglePlaceDetail;
 import com.mapster.json.GooglePlaceDetailJsonParser;
+import com.mapster.places.GooglePlaceDetail;
 import com.mapster.suggestions.GooglePlaceSuggestion;
 
 import org.json.JSONException;
@@ -46,6 +46,11 @@ public class GooglePlaceDetailTask extends AsyncTask<GooglePlaceSuggestion, Void
         return suggestion;
     }
 
+    /**
+     * Update the infowindow with the new detail about the place. Marker.setSnippet() must be called
+     * in the UI thread.
+     * @param suggestion
+     */
     @Override
     protected void onPostExecute(GooglePlaceSuggestion suggestion) {
         Marker marker = suggestion.getMarker();

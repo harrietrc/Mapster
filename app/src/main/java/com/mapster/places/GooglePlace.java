@@ -1,11 +1,10 @@
 package com.mapster.places;
 
-import android.os.Parcel;
-import android.os.Parcelable;
+import android.content.Context;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
+import com.mapster.R;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -15,22 +14,30 @@ import java.util.Set;
  * Created by Harriet on 3/15/2015.
  */
 public class GooglePlace {
-    public String latitude;
-    public String longitude;
-    public String name;
-    public String id; // Google placeId
-    public float rating;
-    public String[] categories;
-    public String photoReference;
+    private LatLng _location;
+    private String _name;
+    private String _id; // Google placeId
+    private Float _rating;
+    private String[] _categories;
+    private String _photoReference;
 
     // Save the details of a place, if they are retrieved.
     private GooglePlaceDetail _detail;
 
     private Integer _priceLevel; // Rates the expense of the place, with 0 being free and 4 very expensive
 
-    public GooglePlace() {
-        _detail = null;
-        _priceLevel = null;
+    public GooglePlace(String id, String name, LatLng latLng, Float rating,
+                       String[] categories, String photoRef) {
+        _id = id;
+        _name = name;
+        _location = latLng;
+        _rating = rating;
+        _categories = categories;
+        _photoReference = photoRef;
+    }
+
+    public LatLng getLatLng() {
+        return _location;
     }
 
     /**
@@ -161,4 +168,36 @@ public class GooglePlace {
         return _allCategories;
     }
 
+    public String getName() {
+        return _name;
+    }
+
+    public String getThumbnailUrl(Context context) {
+        return buildPhotoUrl(context);
+    }
+
+    private String buildPhotoUrl(Context context) {
+        int maxWidth = 200;
+        int maxHeight = 200;
+
+        StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place/photo?");
+        sb.append("key=" + context.getResources().getString(R.string.API_KEY));
+        sb.append("&photoreference=" + _photoReference);
+        sb.append("&maxwidth=" + maxWidth);
+        sb.append("&maxheight=" + maxHeight);
+
+        return sb.toString();
+    }
+
+    public String getId() {
+        return _id;
+    }
+
+    public Float getRating() {
+        return _rating;
+    }
+
+    public String[] getCategories() {
+        return _categories;
+    }
 }
