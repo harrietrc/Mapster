@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ExpandableListView;
-import android.widget.TextView;
 
 import com.mapster.R;
 import com.mapster.activities.MainActivity;
@@ -14,7 +13,6 @@ import com.mapster.activities.MainActivity;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by Harriet on 5/2/2015.

@@ -1,9 +1,6 @@
 package com.mapster.places.autocomplete;
 
-import android.os.AsyncTask;
 import android.util.Log;
-
-import com.mapster.R;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -17,7 +14,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Created by tommyngo on 19/03/15.
