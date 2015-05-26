@@ -28,6 +28,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
 import com.mapster.connectivities.tasks.ExpediaHotelListTask;
+import com.mapster.connectivities.tasks.GooglePlacesTask;
 import com.mapster.connectivities.tasks.ReadTask;
 import com.mapster.filters.FiltersFragment;
 import com.mapster.json.GooglePlaceJsonParser;
@@ -186,26 +187,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         return helper;
     }
 
-    public String buildPlacesUrl(double lat, double lng, int radius, String[] types) {
-        StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place"
-                                             + "/nearbysearch/json?");
-        sb.append("key=" + getResources().getString(R.string.API_KEY));
-        sb.append("&location=" + lat + "," + lng);
-        sb.append("&radius=" + radius);
-        sb.append("&rankby=prominence");
-        if (types.length > 0) {
-            sb.append("&types=");
-            String delim = "";
-            for (String s: types) {
-                sb.append(delim);
-                sb.append(s);
-                delim = "|";
-            }
-        }
-        String url = sb.toString();
-        return url;
-    }
-
     /**
      * Triggered when the button in the actionbar that opens the filters menu is clicked
      */
@@ -248,12 +229,12 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             _userMarkers.put(id, true);
             LatLng loc = marker.getPosition();
 
-            // Get suggestions from Google Places
-            PlacesTask placesTask = new PlacesTask();
+            // Get suggestions from Google Places. 1st arg: search radius in m. 2nd arg: number of results
+            GooglePlacesTask placesTask = new GooglePlacesTask(this, 3000, 15);
             placesTask.execute(loc);
 
             // Get suggestions from Expedia. Unfortunately this one takes longer than the Google task
-            ExpediaHotelListTask expediaTask = new ExpediaHotelListTask(this, 10, 20);
+            ExpediaHotelListTask expediaTask = new ExpediaHotelListTask(this, 3000, 15);
             expediaTask.execute(loc);
 
             // Make the filters button in the action bar visible
@@ -305,31 +286,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
     }
 
-    private String downloadUrl(String url) {
-        String data = "";
-        try {
-            com.mapster.connectivities.HttpConnection http = new com.mapster.connectivities.HttpConnection();
-            data = http.readUrl(url);
-        } catch (Exception e) {
-            Log.d("Background Task", e.toString());
-        }
-        return data;
-    }
-
-    /**
-     * Ensures that the suggestion is categorised and keyed by marker id (so that it can be easily
-     * retrieved) when it is created.
-     * @param marker
-     * @param place
-     * @param category
-     */
-    private void addGooglePlaceSuggestion(Marker marker, GooglePlace place, String category) {
-        GooglePlaceSuggestion suggestion = new GooglePlaceSuggestion(marker, place, category);
-        _suggestionsByMarkerId.put(marker.getId(), suggestion);
-        List<Marker> cat = _markersByCategory.get(category);
-        cat.add(marker);
-    }
-
     /**
      * Adds a marker for a suggestion, updates the suggestion with the new marker, and saves the
      * suggestion.
@@ -343,86 +299,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         String category = suggestion.getCategory();
         List<Marker> cat = _markersByCategory.get(category);
         cat.add(marker);
-    }
 
-    private class PlacesTask extends AsyncTask<LatLng, Void, List<GooglePlace>> {
-        /**
-         * Fetches and parses suggestions near a point of interest.
-         * @return = The places found
-         */
-        @Override
-        protected List<GooglePlace> doInBackground(LatLng... locs) {
-            GooglePlaceJsonParser placeJsonParser = new GooglePlaceJsonParser();
-            List<GooglePlace> places = new ArrayList<>();
-            int radius = 2000;
-
-            List<String> urls = new ArrayList<>();
-
-            urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
-                    GooglePlace.getDiningCategories()));
-            urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
-                    GooglePlace.getAttractionCategories()));
-
-            for (String url: urls) {
-                // Query the Google Places API to get nearby places
-                String response = downloadUrl(url);
-
-                // Parse JSON response into GooglePlaces
-                try {
-                    JSONObject jsonResponse = new JSONObject(response);
-                    List<GooglePlace> parsed = placeJsonParser.parse(jsonResponse);
-
-                    // Limit the number of suggestions per category
-                    List<GooglePlace> shortList = parsed;
-                    int maxSuggestions = 10;
-                    if (places.size() > maxSuggestions)
-                        shortList = parsed.subList(0, maxSuggestions);
-                    places.addAll(shortList);
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-            return places;
-        }
-
-        /**
-         * Creates a marker from each of the places from the parsed JSON, adding it to the UI
-         * @param places = an array of GooglePlaces
-         */
-        @Override
-        protected void onPostExecute(List<GooglePlace> places) {
-            for (GooglePlace place: places) {
-                LatLng latLng = place.getLatLng();
-                Marker m;
-
-                // Save the marker in the correct categories
-                String[] categories = place.getCategories();
-                String parentCategory = null;
-                int iconId = 0;
-                // Find the category for the marker. May find multiple categories - icon will
-                // represent the last one found.
-                for (String c : categories) {
-                    // Not the best way to do this, but ok for 2 categories.
-                    if (GooglePlace.ATTRACTIONS.contains(c)|GooglePlace.EXTRA_ATTRACTIONS.contains(c)) {
-                        parentCategory = "attractions";
-                        iconId = R.drawable.flag_export;
-                    } else if (GooglePlace.DINING.contains(c)) {
-                        parentCategory = "dining";
-                        iconId = R.drawable.restaurant;
-                    }
-                }
-                // 'establishment' type is allowed only if it also matches one of the
-                // EXTRA_ATTRACTIONS types - if not, discard the Place.
-                if (parentCategory != null) {
-                    m = drawMarker(latLng, BitmapDescriptorFactory.fromResource(iconId));
-                    m.setTitle(place.getName());
-                    addGooglePlaceSuggestion(m, place, parentCategory);
-                }
-            }
-            // Filter suggestions
-            setVisibilityByFilters();
-        }
+        // Refilter markers
+        setVisibilityByFilters();
     }
 
     private class DirectionsTask extends ReadTask {

@@ -3,7 +3,6 @@ package com.mapster.suggestions;
 import android.content.Context;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.mapster.connectivities.tasks.GooglePlaceDetailTask;
 import com.mapster.places.GooglePlace;
 import com.mapster.places.GooglePlaceDetail;
@@ -16,8 +15,7 @@ public class GooglePlaceSuggestion extends Suggestion {
     // Save data about the Google Place that this marker represents
     private GooglePlace _place;
 
-    public GooglePlaceSuggestion(Marker marker, GooglePlace place, String category) {
-        _marker = marker;
+    public GooglePlaceSuggestion(GooglePlace place, String category) {
         // TODO Set category from GooglePlace as well
         _category = category;
         _isClicked = false;

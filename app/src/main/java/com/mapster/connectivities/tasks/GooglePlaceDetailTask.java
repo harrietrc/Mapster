@@ -32,7 +32,15 @@ public class GooglePlaceDetailTask extends AsyncTask<GooglePlaceSuggestion, Void
 
         String placeId = suggestion.getPlaceId();
         String url = buildDetailUrl(placeId);
-        String response = downloadUrl(url);
+        String response = null;
+
+        try {
+            com.mapster.connectivities.HttpConnection http = new com.mapster.connectivities.HttpConnection();
+            response = http.readUrl(url);
+        } catch (Exception e) {
+            Log.d("Background Task", e.toString());
+        }
+
         GooglePlaceDetail detail = null;
 
         try {
@@ -56,18 +64,8 @@ public class GooglePlaceDetailTask extends AsyncTask<GooglePlaceSuggestion, Void
         Marker marker = suggestion.getMarker();
         String info = suggestion.getInfoWindowString();
         marker.setSnippet(info);
+        marker.setTitle(suggestion.getName());
         marker.showInfoWindow(); // Might run into some timing issues here
-    }
-
-    private String downloadUrl(String url) {
-        String data = "";
-        try {
-            com.mapster.connectivities.HttpConnection http = new com.mapster.connectivities.HttpConnection();
-            data = http.readUrl(url);
-        } catch (Exception e) {
-            Log.d("Background Task", e.toString());
-        }
-        return data;
     }
 
     public String buildDetailUrl(String placeId) {

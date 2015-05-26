@@ -54,8 +54,8 @@ public class ExpediaHotel {
         return _highRate;
     }
 
-    public Float getRating() {
-        return _rating;
+    public float getRating() {
+        return _rating == null ? 0 : _rating;
     }
 
     public String getLocationDescription() {

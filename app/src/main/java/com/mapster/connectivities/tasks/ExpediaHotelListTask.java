@@ -32,10 +32,9 @@ public class ExpediaHotelListTask extends AsyncTask<LatLng, Void, List<ExpediaHo
     private int _radius; // The radius in which to search for hotels (currently in km)
     private int _numberOfResults;
 
-    public ExpediaHotelListTask(Activity activity, int searchRadius,
-                                int numberOfResults) {
+    public ExpediaHotelListTask(Activity activity, int searchRadius, int numberOfResults) {
         _activity = activity;
-        _radius = searchRadius;
+        _radius = searchRadius/1000; // Expects metres, for consistency with the GooglePlaces task
         _numberOfResults = numberOfResults;
     }
 
@@ -66,6 +65,8 @@ public class ExpediaHotelListTask extends AsyncTask<LatLng, Void, List<ExpediaHo
      */
     @Override
     protected void onPostExecute(List<ExpediaHotel> hotels) {
+        MainActivity mainActivity = (MainActivity) _activity;
+
         // Unfortunately the number of results can't be limited without providing an arrival and
         // departure date, so we have to artificially limit it here for now.
         for (int i=0; i<_numberOfResults; i++) {
@@ -73,7 +74,6 @@ public class ExpediaHotelListTask extends AsyncTask<LatLng, Void, List<ExpediaHo
             ExpediaSuggestion suggestion = new ExpediaSuggestion(hotel);
 
             // Expect this to throw a ClassCastException if called from the wrong activity
-            MainActivity mainActivity = (MainActivity) _activity;
             BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.lodging_0star);
             mainActivity.addSuggestion(suggestion, icon);
         }

@@ -193,8 +193,8 @@ public class GooglePlace {
         return _id;
     }
 
-    public Float getRating() {
-        return _rating;
+    public float getRating() {
+        return _rating == null ? 0 : _rating;
     }
 
     public String[] getCategories() {
