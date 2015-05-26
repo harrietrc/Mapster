@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/drawer"
     tools:context=".TaskRoadMap" >
     <com.sothree.slidinguppanel.SlidingUpPanelLayout
         xmlns:sothree="http://schemas.android.com/apk/res-auto"
@@ -18,14 +19,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
-            <fragment
-                android:id="@+id/filters"
-                android:layout_width="200dp"
-                android:layout_height="fill_parent"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:name="com.mapster.filters.FiltersFragment"
-                />
             <fragment
                 android:id="@+id/map"
                 android:layout_width="match_parent"
@@ -48,4 +41,12 @@
             </LinearLayout>
         </ScrollView>
     </com.sothree.slidinguppanel.SlidingUpPanelLayout>
-</RelativeLayout>
+    <ExpandableListView
+        android:id="@+id/filter_list"
+        android:choiceMode="singleChoice"
+        android:layout_width="200dp"
+        android:background="#ffffff"
+        android:layout_gravity="right|end"
+        android:layout_height="match_parent">
+    </ExpandableListView>
+</android.support.v4.widget.DrawerLayout>

@@ -1,7 +1,6 @@
 package com.mapster.filters;
 
-import android.app.Fragment;
-import android.os.Bundle;
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,40 +16,38 @@ import java.util.List;
 /**
  * Created by Harriet on 5/2/2015.
  */
-public class FiltersFragment extends Fragment {
+public class Filters {
 
-    List<String> filterTitles; // The names of each filter
-    HashMap<String, List<String>> filterOptions; // Options for each filter (e.g. 'Accommodation')
-    ExpandableFilterListAdapter adapter; // List adapter - has methods for operating on the filter list
+    private List<String> _filterTitles; // The names of each filter
+    private HashMap<String, List<String>> _filterOptions; // Options for each filter (e.g. 'Accommodation')
+    private ExpandableFilterListAdapter _adapter; // List adapter - has methods for operating on the filter list
+    private ExpandableListView _filterList;
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public Filters(ExpandableListView listView) {
+        _filterList = listView;
+    }
 
-        // View containing the filter list
-        View view = inflater.inflate(R.layout.filters, container, false);
+    public ExpandableListView getFilterList() {
+        return _filterList;
+    }
 
+    public void populateFilterList(final Context context) {
         // Prep the data
         prepareListData();
 
-        // Expandable list of filters
-        ExpandableListView list = (ExpandableListView) view.findViewById(R.id.filter_list);
-
         // Adapter to allow expandable list behaviour
-        adapter = new ExpandableFilterListAdapter(getActivity(), filterTitles, filterOptions);
-        list.setAdapter(adapter);
+        _adapter = new ExpandableFilterListAdapter(context, _filterTitles, _filterOptions);
+        _filterList.setAdapter(_adapter);
 
-        list.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+        _filterList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
             // TODO There might be a more appropriate place to put this
             @Override
             public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
-                if (groupPosition == (adapter.getGroupCount()-1))
-                    ((MainActivity) getActivity()).onClearClick(v);
+                if (groupPosition == (_adapter.getGroupCount()-1))
+                    ((MainActivity) context).onClearClick(v);
                 return false;
             }
         });
-
-        return view;
     }
 
     /**
@@ -58,11 +55,11 @@ public class FiltersFragment extends Fragment {
      * @param filterName The name of the filter group
      */
     public void clearFilterRadioButtons(String filterName) {
-        adapter.clearFilterRadioButtons(filterName);
+        _adapter.clearFilterRadioButtons(filterName);
     }
 
     public void clearAllFilterRadioButtons() {
-        adapter.clearAllFilterRadioButtons();
+        _adapter.clearAllFilterRadioButtons();
     }
 
     /**
@@ -72,7 +69,7 @@ public class FiltersFragment extends Fragment {
      * @param checkedChild
      */
     public void setFilterOptionChecked(String group, String checkedChild) {
-        adapter.setFilterOptionChecked(group, checkedChild);
+        _adapter.setFilterOptionChecked(group, checkedChild);
     }
 
     /**
@@ -80,13 +77,13 @@ public class FiltersFragment extends Fragment {
      * options need to be added here.
      */
     private void prepareListData() {
-        filterTitles = new ArrayList<>();
-        filterOptions = new HashMap<>();
+        _filterTitles = new ArrayList<>();
+        _filterOptions = new HashMap<>();
 
         // Filter names
-        filterTitles.add("Category");
-        filterTitles.add("Price level");
-        filterTitles.add("Clear suggestions");
+        _filterTitles.add("Category");
+        _filterTitles.add("Price level");
+        _filterTitles.add("Clear suggestions");
 
         // Filter options - category
         List<String> categories = new ArrayList<>();
@@ -101,8 +98,8 @@ public class FiltersFragment extends Fragment {
         priceLevels.add("Expensive");
 
         // Associate filter titles with filter options
-        filterOptions.put(filterTitles.get(0), categories);
-        filterOptions.put(filterTitles.get(1), priceLevels);
-        filterOptions.put(filterTitles.get(2), new ArrayList<String>());
+        _filterOptions.put(_filterTitles.get(0), categories);
+        _filterOptions.put(_filterTitles.get(1), priceLevels);
+        _filterOptions.put(_filterTitles.get(2), new ArrayList<String>());
     }
 }

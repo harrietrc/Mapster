@@ -102,14 +102,11 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
         }
 
         // Inflate the correct layout - either a filter option or the clear suggestions option
-        // TODO Ideally we wouldn't have to reinflate convertview when the option type switches - save it?
+        // TODO There are unnecessary inflations here
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (groupPosition == (getGroupCount()-1)) {
             // The last group is always 'Clear suggestions'
-            if (isFilterOption) {
-                // Reinflate if convertView is a filter option
-                convertView = inflater.inflate(R.layout.filter_group_clear, null);
-            }
+            convertView = inflater.inflate(R.layout.filter_group_clear, null);
         } else if (convertView == null || !isFilterOption) {
             // Inflate filter option layout if the view is null or the 'Clear suggestions' item
             convertView = inflater.inflate(R.layout.filter_group, null);

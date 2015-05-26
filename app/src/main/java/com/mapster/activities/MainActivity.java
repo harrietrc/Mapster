@@ -1,16 +1,16 @@
 package com.mapster.activities;
 
-import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -21,7 +21,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -30,16 +29,12 @@ import com.mapster.R;
 import com.mapster.connectivities.tasks.ExpediaHotelListTask;
 import com.mapster.connectivities.tasks.GooglePlacesTask;
 import com.mapster.connectivities.tasks.ReadTask;
-import com.mapster.filters.FiltersFragment;
-import com.mapster.json.GooglePlaceJsonParser;
+import com.mapster.filters.Filters;
 import com.mapster.json.JSONParser;
 import com.mapster.map.information.MapInformation;
-import com.mapster.places.GooglePlace;
-import com.mapster.suggestions.GooglePlaceSuggestion;
 import com.mapster.suggestions.Suggestion;
 import com.mapster.suggestions.SuggestionInfoAdapter;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -76,13 +71,14 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private String _currentCategory;
     private Integer _priceLevel;
 
-    // The fragment with the list of filters
-    FiltersFragment _filtersFragment;
+    // Controls the state of the filters
+    Filters _filters;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         //TODO refactor
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         initializeGoogleMap();
         getDataFromPlaceActivity();
@@ -105,9 +101,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         initSuggestionMarkers();
         _suggestionsByMarkerId = new HashMap<>();
 
-        _filtersFragment = (FiltersFragment) getFragmentManager().findFragmentById(R.id.filters);
-        // Setting the visibility in the XML doesn't have effect, so hide it here
-        getFragmentManager().beginTransaction().hide(_filtersFragment).commit();
+        // Populate the filters drawer/list
+        ExpandableListView filters = (ExpandableListView) findViewById(R.id.filter_list);
+        _filters = new Filters(filters);
+        _filters.populateFilterList(this);
     }
 
     public Suggestion getSuggestionByMarker(Marker marker) {
@@ -191,13 +188,16 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
      * Triggered when the button in the actionbar that opens the filters menu is clicked
      */
     public void onFilterButtonClick() {
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
-        if (_filtersFragment.isVisible()) {
-            ft.hide(_filtersFragment);
+        // If there are issues with timing, use isDrawerVisible() instead
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer);
+        // This is the actual drawer (within the DrawerLayout)
+        ExpandableListView filtersList = _filters.getFilterList();
+
+        if (drawer.isDrawerOpen(filtersList)) {
+            drawer.closeDrawer(filtersList);
         } else {
-            ft.show(_filtersFragment);
+            drawer.openDrawer(filtersList);
         }
-        ft.commit();
     }
 
     public boolean onMarkerClick(Marker marker) {
@@ -546,7 +546,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 break;
         }
         // Uncheck everything before checking this option's checkbox
-        _filtersFragment.setFilterOptionChecked(filterName, filterOptionName);
+        _filters.setFilterOptionChecked(filterName, filterOptionName);
         setVisibilityByFilters();
     }
 
@@ -561,7 +561,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         String filterTitleString = filterTitle.getText().toString();
 
         // Uncheck all the checkboxes in the group
-        _filtersFragment.clearFilterRadioButtons(filterTitleString);
+        _filters.clearFilterRadioButtons(filterTitleString);
 
         switch (filterTitleString) {
             case "Category":
@@ -574,7 +574,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 break;
         }
         setVisibilityByFilters();
-        _filtersFragment.clearFilterRadioButtons(filterTitleString);
+        _filters.clearFilterRadioButtons(filterTitleString);
     }
 
     /**
@@ -585,15 +585,15 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         setAllMarkersVisible(false);
 
         // Reset the RadioButtons
-        _filtersFragment.clearAllFilterRadioButtons();
-
-        System.out.println("CLEAR");
+        _filters.clearAllFilterRadioButtons();
 
         // Hide the filter button - no suggestions to filter
         _filterItem.setVisible(false);
 
         // Hide the filters fragment
-        getFragmentManager().beginTransaction().hide(_filtersFragment).commit();
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer);
+        ExpandableListView filtersList = _filters.getFilterList();
+        drawer.closeDrawer(filtersList);
 
         // Set the filters back to null
         _currentCategory = null;
