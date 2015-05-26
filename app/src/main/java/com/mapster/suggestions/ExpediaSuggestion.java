@@ -54,7 +54,22 @@ public class ExpediaSuggestion extends Suggestion {
 
     @Override
     public Integer getPriceLevel() {
-        return null;
+        // Arbitrary! TODO In the future create a price slider that can also consider other currencies.
+        Integer priceLevel;
+
+        if (_hotel.getLowRate() == null) {
+            priceLevel = null;
+        } else if (_hotel.getLowRate() < 100) {
+            priceLevel = 1;
+        } else if (_hotel.getLowRate() < 150) {
+            priceLevel = 2;
+        } else if (_hotel.getLowRate() < 200) {
+            priceLevel = 3;
+        } else {
+            priceLevel = 4;
+        }
+
+        return priceLevel;
     }
 
     @Override

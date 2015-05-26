@@ -18,8 +18,6 @@ public class GooglePlaceDetail {
         _phoneNumber = phoneNumber;
     }
 
-    private Integer _priceLevel;
-
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(_shortAddress);
