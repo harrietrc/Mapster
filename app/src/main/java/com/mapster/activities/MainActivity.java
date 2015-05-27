@@ -65,6 +65,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     private MenuItem _filterItem; // Filters button
 
+    // The layout for this activity - used to listen for drawer state.
+    private DrawerLayout _drawerLayout;
+
     // TODO Issue with these is that with each new filter a new field will need to be added -
     // consider changing to a HashMap of different filter values if enough filters are added for
     // fields to be unwieldy
@@ -105,6 +108,24 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         ExpandableListView filters = (ExpandableListView) findViewById(R.id.filter_list);
         _filters = new Filters(filters);
         _filters.populateFilterList(this);
+
+        // Set up a listener for the drawer
+        _drawerLayout = (DrawerLayout) findViewById(R.id.drawer);
+        DrawerLayout.DrawerListener drawerListener = new DrawerLayout.DrawerListener() {
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {}
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                _filters.refreshFilterRadioButtons();
+            }
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                _filters.refreshFilterRadioButtons();
+            }
+            @Override
+            public void onDrawerStateChanged(int newState) {}
+        };
+        _drawerLayout.setDrawerListener(drawerListener);
     }
 
     public Suggestion getSuggestionByMarker(Marker marker) {
@@ -189,14 +210,13 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
      */
     public void onFilterButtonClick() {
         // If there are issues with timing, use isDrawerVisible() instead
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer);
         // This is the actual drawer (within the DrawerLayout)
         ExpandableListView filtersList = _filters.getFilterList();
 
-        if (drawer.isDrawerOpen(filtersList)) {
-            drawer.closeDrawer(filtersList);
+        if (_drawerLayout.isDrawerOpen(filtersList)) {
+            _drawerLayout.closeDrawer(filtersList);
         } else {
-            drawer.openDrawer(filtersList);
+            _drawerLayout.openDrawer(filtersList);
         }
     }
 
@@ -591,9 +611,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _filterItem.setVisible(false);
 
         // Hide the filters fragment
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer);
         ExpandableListView filtersList = _filters.getFilterList();
-        drawer.closeDrawer(filtersList);
+        _drawerLayout.closeDrawer(filtersList);
 
         // Set the filters back to null
         _currentCategory = null;

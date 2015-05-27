@@ -50,6 +50,10 @@ public class Filters {
         });
     }
 
+    public void refreshFilterRadioButtons() {
+        _adapter.refreshRadioButtons();
+    }
+
     /**
      * Unchecks all the filter options in a filter group. Called when 'Clear' is clicked
      * @param filterName The name of the filter group

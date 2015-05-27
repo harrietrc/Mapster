@@ -22,52 +22,52 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
     private Context context;
 
     // Headers for the filters (e.g. 'Price level', 'Category')
-    private List<String> filterTitles;
+    private List<String> _filterTitles;
 
     // Text for the filter options (e.g. 'Expensive', 'Accommodation')
-    private Map<String, List<String>> filterChildren;
+    private Map<String, List<String>> _filterChildren;
 
     // References to the child views / filter options that get created within the list
-    private Map<String, HashSet<View>> filterChildViews;
+    private Map<String, HashSet<View>> _filterChildViews;
 
     // Names of children that have been instantiated as views already - for convenient/fast access
-    private Map<String, HashSet<String>> filterChildViewNames;
+    private Map<String, HashSet<String>> _filterChildViewNames;
 
     // Because filter item views sometimes get reinstantiated, keep track of which options are checked
-    private Map<String, String> checkedFilterOptions;
+    private Map<String, String> _checkedFilterOptions;
 
-    // TODO Consider creating a class to hold child state, or combining filterChildViewNames and filterChildren
+    // TODO Consider creating a class to hold child state, or combining _filterChildViewNames and filterChildren
 
     public ExpandableFilterListAdapter(Context context, List<String> filterTitles, HashMap<String,
             List<String>> filterChildren) {
         this.context = context;
-        this.filterTitles = filterTitles;
-        this.filterChildren = filterChildren;
-        this.filterChildViews = new HashMap<>();
-        this.filterChildViewNames = new HashMap<>();
+        this._filterTitles = filterTitles;
+        this._filterChildren = filterChildren;
+        this._filterChildViews = new HashMap<>();
+        this._filterChildViewNames = new HashMap<>();
 
         // Record of which options in the list are checked/selected
-        checkedFilterOptions = new HashMap<>();
+        this._checkedFilterOptions = new HashMap<>();
     }
 
     @Override
     public int getGroupCount() {
-        return filterTitles.size();
+        return _filterTitles.size();
     }
 
     @Override
     public int getChildrenCount(int groupPosition) {
-        return this.filterChildren.get(this.filterTitles.get(groupPosition)).size();
+        return this._filterChildren.get(this._filterTitles.get(groupPosition)).size();
     }
 
     @Override
     public Object getGroup(int groupPosition) {
-        return filterTitles.get(groupPosition);
+        return _filterTitles.get(groupPosition);
     }
 
     @Override
     public Object getChild(int groupPosition, int childPosition) {
-        return this.filterChildren.get(this.filterTitles.get(groupPosition)).get(childPosition);
+        return this._filterChildren.get(this._filterTitles.get(groupPosition)).get(childPosition);
     }
 
     @Override
@@ -96,9 +96,9 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
             isFilterOption = convertView.findViewById(R.id.clear) != null;
 
         // Save the group so that we can save its children later
-        if (filterChildViews.get(groupTitle) == null) {
-            filterChildViews.put(groupTitle, new HashSet<View>());
-            filterChildViewNames.put(groupTitle, new HashSet<String>());
+        if (_filterChildViews.get(groupTitle) == null) {
+            _filterChildViews.put(groupTitle, new HashSet<View>());
+            _filterChildViewNames.put(groupTitle, new HashSet<String>());
         }
 
         // Inflate the correct layout - either a filter option or the clear suggestions option
@@ -121,7 +121,7 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
     }
 
     public void refreshRadioButtons() {
-        for (String s: filterTitles) {
+        for (String s: _filterTitles) {
             setFilterGroupChecked(s);
         }
     }
@@ -139,9 +139,9 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
 
         // Save/update the item view in the group's list of children
         String groupName = (String) getGroup(groupPosition);
-        if (filterChildren.get(groupName).contains(childText)) {
-            filterChildViews.get(groupName).add(convertView);
-            filterChildViewNames.get(groupName).add(childText);
+        if (_filterChildren.get(groupName).contains(childText)) {
+            _filterChildViews.get(groupName).add(convertView);
+            _filterChildViewNames.get(groupName).add(childText);
         }
 
         // TODO Not a fan of this implementation. Checks list of children to ensure that they are children of this group.
@@ -149,7 +149,7 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
         purgeFilterViews(groupName);
 
         // Check whether the child should be checked or not
-        String checkedOption = checkedFilterOptions.get(groupName);
+        String checkedOption = _checkedFilterOptions.get(groupName);
         if (checkedOption != null && checkedOption.equals(childText)) {
             ((CheckableLinearLayout) convertView).setChecked(true);
         } else {
@@ -166,8 +166,8 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
      * The parent/group name is being checked anyway so this is probably a better idea.
      */
     private void purgeFilterViews(String groupName) {
-        HashSet<View> children = filterChildViews.get(groupName);
-        List<String> childNames = filterChildren.get(groupName);
+        HashSet<View> children = _filterChildViews.get(groupName);
+        List<String> childNames = _filterChildren.get(groupName);
         HashSet<View> updated = new HashSet<>();
 
         if (children != null) {
@@ -179,7 +179,7 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
         }
 
         // Update the list of children
-        filterChildViews.put(groupName, updated);
+        _filterChildViews.put(groupName, updated);
     }
 
     @Override
@@ -192,16 +192,16 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
      * @param filterName The name of the filter group
      */
     public void clearFilterRadioButtons(String filterName) {
-        HashSet<View> children = filterChildViews.get(filterName);
+        HashSet<View> children = _filterChildViews.get(filterName);
         if (children != null) {
             for (View v : children)
                 ((CheckableLinearLayout) v).setChecked(false);
         }
-        checkedFilterOptions.put(filterName, null);
+        _checkedFilterOptions.put(filterName, null);
     }
 
     public void clearAllFilterRadioButtons() {
-        for (String s: filterTitles) {
+        for (String s: _filterTitles) {
             clearFilterRadioButtons(s);
         }
     }
@@ -214,7 +214,7 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
      */
     public void setFilterOptionChecked(String group, String checkedChild) {
         // Record option as checked
-        checkedFilterOptions.put(group, checkedChild);
+        _checkedFilterOptions.put(group, checkedChild);
         // Set the checked state for all the options in the group
         setFilterGroupChecked(group);
     }
@@ -224,8 +224,8 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
      * @param group Name of a filter group
      */
     public void  setFilterGroupChecked(String group) {
-        HashSet<View> children = filterChildViews.get(group);
-        String checkedChild = checkedFilterOptions.get(group);
+        HashSet<View> children = _filterChildViews.get(group);
+        String checkedChild = _checkedFilterOptions.get(group);
 
         if (checkedChild == null) {
             // Clear all the radio buttons - no item is checked
