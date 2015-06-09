@@ -1,6 +1,8 @@
-package com.mapster.places;
+package com.mapster.json;
 
 import android.util.Log;
+
+import com.mapster.places.GooglePlaceDetail;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,26 +32,28 @@ public class GooglePlaceDetailJsonParser {
      * @return = A GooglePlaceDetail with the relevant data
      */
     private GooglePlaceDetail getDetail(JSONObject jsonDetail) {
-        GooglePlaceDetail detail = new GooglePlaceDetail();
+        GooglePlaceDetail detail = null;
+        String shortAddress, website, phoneNumber;
+        shortAddress = website = phoneNumber = null;
 
         try {
             // Street address
-            if (!jsonDetail.getString("formatted_address").equals(JSONObject.NULL)) {
+            if (!jsonDetail.isNull("formatted_address")) {
                 String formattedAddress = jsonDetail.getString("formatted_address");
-                detail.shortAddress = formattedAddress.split(",")[0]; // First line of the address
+                shortAddress = formattedAddress.split(",")[0]; // First line of the address
             }
 
             // Phone number
             if (!jsonDetail.isNull("formatted_phone_number")) {
-                detail.phoneNumber = jsonDetail.getString("formatted_phone_number");
+                phoneNumber = jsonDetail.getString("formatted_phone_number");
             }
 
             // Website
             if (!jsonDetail.isNull("website")) {
-                detail.website = jsonDetail.getString("website");
+                website = jsonDetail.getString("website");
             }
 
-            // TODO: opening hours (will be more complicated if we're to show only today's hours)
+            detail = new GooglePlaceDetail(shortAddress, website, phoneNumber);
 
         } catch (JSONException e) {
             e.printStackTrace();

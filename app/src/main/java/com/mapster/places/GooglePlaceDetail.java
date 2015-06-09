@@ -1,9 +1,5 @@
 package com.mapster.places;
 
-import android.util.Log;
-
-import java.util.HashMap;
-
 /**
  * Created by Harriet on 3/22/2015.
  * Stores/operates on detail related to a GooglePlace. Like GooglePlace, should really only be
@@ -12,26 +8,23 @@ import java.util.HashMap;
  * Note: Photo and rating are stored in GooglePlace. This only populates the InfoWindow snippet.
  */
 public class GooglePlaceDetail {
-    // TODO Make these private
-    public String shortAddress;
-    public String website; // May be null
-    public String phoneNumber; // May be null
+    private String _shortAddress;
+    private String _website; // May be null
+    private String _phoneNumber; // May be null
 
-    // TODO: show today's hours in InfoWindow of suggestion markers
-    private HashMap<String, String> _openHours;
-
-
-    private Integer _priceLevel;
-
-    // TODO: reviews summary (Google offers this as a premium service - worth looking into?)
+    public GooglePlaceDetail(String address, String website, String phoneNumber) {
+        _shortAddress = address;
+        _website = website;
+        _phoneNumber = phoneNumber;
+    }
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(shortAddress);
-        if (phoneNumber != null)
-            sb.append("\n" + phoneNumber);
-        if (website != null)
-            sb.append("\n" + website);
+        sb.append(_shortAddress);
+        if (_phoneNumber != null)
+            sb.append("\n" + _phoneNumber);
+        if (_website != null)
+            sb.append("\n" + _website);
         return sb.toString();
     }
 

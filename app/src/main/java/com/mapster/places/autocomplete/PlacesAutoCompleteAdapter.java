@@ -1,7 +1,6 @@
 package com.mapster.places.autocomplete;
 
 import android.content.Context;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Filter;
 import android.widget.Filterable;
@@ -9,8 +8,6 @@ import android.widget.Filterable;
 import com.mapster.R;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Set;
 
 /**
  * Created by tommyngo on 19/03/15.

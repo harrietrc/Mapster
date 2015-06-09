@@ -1,63 +1,65 @@
 package com.mapster.suggestions;
 
+import android.content.Context;
+
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.mapster.places.GooglePlace;
-import com.mapster.places.GooglePlaceDetail;
 
 /**
  * Created by Harriet on 3/22/2015.
  */
-public class Suggestion {
-    private Marker _marker;
-    private String _category;
-    private boolean _isClicked;
+public abstract class Suggestion {
+    protected Marker _marker;
+    protected String _category; // TODO change this to an enum
+    protected boolean _isClicked;
 
-    // Save data about the Google Place that this marker represents
-    private GooglePlace _place;
+    /**
+     * Accesses various web API's in order to populate this suggestion with information. Currently
+     * retrieves information from Google Places and Expedia.
+     */
+    public abstract void requestSuggestionInfo(Context context);
 
-    public Suggestion(Marker marker, GooglePlace place, String category) {
-        _marker = marker;
-        // TODO Set category from GooglePlace as well
-        _category = category;
-        _isClicked = false;
-        _place = place;
-    }
+    /**
+     * Returns a string for the snippet of a marker's infowindow
+     */
+    public abstract String getInfoWindowString();
 
-    public String getName() {
-        return _place.name;
-    }
+    /**
+     * Returns the url to a photo illustrating the suggestion
+     */
+    public abstract String getThumbnailUrl(Context context);
 
-    public boolean hasPlaceDetail() {
-       return _place.hasDetail();
-    }
+    /**
+     * Returns the name of the suggestion place.
+     */
+    public abstract String getName();
 
-    public Integer getPriceLevel() {
-        // Note that this will return null if there is no price level recorded
-        return _place.getPriceLevel();
-    }
+    /**
+     * Returns a price level between 1 and 4 (inclusive), where 4 is the most expensive level.
+     */
+    public abstract Integer getPriceLevel();
 
-    public void setPlaceDetail(GooglePlaceDetail detail) {
-        _place.setDetail(detail);
-    }
+    /**
+     * Returns the star rating (out of 5)
+     */
+    public abstract float getRating();
 
-    public String getPhotoReference() {
-        return _place.photoReference;
-    }
-
-    public Marker getMarker() {
-        return _marker;
-    }
-
-    public float getRating() {
-        return _place.rating;
-    }
-
+    // TODO Change category to an enum
     public String getCategory() {
         return _category;
     }
 
-    public String getPlaceId() {
-        return _place.id;
+    /**
+     * Stored in different places depending on the suggestion
+     */
+    public abstract LatLng getLocation();
+
+    public void setMarker(Marker marker) {
+        _marker = marker;
+    }
+
+    public Marker getMarker() {
+        return _marker;
     }
 
     public boolean isClicked() {

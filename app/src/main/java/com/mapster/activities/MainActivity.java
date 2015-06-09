@@ -1,25 +1,17 @@
 package com.mapster.activities;
 
-import android.content.res.ColorStateList;
-
-import android.app.FragmentTransaction;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
-import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
-import android.content.Intent;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
+import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
-import android.widget.RatingBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,36 +21,28 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
-import com.mapster.filters.FiltersFragment;
+import com.mapster.connectivities.tasks.ExpediaHotelListTask;
+import com.mapster.connectivities.tasks.GooglePlacesTask;
+import com.mapster.connectivities.tasks.ReadTask;
+import com.mapster.filters.Filters;
 import com.mapster.json.JSONParser;
 import com.mapster.map.information.MapInformation;
-import com.mapster.places.GooglePlace;
-import com.mapster.places.GooglePlaceDetail;
-import com.mapster.places.GooglePlaceDetailJsonParser;
-import com.mapster.places.GooglePlaceJsonParser;
 import com.mapster.suggestions.Suggestion;
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
+import com.mapster.suggestions.SuggestionInfoAdapter;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener {
     private static final float UNDEFINED_COLOUR = -1;
@@ -81,19 +65,23 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     private MenuItem _filterItem; // Filters button
 
+    // The layout for this activity - used to listen for drawer state.
+    private DrawerLayout _drawerLayout;
+
     // TODO Issue with these is that with each new filter a new field will need to be added -
     // consider changing to a HashMap of different filter values if enough filters are added for
     // fields to be unwieldy
     private String _currentCategory;
     private Integer _priceLevel;
 
-    // The fragment with the list of filters
-    FiltersFragment _filtersFragment;
+    // Controls the state of the filters
+    Filters _filters;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         //TODO refactor
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         initializeGoogleMap();
         getDataFromPlaceActivity();
@@ -110,14 +98,39 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 13));
         addMarkers();
         _map.setOnMarkerClickListener(this);
-        _map.setInfoWindowAdapter(new SuggestionInfoAdapter(getLayoutInflater()));
+        _map.setInfoWindowAdapter(new SuggestionInfoAdapter(getLayoutInflater(),
+                this));
         _map.setMyLocationEnabled(true);
         initSuggestionMarkers();
         _suggestionsByMarkerId = new HashMap<>();
 
-        _filtersFragment = (FiltersFragment) getFragmentManager().findFragmentById(R.id.filters);
-        // Setting the visibility in the XML doesn't have effect, so hide it here
-        getFragmentManager().beginTransaction().hide(_filtersFragment).commit();
+        // Populate the filters drawer/list
+        ExpandableListView filters = (ExpandableListView) findViewById(R.id.filter_list);
+        _filters = new Filters(filters);
+        _filters.populateFilterList(this);
+
+        // Set up a listener for the drawer
+        _drawerLayout = (DrawerLayout) findViewById(R.id.drawer);
+        DrawerLayout.DrawerListener drawerListener = new DrawerLayout.DrawerListener() {
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {}
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                _filters.refreshFilterRadioButtons();
+            }
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                _filters.refreshFilterRadioButtons();
+            }
+            @Override
+            public void onDrawerStateChanged(int newState) {}
+        };
+        _drawerLayout.setDrawerListener(drawerListener);
+    }
+
+    public Suggestion getSuggestionByMarker(Marker marker) {
+        String id = marker.getId();
+        return _suggestionsByMarkerId.get(id);
     }
 
     /**
@@ -192,55 +205,19 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         return helper;
     }
 
-    private MarkerOptions initializeOptionMarker() {
-        MarkerOptions options = new MarkerOptions();
-        for (List<LatLng> latLng : _latLngArrayList){
-            for (LatLng position : latLng) {
-                options.position(position);
-            }
-        }
-        return options;
-    }
-
-    public String buildPlacesUrl(double lat, double lng, int radius, String[] types) {
-        StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place"
-                                             + "/nearbysearch/json?");
-        sb.append("key=" + getResources().getString(R.string.API_KEY));
-        sb.append("&location=" + lat + "," + lng);
-        sb.append("&radius=" + radius);
-        sb.append("&rankby=prominence");
-        if (types.length > 0) {
-            sb.append("&types=");
-            String delim = "";
-            for (String s: types) {
-                sb.append(delim);
-                sb.append(s);
-                delim = "|";
-            }
-        }
-        String url = sb.toString();
-        return url;
-    }
-
-    public String buildDetailUrl(String placeId) {
-        StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place/details/json?");
-        sb.append("key=" + getResources().getString(R.string.API_KEY));
-        sb.append("&placeid=" + placeId);
-        String url = sb.toString();
-        return url;
-    }
-
     /**
      * Triggered when the button in the actionbar that opens the filters menu is clicked
      */
     public void onFilterButtonClick() {
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
-        if (_filtersFragment.isVisible()) {
-            ft.hide(_filtersFragment);
+        // If there are issues with timing, use isDrawerVisible() instead
+        // This is the actual drawer (within the DrawerLayout)
+        ExpandableListView filtersList = _filters.getFilterList();
+
+        if (_drawerLayout.isDrawerOpen(filtersList)) {
+            _drawerLayout.closeDrawer(filtersList);
         } else {
-            ft.show(_filtersFragment);
+            _drawerLayout.openDrawer(filtersList);
         }
-        ft.commit();
     }
 
     public boolean onMarkerClick(Marker marker) {
@@ -249,7 +226,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
         // Centre on the marker that was clicked
         int zoom = (int) _map.getCameraPosition().zoom;
-        CameraUpdate cu = CameraUpdateFactory.newLatLngZoom(new LatLng(marker.getPosition().latitude + (double)90/Math.pow(2, zoom), marker.getPosition().longitude), zoom);
+        CameraUpdate cu = CameraUpdateFactory.newLatLngZoom(new LatLng(marker.getPosition().latitude + (double) 90 / Math.pow(2, zoom), marker.getPosition().longitude), zoom);
         _map.animateCamera(cu);
 
         if (isClicked == null) {
@@ -258,22 +235,12 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             Suggestion s = _suggestionsByMarkerId.get(id);
 
             if (marker.getSnippet() == null) {
-                PlaceDetailTask detailTask = new PlaceDetailTask();
-                GooglePlaceDetail detail = null;
-                String infoWindowString;
+                // Make requests to the web API's, populating suggestion information. Internet access required.
+                s.requestSuggestionInfo(this.getApplicationContext());
 
-                // Query the Places API for detail on place corresponding to marker
-                try {
-                    detail = detailTask.execute(s.getPlaceId()).get();
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                }
                 // Use the detail to set the information displayed in the popup and save it to the place.
-                infoWindowString = detail == null? "" : detail.toString();
+                String infoWindowString = s.getInfoWindowString();
                 marker.setSnippet(infoWindowString);
-                s.setPlaceDetail(detail);
-                // Filter suggestions - all suggestions for this marker should be loaded, but not all
-                // of them need to be visible
             }
             marker.showInfoWindow();
             return false; // Marker toolbar will be shown (returning false allows default behaviour)
@@ -281,8 +248,15 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             // Marker is user-defined and has not been clicked before. Record places and add markers.
             _userMarkers.put(id, true);
             LatLng loc = marker.getPosition();
-            PlacesTask placesTask = new PlacesTask();
+
+            // Get suggestions from Google Places. 1st arg: search radius in m. 2nd arg: number of results
+            GooglePlacesTask placesTask = new GooglePlacesTask(this, 3000, 15);
             placesTask.execute(loc);
+
+            // Get suggestions from Expedia. Unfortunately this one takes longer than the Google task
+            ExpediaHotelListTask expediaTask = new ExpediaHotelListTask(this, 3000, 15);
+            expediaTask.execute(loc);
+
             // Make the filters button in the action bar visible
             _filterItem.setVisible(true);
             return false;
@@ -332,145 +306,22 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
     }
 
-    private String downloadUrl(String url) {
-        String data = "";
-        try {
-            com.mapster.connectivities.HttpConnection http = new com.mapster.connectivities.HttpConnection();
-            data = http.readUrl(url);
-        } catch (Exception e) {
-            Log.d("Background Task", e.toString());
-        }
-        return data;
-    }
-
     /**
-     * Ensures that the suggestion is categorised and keyed by marker id (so that it can be easily
-     * retrieved) when it is created.
-     * @param marker
-     * @param place
-     * @param category
+     * Adds a marker for a suggestion, updates the suggestion with the new marker, and saves the
+     * suggestion.
+     * @param suggestion A suggestion of a destination for the user
+     * @param icon An icon to represent the suggestion on the map
      */
-    private void addSuggestion(Marker marker, GooglePlace place, String category) {
-        Suggestion suggestion = new Suggestion(marker, place, category);
+    public void addSuggestion(Suggestion suggestion, BitmapDescriptor icon) {
+        Marker marker = drawMarker(suggestion.getLocation(), icon);
+        suggestion.setMarker(marker);
         _suggestionsByMarkerId.put(marker.getId(), suggestion);
+        String category = suggestion.getCategory();
         List<Marker> cat = _markersByCategory.get(category);
         cat.add(marker);
-    }
 
-    /**
-     * Extend this if your task involves getting a response from a URL
-     */
-    private class ReadTask extends AsyncTask<String, Void, String> {
-        @Override
-        protected String doInBackground(String... url) {
-            return downloadUrl(url[0]);
-        }
-    }
-
-    private class PlaceDetailTask extends AsyncTask<String, Void, GooglePlaceDetail> {
-
-        @Override
-        protected GooglePlaceDetail doInBackground(String... placeIds) {
-            GooglePlaceDetailJsonParser detailJsonParser = new GooglePlaceDetailJsonParser();
-            String url = buildDetailUrl(placeIds[0]);
-            String response = downloadUrl(url);
-            GooglePlaceDetail detail = null;
-
-            try {
-                JSONObject jsonResponse = new JSONObject(response);
-                detail = detailJsonParser.parse(jsonResponse);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            return detail;
-        }
-    }
-
-    private class PlacesTask extends AsyncTask<LatLng, Void, List<GooglePlace>> {
-        /**
-         * Fetches and parses suggestions near a point of interest.
-         * @return = The places found
-         */
-        @Override
-        protected List<GooglePlace> doInBackground(LatLng... locs) {
-            GooglePlaceJsonParser placeJsonParser = new GooglePlaceJsonParser();
-            List<GooglePlace> places = new ArrayList<>();
-            int radius = 2000;
-
-            List<String> urls = new ArrayList<>();
-
-            urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
-                    GooglePlace.getAccommodationCategories()));
-            urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
-                    GooglePlace.getDiningCategories()));
-            urls.add(buildPlacesUrl(locs[0].latitude, locs[0].longitude, radius,
-                    GooglePlace.getAttractionCategories()));
-
-            for (String url: urls) {
-                // Query the Google Places API to get nearby places
-                String response = downloadUrl(url);
-
-                // Parse JSON response into GooglePlaces
-                try {
-                    JSONObject jsonResponse = new JSONObject(response);
-                    List<GooglePlace> parsed = placeJsonParser.parse(jsonResponse);
-
-                    // Limit the number of suggestions per category
-                    List<GooglePlace> shortList = parsed;
-                    int maxSuggestions = 10;
-                    if (places.size() > maxSuggestions)
-                        shortList = parsed.subList(0, maxSuggestions);
-                    places.addAll(shortList);
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-            return places;
-        }
-
-        /**
-         * Creates a marker from each of the places from the parsed JSON, adding it to the UI
-         * @param places = an array of GooglePlaces
-         */
-        @Override
-        protected void onPostExecute(List<GooglePlace> places) {
-            for (GooglePlace place: places) {
-                double lat = Double.parseDouble(place.latitude);
-                double lng = Double.parseDouble(place.longitude);
-                LatLng latLng = new LatLng(lat, lng);
-                Marker m;
-
-                // Save the marker in the correct categories
-                String[] categories = place.categories;
-                String parentCategory = null;
-                int iconId = 0;
-                // Find the category for the marker. May find multiple categories - icon will
-                // represent the last one found.
-                for (String c : categories) {
-                    // Not the best way to do this, but ok for 3 categories.
-                    if (GooglePlace.ACCOMMODATION.contains(c)) {
-                        parentCategory = "accommodation";
-                        iconId = R.drawable.lodging_0star;
-                    } else if (GooglePlace.ATTRACTIONS.contains(c)|GooglePlace.EXTRA_ATTRACTIONS.contains(c)) {
-                        parentCategory = "attractions";
-                        iconId = R.drawable.flag_export;
-                    } else if (GooglePlace.DINING.contains(c)) {
-                        parentCategory = "dining";
-                        iconId = R.drawable.restaurant;
-                    }
-                }
-                // 'establishment' type is allowed only if it also matches one of the
-                // EXTRA_ATTRACTIONS types - if not, discard the Place.
-                if (parentCategory != null) {
-                    m = drawMarker(latLng, BitmapDescriptorFactory.fromResource(iconId));
-                    m.setTitle(place.name);
-                    addSuggestion(m, place, parentCategory);
-                }
-            }
-            // Filter suggestions
-            setVisibilityByFilters();
-        }
+        // Refilter markers
+        setVisibilityByFilters();
     }
 
     private class DirectionsTask extends ReadTask {
@@ -634,7 +485,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     /**
      * Sets visibility of markers based on a price level (retrieved from the _priceLevel field)
-     * TODO Decide whether this method is preferable to maintaining a separate data structure like _markersByCategory
      */
     public void setVisibilityByPriceLevel() {
         // All the markers in the current category (accommodation, attractions, or dining)
@@ -716,7 +566,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 break;
         }
         // Uncheck everything before checking this option's checkbox
-        _filtersFragment.setFilterOptionChecked(filterName, filterOptionName);
+        _filters.setFilterOptionChecked(filterName, filterOptionName);
         setVisibilityByFilters();
     }
 
@@ -731,7 +581,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         String filterTitleString = filterTitle.getText().toString();
 
         // Uncheck all the checkboxes in the group
-        _filtersFragment.clearFilterRadioButtons(filterTitleString);
+        _filters.clearFilterRadioButtons(filterTitleString);
 
         switch (filterTitleString) {
             case "Category":
@@ -744,7 +594,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 break;
         }
         setVisibilityByFilters();
-        _filtersFragment.clearFilterRadioButtons(filterTitleString);
+        _filters.clearFilterRadioButtons(filterTitleString);
     }
 
     /**
@@ -755,15 +605,14 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         setAllMarkersVisible(false);
 
         // Reset the RadioButtons
-        _filtersFragment.clearAllFilterRadioButtons();
-
-        System.out.println("CLEAR");
+        _filters.clearAllFilterRadioButtons();
 
         // Hide the filter button - no suggestions to filter
         _filterItem.setVisible(false);
 
         // Hide the filters fragment
-        getFragmentManager().beginTransaction().hide(_filtersFragment).commit();
+        ExpandableListView filtersList = _filters.getFilterList();
+        _drawerLayout.closeDrawer(filtersList);
 
         // Set the filters back to null
         _currentCategory = null;
@@ -783,144 +632,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             ArrayList<Marker> markerList = (ArrayList) o;
             for (Marker m: markerList)
                 m.setVisible(isVisible);
-        }
-    }
-
-    private String buildPhotoUrl(String photoReference) {
-        int maxWidth = 200;
-        int maxHeight = 200;
-
-        StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place/photo?");
-        sb.append("key=" + getResources().getString(R.string.API_KEY));
-        sb.append("&photoreference=" + photoReference);
-        sb.append("&maxwidth=" + maxWidth);
-        sb.append("&maxheight=" + maxHeight);
-
-        return sb.toString();
-    }
-
-    private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
-        private ImageView _image;
-
-        public DownloadImageTask(ImageView image) {
-            _image = image;
-        }
-
-        @Override
-        protected Bitmap doInBackground(String... urls) {
-            String url = urls[0];
-            Bitmap icon = null;
-            try {
-                InputStream in = new URL(url).openStream();
-                icon = BitmapFactory.decodeStream(in);
-            } catch (IOException e) {
-                Log.e("DownloadImageTask", e.getMessage());
-                e.printStackTrace();
-            }
-            return icon;
-        }
-
-        @Override
-        protected void onPostExecute(Bitmap result) {
-            _image.setImageBitmap(result);
-        }
-    }
-
-
-    public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter {
-
-        private LayoutInflater _inflater;
-
-        // This field prevents the ImageView from being garbage collected before its drawable can be
-        // set, and the image returned by Picasso displayed.
-        private ImageView _currentInfoWindowImage;
-
-        public SuggestionInfoAdapter(LayoutInflater inflater) {
-            _inflater = inflater;
-        }
-
-        @Override
-        public View getInfoWindow(Marker marker) {
-            return null;
-        }
-
-        @Override
-        /**
-         * This is only called if getInfoWindow() returns null. If this returns null, the default info
-         * window will be displayed.
-         */
-        public View getInfoContents(Marker marker) {
-            String markerId = marker.getId();
-            Suggestion s = _suggestionsByMarkerId.get(markerId);
-            View info = _inflater.inflate(R.layout.suggestion_info_window, null);
-
-            TextView title = (TextView) info.findViewById(R.id.title);
-            title.setText(marker.getTitle());
-
-            TextView snippet = (TextView) info.findViewById(R.id.snippet);
-            snippet.setText(marker.getSnippet());
-
-            // Set the rating of the place, if the place is not user-defined
-            RatingBar ratingBar = (RatingBar) info.findViewById(R.id.rating_bar);
-            float rating;
-            if (s != null) {
-                rating = s.getRating();
-            } else {
-                rating = 0;
-            }
-
-            // Hide rating if none if given
-            if (rating == 0) {
-                ratingBar.setVisibility(View.GONE);
-            } else {
-                ratingBar.setRating(rating);
-            }
-
-            ImageView image = (ImageView) info.findViewById(R.id.image);
-
-            // Load the icon into the ImageView of the InfoWindow
-            if (s != null) {
-                String photoReference = s.getPhotoReference();
-                if (photoReference != null) {
-                    String imageUrl = buildPhotoUrl(photoReference);
-                    if (s.isClicked()) {
-                        // Marker has been clicked before - don't need to call the callback to load icon
-                        // Picasso has a fit() method for fitting to an ImageView, but it doesn't seem to work.
-                        Picasso.with(MainActivity.this).load(imageUrl).resize(150,150).centerCrop().into(image);
-                    } else {
-                        // Marker clicked for first time - download the icon and load it into the view
-                        s.setClicked(true);
-                        _currentInfoWindowImage = image;
-                        Picasso.with(MainActivity.this).load(imageUrl).resize(150, 150).centerCrop()
-                                .into(_currentInfoWindowImage, new InfoWindowRefresher(marker));
-                    }
-                }
-            }
-
-            // Hide the ImageView if it has no image
-            if (image.getDrawable() == null) {
-                image.setVisibility(View.GONE);
-            }
-
-            return info;
-        }
-    }
-
-    private class InfoWindowRefresher implements Callback {
-        private Marker _markerToRefresh;
-
-        private InfoWindowRefresher(Marker markerToRefresh) {
-            _markerToRefresh = markerToRefresh;
-        }
-
-        @Override
-        public void onSuccess() {
-            _markerToRefresh.showInfoWindow();
-        }
-
-        @Override
-        public void onError() {
-
         }
     }
 }
