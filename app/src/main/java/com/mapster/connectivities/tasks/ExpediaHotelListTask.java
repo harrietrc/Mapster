@@ -8,7 +8,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.mapster.R;
 import com.mapster.activities.MainActivity;
-import com.mapster.expedia.Expedia;
+import com.mapster.expedia.ExpediaApi;
 import com.mapster.expedia.ExpediaHotel;
 import com.mapster.json.ExpediaHotelListJsonParser;
 import com.mapster.suggestions.ExpediaSuggestion;
@@ -40,7 +40,7 @@ public class ExpediaHotelListTask extends AsyncTask<LatLng, Void, List<ExpediaHo
 
     @Override
     protected List<ExpediaHotel> doInBackground(LatLng... locations) {
-        Expedia exp = new Expedia(_activity);
+        ExpediaApi exp = new ExpediaApi(_activity);
         List<ExpediaHotel> hotels = null;
         ExpediaHotelListJsonParser parser = new ExpediaHotelListJsonParser();
 
