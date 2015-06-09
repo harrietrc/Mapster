@@ -5,8 +5,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <!--<string name="API_KEY">AIzaSyBM7NSP59Z4Lhfk975jtoMR2O1g4BPTos4</string>-->
-    <string name="YELP_CONSUMER_KEY">JtK8bdHS-tk1xOHJZsPa5Q</string>
-    <string name="YELP_TOKEN">1NJPh7dnIXFYmSddco6Ato4oXJzaE25h</string>
     <!--<string name="API_KEY">AIzaSyDGbryAn8AT_UliJQk6OnCQ0b-CMLJhNFw</string>-->
     <!--This one's yours, Tommy - wasn't working for Places API for me today-->
 
@@ -32,5 +30,12 @@
     <string name="EXPEDIA_API_KEY">2fp0is48pt2tmnl7sjehfaeuja</string>
     <string name="EXPEDIA_CID">487641</string>
     <string name="EXPEDIA_SECRET">3c2s654ll7aa0</string> <!-- MOVE THIS! -->
+
+    <!-- Yelp -->
+    <string name="YELP_CONSUMER_KEY">JtK8bdHS-tk1xOHJZsPa5Q</string>
+    <string name="YELP_TOKEN">1NJPh7dnIXFYmSddco6Ato4oXJzaE25h</string>
+    <!-- Todo move all the secret keys!!! -->
+    <string name="YELP_TOKEN_SECRET">63c6NP5I9PQEklTt3zEo4EdfJ-o</string>
+    <string name="YELP_COMSUMER_KEY_SECRET">hAKwtX7JwYeTkZbg6j7rP_Q9V_E</string>
 
 </resources>
