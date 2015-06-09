@@ -1,5 +1,10 @@
 package com.mapster.yelp;
 
+import android.content.Context;
+
+import com.google.android.gms.maps.model.LatLng;
+import com.mapster.R;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,54 +29,50 @@ import org.scribe.oauth.OAuthService;
 public class YelpApi {
 
     private static final String API_HOST = "api.yelp.com";
-    private static final String DEFAULT_TERM = "dinner";
-    private static final String DEFAULT_LOCATION = "San Francisco, CA";
-    private static final int SEARCH_LIMIT = 3;
+    private static final int SEARCH_LIMIT = 10;
     private static final String SEARCH_PATH = "/v2/search";
     private static final String BUSINESS_PATH = "/v2/business";
-
-    /*
-     * Update OAuth credentials below from the Yelp Developers API site:
-     * http://www.yelp.com/developers/getting_started/api_access
-     */
-    private static final String CONSUMER_KEY = "";
-    private static final String CONSUMER_SECRET = "";
-    private static final String TOKEN = "";
-    private static final String TOKEN_SECRET = "";
 
     OAuthService service;
     Token accessToken;
 
     /**
      * Setup the Yelp API OAuth credentials.
-     *
-     * @param consumerKey Consumer key
-     * @param consumerSecret Consumer secret
-     * @param token Token
-     * @param tokenSecret Token secret
+     * @param context Required for access to keys in strings.xml
      */
-    public YelpApi(String consumerKey, String consumerSecret, String token, String tokenSecret) {
-        this.service =
+    public YelpApi(Context context) {
+        // TODO Alternatively, in both this class and the ExpediaApi class, pass in the keys rather
+        // than the context.
+
+        // Set the various keys
+        String consumerKey = context.getString(R.string.YELP_CONSUMER_KEY);
+        String consumerSecret = context.getString(R.string.YELP_COMSUMER_KEY_SECRET);
+        String token = context.getString(R.string.YELP_TOKEN);
+        String tokenSecret = context.getString(R.string.YELP_TOKEN_SECRET);
+
+        service =
                 new ServiceBuilder().provider(TwoStepOAuth.class).apiKey(consumerKey)
                         .apiSecret(consumerSecret).build();
-        this.accessToken = new Token(token, tokenSecret);
+        accessToken = new Token(token, tokenSecret);
     }
 
     /**
-     * Creates and sends a request to the Search API by term and location.
-     * <p>
-     * See <a href="http://www.yelp.com/developers/documentation/v2/search_api">Yelp Search API V2</a>
-     * for more info.
-     *
-     * @param term <tt>String</tt> of the search term to be queried
-     * @param location <tt>String</tt> of the location
-     * @return <tt>String</tt> JSON Response
+     * Searches for businesses near a location
+     * @param term The type of establishment (e.g. 'bar')
+     * @param latLng Location to search near
+     * @return
      */
-    public String searchForBusinessesByLocation(String term, String location) {
+    public String searchForBusinessesByLocation(String term, LatLng latLng, int radius) {
+        String lat = Double.toString(latLng.latitude);
+        String lng = Double.toString(latLng.longitude);
+
+        // TODO Deals filter would be nice to have (see deals_filter param)
+
         OAuthRequest request = createOAuthRequest(SEARCH_PATH);
         request.addQuerystringParameter("term", term);
-        request.addQuerystringParameter("location", location);
+        request.addQuerystringParameter("ll", lat + "," + lng);
         request.addQuerystringParameter("limit", String.valueOf(SEARCH_LIMIT));
+        request.addQuerystringParameter("radius_filter", String.valueOf(radius));
         return sendRequestAndGetResponse(request);
     }
 
@@ -118,24 +119,31 @@ public class YelpApi {
      * the Business API.
      *
      * @param yelpApi <tt>YelpAPI</tt> service instance
-     * @param yelpApiCli <tt>YelpAPICLI</tt> command line arguments
+     * @param term The type of establishment to search for (e.g. 'bar')
      */
-    private static void queryAPI(YelpAPI yelpApi, YelpAPICLI yelpApiCli) {
-        String searchResponseJSON =
-                yelpApi.searchForBusinessesByLocation(yelpApiCli.term, yelpApiCli.location);
+    private static void queryAPI(YelpApi yelpApi, String term, LatLng latLng, int radius) {
+        String searchResponseJSON = yelpApi.searchForBusinessesByLocation(term, latLng, radius);
 
         JSONObject response = null;
         try {
             response = new JSONObject(searchResponseJSON);
-        } catch (JSONException pe) {
+        } catch (JSONException e) {
             System.out.println("Error: could not parse JSON response:");
             System.out.println(searchResponseJSON);
-            System.exit(1);
+            e.printStackTrace();
         }
 
-        JSONArray businesses = (JSONArray) response.get("businesses");
-        JSONObject firstBusiness = (JSONObject) businesses.get(0);
-        String firstBusinessID = firstBusiness.get("id").toString();
+        String firstBusinessID = null;
+        JSONArray businesses = null;
+
+        try {
+            businesses = (JSONArray) response.get("businesses");
+            JSONObject firstBusiness = (JSONObject) businesses.get(0);
+            firstBusinessID = firstBusiness.get("id").toString();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
         System.out.println(String.format(
                 "%s businesses found, querying business info for the top result \"%s\" ...",
                 businesses.length(), firstBusinessID));
