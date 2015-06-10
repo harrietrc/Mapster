@@ -27,6 +27,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
 import com.mapster.connectivities.tasks.ExpediaHotelListTask;
+import com.mapster.connectivities.tasks.FoursquareExploreTask;
 import com.mapster.connectivities.tasks.GooglePlacesTask;
 import com.mapster.connectivities.tasks.ReadTask;
 import com.mapster.filters.Filters;
@@ -303,6 +304,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                     _userMarkers.put(m.getId(), false);
                 }
             }
+            FoursquareExploreTask f = new FoursquareExploreTask(this, 2000, 20);
+            f.execute(_latLngArrayList.get(0).get(0));
         }
     }
 
