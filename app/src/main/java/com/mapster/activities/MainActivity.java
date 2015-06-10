@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -371,6 +372,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             }
             ArrayList<LatLng> points;
             PolylineOptions polyLineOptions = null;
+            Log.d("SIZE", String.valueOf(mapInformation.getRoutes().size()));
             // traversing through routes
             for (int i = 0; i < mapInformation.getRoutes().size(); i++) {
                 points = new ArrayList<LatLng>();
@@ -384,12 +386,14 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                     LatLng position = new LatLng(lat, lng);
                     points.add(position);
                 }
+                System.out.println(points);
                 polyLineOptions.addAll(points);
-                polyLineOptions.width(3);
-                polyLineOptions.color(Color.BLUE);
+                polyLineOptions.width(7f);
+//                polyLineOptions.color(Color.BLUE);
+                polyLineOptions.color(mapInformation.getRouteColor().get(i));
+                _map.addPolyline(polyLineOptions);
             }
             drawInstructions(mapInformation);
-            _map.addPolyline(polyLineOptions);
         }
 
         private void drawInstructions(MapInformation mapInformation){

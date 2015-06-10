@@ -1,5 +1,9 @@
 package com.mapster.json;
 
+import android.graphics.Color;
+import android.os.Debug;
+import android.util.Log;
+
 import com.google.android.gms.maps.model.LatLng;
 import com.mapster.map.information.Distance;
 import com.mapster.map.information.Duration;
@@ -17,6 +21,13 @@ import java.util.List;
  * Created by tommyngo on 14/03/15.
  */
 public class JSONParser {
+    public enum ModeColor{
+        WALKING("#bdbdbd"), DRIVING("#0000ff"), BICYCLING("#00e500");
+        private final String name;
+        private ModeColor(String name){
+            this.name = name;
+        }
+    }
     private MapInformation mapInformation;
     public JSONParser (){
         mapInformation = new MapInformation();
@@ -51,18 +62,22 @@ public class JSONParser {
                             jSubSteps.getJSONObject(k).getString("html_instructions");
                         } catch (JSONException e){
                             jSubSteps = null;
-                            e.printStackTrace();
                         }
                         if (jSubSteps != null){
-                            System.out.println(k);
                             for (int l = 0; l < jSubSteps.length(); l++){
                                 path.addAll(getPath(jSubSteps, l));
+//                                Log.d("PATH",getPath(jSubSteps, l).toString());
                                 assignInformationToMapInformation(jSubSteps, l);
                             }
                             mapInformation.addRoutes(path);
+                            path.clear();
+                            addColorToRoute(jSteps.getJSONObject(k));
+
                         } else {
-                            path.addAll(getPath(jSteps, k));
+//                            Log.d("PATH",getPath(jSteps, k).toString());
                             assignInformationToMapInformation(jSteps, k);
+                            mapInformation.addRoutes(getPath(jSteps, k));
+                            addColorToRoute(jSteps.getJSONObject(k));
                         }
                         if (jSteps.getJSONObject(k).get("travel_mode").equals("TRANSIT")) {
                             JSONObject transitJSON = jSteps.getJSONObject(k).getJSONObject("transit_details");
@@ -77,9 +92,11 @@ public class JSONParser {
                             transit.append("<b>" + transitJSON.getString("headsign") + "</b>");
                             transit.append("<br/>");
                             JSONObject line = transitJSON.getJSONObject("line");
-                            transit.append(line.getJSONObject("vehicle").get("name") + " number: ");
-                            transit.append("<b>" + line.getString("short_name") + "</b>");
-                            transit.append("<br/>");
+                            if (!line.isNull("short_name")) {
+                                transit.append(line.getJSONObject("vehicle").get("name") + " number: ");
+                                transit.append("<b>" + line.getString("short_name") + "</b>");
+                                transit.append("<br/>");
+                            }
                             transit.append(line.getJSONObject("vehicle").get("name") + " name: ");
                             transit.append("<b>" + line.getString("name") + "</b>");
                             transit.append("<br/>");
@@ -89,8 +106,6 @@ public class JSONParser {
                             mapInformation.addDuration(new Duration("", 0));
                         }
                     }
-                    System.out.println(path);
-                    mapInformation.addRoutes(path);
                 }
             }
 
@@ -100,6 +115,27 @@ public class JSONParser {
             e.printStackTrace();
         }
         return mapInformation;
+    }
+
+    private void addColorToRoute(JSONObject object){
+        try {
+            switch (object.getString("travel_mode")) {
+                case "TRANSIT":
+                    mapInformation.addRouteColor(Color.parseColor(object.getJSONObject("transit_details").getJSONObject("line").getString("color")));
+                    break;
+                case "WALKING":
+                    mapInformation.addRouteColor(Color.parseColor(ModeColor.WALKING.name));
+                    break;
+                case "DRIVING":
+                    mapInformation.addRouteColor(Color.parseColor(ModeColor.DRIVING.name));
+                    break;
+                case "BICYCLING":
+                    mapInformation.addRouteColor(Color.parseColor(ModeColor.BICYCLING.name));
+                    break;
+            }
+        } catch(JSONException e){
+            e.printStackTrace();
+        }
     }
 
     private List<HashMap<String, String>> getPath(JSONArray array, int k){
