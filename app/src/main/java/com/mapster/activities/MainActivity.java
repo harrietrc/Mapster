@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -270,14 +271,13 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     private String getMapsApiDirectionsUrl(List<LatLng> latLngArrayList, String transportMode) {
-        //TODO refactor String --> StringBuilder
         int size = latLngArrayList.size();
         LatLng originCoordinate = latLngArrayList.get(0);
         LatLng destinationCoordinate = latLngArrayList.get(size - 1);
-        StringBuilder origin = new StringBuilder("?origin=" + originCoordinate.latitude + "," + originCoordinate.longitude);
-        StringBuilder destination = new StringBuilder("&destination=" + destinationCoordinate.latitude + "," + destinationCoordinate.longitude);
+        StringBuilder url = new StringBuilder("https://maps.googleapis.com/maps/api/directions");
+        url.append("/json");
+        url.append("?origin=" + originCoordinate.latitude + "," + originCoordinate.longitude);
         StringBuilder waypoints = new StringBuilder("");
-        StringBuilder mode = new StringBuilder("&mode=" + transportMode);
         if(size > 2){
             waypoints.append("&waypoints=optimize:true");
             for(int position = 1; position < size - 1; position ++){
@@ -285,10 +285,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 waypoints.append("|" + coordinate.latitude + "," + coordinate.longitude);
             }
         }
-
-        String output = "/json";
-        StringBuilder url = new StringBuilder( "https://maps.googleapis.com/maps/api/directions"
-                + output + origin + waypoints + destination + mode);
+        url.append(waypoints);
+        url.append("&destination=" + destinationCoordinate.latitude + "," + destinationCoordinate.longitude);
+        url.append("&mode=" + transportMode);
         System.out.println(url);
         return url.toString();
     }
@@ -373,6 +372,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             }
             ArrayList<LatLng> points;
             PolylineOptions polyLineOptions = null;
+            Log.d("SIZE", String.valueOf(mapInformation.getRoutes().size()));
             // traversing through routes
             for (int i = 0; i < mapInformation.getRoutes().size(); i++) {
                 points = new ArrayList<LatLng>();
@@ -386,12 +386,14 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                     LatLng position = new LatLng(lat, lng);
                     points.add(position);
                 }
+                System.out.println(points);
                 polyLineOptions.addAll(points);
-                polyLineOptions.width(2);
-                polyLineOptions.color(Color.BLUE);
+                polyLineOptions.width(7f);
+//                polyLineOptions.color(Color.BLUE);
+                polyLineOptions.color(mapInformation.getRouteColor().get(i));
+                _map.addPolyline(polyLineOptions);
             }
             drawInstructions(mapInformation);
-            _map.addPolyline(polyLineOptions);
         }
 
         private void drawInstructions(MapInformation mapInformation){
@@ -409,7 +411,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                     addChildToLayout(ll, mapInformation.getInstructions().get(i), 16);
                 }
             }
-            System.out.println(mapInformation.getInstructions());
         }
 
         private void addChildToLayout(LinearLayout ll, String name, int size){
