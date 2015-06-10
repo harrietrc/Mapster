@@ -60,6 +60,7 @@ public class YelpApi {
      * Searches for businesses near a location
      * @param term The type of establishment (e.g. 'bar')
      * @param latLng Location to search near
+     * @param radius Search radius in metres
      * @return
      */
     public String searchForBusinessesByLocation(String term, LatLng latLng, int radius) {
@@ -67,6 +68,7 @@ public class YelpApi {
         String lng = Double.toString(latLng.longitude);
 
         // TODO Deals filter would be nice to have (see deals_filter param)
+        // TODO May also want to allow the user to set the 'sort' param (best rated vs. best match)
 
         OAuthRequest request = createOAuthRequest(SEARCH_PATH);
         request.addQuerystringParameter("term", term);
@@ -118,11 +120,11 @@ public class YelpApi {
      * Queries the Search API based on the command line arguments and takes the first result to query
      * the Business API.
      *
-     * @param yelpApi <tt>YelpAPI</tt> service instance
      * @param term The type of establishment to search for (e.g. 'bar')
+     * @return businesses A JSONArray of businesses found
      */
-    private static void queryAPI(YelpApi yelpApi, String term, LatLng latLng, int radius) {
-        String searchResponseJSON = yelpApi.searchForBusinessesByLocation(term, latLng, radius);
+    public JSONArray queryAPI(String term, LatLng latLng, int radius) {
+        String searchResponseJSON = searchForBusinessesByLocation(term, latLng, radius);
 
         JSONObject response = null;
         try {
@@ -149,8 +151,10 @@ public class YelpApi {
                 businesses.length(), firstBusinessID));
 
         // Select the first business and display business details
-        String businessResponseJSON = yelpApi.searchByBusinessId(firstBusinessID.toString());
+        String businessResponseJSON = searchByBusinessId(firstBusinessID.toString());
         System.out.println(String.format("Result for business \"%s\" found:", firstBusinessID));
         System.out.println(businessResponseJSON);
+
+        return businesses;
     }
 }
