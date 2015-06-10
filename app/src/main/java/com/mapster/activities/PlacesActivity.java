@@ -1,9 +1,15 @@
 package com.mapster.activities;
 
+import android.app.DatePickerDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
+import android.app.FragmentTransaction;
+import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.text.format.DateFormat;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -12,29 +18,50 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AutoCompleteTextView;
+import android.widget.DatePicker;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.mapster.R;
+import com.mapster.fragment.DatePickerFragment;
+import com.mapster.fragment.TimePickerFragment;
 import com.mapster.geocode.GeoCode;
 import com.mapster.places.autocomplete.PlacesAutoCompleteAdapter;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static junit.framework.Assert.assertTrue;
 
-public class PlacesActivity extends ActionBarActivity implements OnItemClickListener{
+public class PlacesActivity extends ActionBarActivity implements OnItemClickListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
     private PlacesAutoCompleteAdapter _autoCompAdapter;
     private LinkedList<AutoCompleteTextView> _autoCompleteTextViewLinkedList;
     private ArrayList<String> _coordinateArrayList;
     private List<RadioGroup> _transportModeViewList;
     private ArrayList<String> _transportModeList;  
     private ArrayList<String> _nameList;
+    private TextView _dateTextView;
+    private SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+
+    @Override
+    public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+        Calendar cal = new GregorianCalendar(year, monthOfYear, dayOfMonth);
+        _dateTextView.setText(format.format(cal.getTime()));
+    }
+
+    @Override
+    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+
+    }
 
     public enum TravelMode{
         DRIVING("driving"), WALKING("walking"), BIKING("bicycling"), TRANSIT("transit");
@@ -44,6 +71,18 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         }
     }
 
+    public void showDatePickerDialog(View v) {
+        _dateTextView = (TextView)v;
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        DialogFragment newFragment = new DatePickerFragment(PlacesActivity.this);
+        newFragment.show(ft, "date_dialog");
+    }
+
+    public void showTimePickerDialog(View v){
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        DialogFragment newFragment = new TimePickerFragment(PlacesActivity.this);
+        newFragment.show(ft, "time_dialog");
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         _autoCompleteTextViewLinkedList = new LinkedList<>();
@@ -256,4 +295,6 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         _nameList = new ArrayList<>();
         startActivity(intent);
     }
+
+
 }

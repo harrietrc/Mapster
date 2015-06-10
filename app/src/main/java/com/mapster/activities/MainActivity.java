@@ -79,7 +79,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        //TODO refactor
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
