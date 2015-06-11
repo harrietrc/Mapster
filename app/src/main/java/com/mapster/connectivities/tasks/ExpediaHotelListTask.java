@@ -73,9 +73,8 @@ public class ExpediaHotelListTask extends AsyncTask<LatLng, Void, List<ExpediaHo
             ExpediaHotel hotel = hotels.get(i);
             ExpediaSuggestion suggestion = new ExpediaSuggestion(hotel);
 
-            // Expect this to throw a ClassCastException if called from the wrong activity
             BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.lodging_0star);
-            mainActivity.addSuggestion(suggestion, icon);
+            mainActivity.addSuggestion(suggestion, icon, hotel.getName());
         }
     }
 }

@@ -55,14 +55,16 @@ public class FoursquareExploreJsonParser {
                                 // Other attributes that could conceivably be null
                                 String phone, currency, website, imageUrl;
                                 phone = currency = website = imageUrl = null;
-                                Double rating = null;
+                                Float rating = null;
                                 Integer priceLevel = null;
 
-                                JSONObject price = jsonVenue.getJSONObject("price");
-                                if (price.has("tier") && !price.isNull("tier"))
-                                    priceLevel = price.getInt("tier");
-                                if (price.has("currency"))
-                                    currency = price.getString("currency");
+                                if (jsonVenue.has("price") && !jsonVenue.isNull("price")) {
+                                    JSONObject price = jsonVenue.getJSONObject("price");
+                                    if (price.has("tier") && !price.isNull("tier"))
+                                        priceLevel = price.getInt("tier");
+                                    if (price.has("currency"))
+                                        currency = price.getString("currency");
+                                }
 
                                 JSONObject contact = jsonVenue.getJSONObject("contact");
                                 if (contact.has("formattedPhone"))
@@ -72,7 +74,7 @@ public class FoursquareExploreJsonParser {
                                     website = jsonVenue.getString("url");
 
                                 if (jsonVenue.has("rating") && !jsonVenue.isNull("rating"))
-                                    rating = jsonVenue.getDouble("rating");
+                                    rating = (float) jsonVenue.getDouble("rating");
 
                                 JSONArray featuredPhotos = jsonVenue.getJSONObject("featuredPhotos")
                                         .getJSONArray("items");

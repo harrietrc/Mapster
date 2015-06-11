@@ -10,8 +10,8 @@ import com.google.android.gms.maps.model.Marker;
  */
 public abstract class Suggestion {
     protected Marker _marker;
-    protected String _category; // TODO change this to an enum
     protected boolean _isClicked;
+    protected Integer _priceLevel;
 
     /**
      * Accesses various web API's in order to populate this suggestion with information. Currently
@@ -35,8 +35,12 @@ public abstract class Suggestion {
     public abstract String getName();
 
     /**
-     * Returns a price level between 1 and 4 (inclusive), where 4 is the most expensive level.
+     * Returns a price level between 1 and 3 (inclusive), where 3 is the most expensive level.
      */
+    public Integer getParsedPriceLevel() {
+        return parsePriceLevel(getPriceLevel());
+    }
+
     public abstract Integer getPriceLevel();
 
     /**
@@ -45,9 +49,7 @@ public abstract class Suggestion {
     public abstract float getRating();
 
     // TODO Change category to an enum
-    public String getCategory() {
-        return _category;
-    }
+    public abstract String getCategory();
 
     /**
      * Stored in different places depending on the suggestion
@@ -68,6 +70,26 @@ public abstract class Suggestion {
 
     public void setClicked(boolean isClicked) {
         _isClicked = isClicked;
+    }
+
+    /**
+     * Price levels are saved in place details as either null, 1, 2, or 3 (Google reports them as
+     * 0-4, but I don't think we need that many). This does that parsing.
+     * @return Parsed Integer: null, 1, 2, 3 (where 3 is expensive)
+     */
+    public Integer parsePriceLevel(Integer level) {
+        if (level == null) {
+            return null;
+        } else if (level < 2) {
+            // Cheap or free
+            return new Integer(1);
+        } else if (level < 4) {
+            // Moderate to expensive
+            return new Integer(2);
+        } else {
+            // Catch all, but not expected to be more than 4 (very expensive)
+            return new Integer(3);
+        }
     }
 
 }

@@ -64,39 +64,6 @@ public class GooglePlace {
         }
     }
 
-    /**
-     * Parses the price level from a string (corresponding to price_level in the Google Place json)
-     * to an Integer that is either null, 1, 2, or 3 (with 3 being the highest price level)
-     * @param priceLevelString
-     */
-    public void parseAndSetPriceLevel(String priceLevelString) {
-        Integer priceLevel = parsePriceLevel(priceLevelString);
-        setPriceLevel(priceLevel);
-    }
-
-    /**
-     * Price levels are saved in place details as either null, 1, 2, or 3 (Google reports them as
-     * 0-4, but I don't think we need that many). This does that parsing.
-     * @return Parsed Integer: null, 1, 2, 3 (where 3 is expensive)
-     */
-    public Integer parsePriceLevel(String priceLevel) {
-        if (priceLevel == null)
-            return null;
-
-        int level = Integer.parseInt(priceLevel);
-
-        if (level < 2) {
-            // Cheap or free
-            return new Integer(1);
-        } else if (level < 4) {
-            // Moderate to expensive
-            return new Integer(2);
-        } else {
-            // Catch all, but not expected to be more than 4 (very expensive)
-            return new Integer(3);
-        }
-    }
-
     // TODO Composition: is there a best practice for setting the properties of contained objects?
     // I feel like setters and getters are a good option because you can control the access precisely
     // and how fine grained that access will be. It also allows customisation of how values are

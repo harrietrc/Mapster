@@ -12,7 +12,7 @@ public class FoursquareVenue {
     private String _address;
     private LatLng _location;
     private String _website;
-    private Double _rating;
+    private Float _rating;
     private String _imageUrl;
 
     private Integer _priceLevel;
@@ -23,7 +23,7 @@ public class FoursquareVenue {
     private String _currency;
 
     public FoursquareVenue(String id, String name, String phoneNumber, String address,
-                           LatLng location, String website, Double rating, String imageUrl,
+                           LatLng location, String website, Float rating, String imageUrl,
                            Integer priceLevel, String countryCode, String city, String currency) {
         _id = id;
         _name = name;
@@ -39,4 +39,34 @@ public class FoursquareVenue {
         _currency = currency;
     }
 
+    public String getName() {
+        return _name;
+    }
+
+    public Integer getPriceLevel() {
+        return _priceLevel;
+    }
+
+    public float getRating() {
+        return _rating == null ? 0 : _rating;
+    }
+
+    public String getImageUrl() {
+        return _imageUrl;
+    }
+
+    public LatLng getLocation() {
+        return _location;
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        if (_address != null)
+            sb.append(_address);
+        if (_phoneNumber != null)
+            sb.append("\n" + _phoneNumber);
+        if (_website != null)
+            sb.append("\n" + _website);
+        return sb.toString();
+    }
 }

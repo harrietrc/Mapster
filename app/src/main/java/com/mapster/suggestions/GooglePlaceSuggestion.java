@@ -14,6 +14,7 @@ public class GooglePlaceSuggestion extends Suggestion {
 
     // Save data about the Google Place that this marker represents
     private GooglePlace _place;
+    private String _category;
 
     public GooglePlaceSuggestion(GooglePlace place, String category) {
         // TODO Set category from GooglePlace as well
@@ -29,6 +30,11 @@ public class GooglePlaceSuggestion extends Suggestion {
 
     public float getRating() {
         return _place.getRating();
+    }
+
+    @Override
+    public String getCategory() {
+        return _category;
     }
 
     public String getPlaceId() {
@@ -63,8 +69,8 @@ public class GooglePlaceSuggestion extends Suggestion {
         return _place.getName();
     }
 
+    @Override
     public Integer getPriceLevel() {
-        // Note that this will return null if there is no price level recorded
         return _place.getPriceLevel();
     }
 }

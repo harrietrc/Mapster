@@ -28,6 +28,7 @@ public class ExpediaSuggestion extends Suggestion {
      * that should be displayed to the user in a marker infowindow.
      * @return
      */
+    @Override
     public String getInfoWindowString() {
         return _hotel.toString();
     }

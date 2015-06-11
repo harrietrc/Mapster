@@ -258,6 +258,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             ExpediaHotelListTask expediaTask = new ExpediaHotelListTask(this, 3000, 15);
             expediaTask.execute(loc);
 
+            // Get suggestions from Foursquare
+            FoursquareExploreTask foursquareTask = new FoursquareExploreTask(this, 3000, 15);
+            foursquareTask.execute(loc);
+
             // Make the filters button in the action bar visible
             _filterItem.setVisible(true);
             return false;
@@ -304,8 +308,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                     _userMarkers.put(m.getId(), false);
                 }
             }
-            FoursquareExploreTask f = new FoursquareExploreTask(this, 2000, 20);
-            f.execute(_latLngArrayList.get(0).get(0));
         }
     }
 
@@ -314,9 +316,11 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
      * suggestion.
      * @param suggestion A suggestion of a destination for the user
      * @param icon An icon to represent the suggestion on the map
+     * @param title Name of the destination
      */
-    public void addSuggestion(Suggestion suggestion, BitmapDescriptor icon) {
+    public void addSuggestion(Suggestion suggestion, BitmapDescriptor icon, String title) {
         Marker marker = drawMarker(suggestion.getLocation(), icon);
+        marker.setTitle(title);
         suggestion.setMarker(marker);
         _suggestionsByMarkerId.put(marker.getId(), suggestion);
         String category = suggestion.getCategory();
@@ -505,7 +509,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             for (Suggestion s : _suggestionsByMarkerId.values()) {
                 Marker m = s.getMarker();
 
-                Integer priceLevel = s.getPriceLevel();
+                Integer priceLevel = s.getParsedPriceLevel();
                 boolean markerIsVisible = m.isVisible();
 
                 // getPriceLevel will return null if there was no price level provided

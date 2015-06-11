@@ -46,7 +46,6 @@ public class GooglePlacesTask extends AsyncTask<LatLng, Void, List<GooglePlace>>
 
         List<String> urls = new ArrayList<>();
 
-        urls.add(buildPlacesUrl(locs[0], GooglePlace.getDiningCategories()));
         urls.add(buildPlacesUrl(locs[0], GooglePlace.getAttractionCategories()));
 
         for (String url: urls) {
@@ -90,16 +89,12 @@ public class GooglePlacesTask extends AsyncTask<LatLng, Void, List<GooglePlace>>
             String[] categories = place.getCategories();
             String parentCategory = null;
             int iconId = 0;
-            // Find the category for the marker. May find multiple categories - icon will
-            // represent the last one found.
+            // TODO Can probably simplify this a bit
             for (String c : categories) {
                 // Not the best way to do this, but ok for 2 categories.
                 if (GooglePlace.ATTRACTIONS.contains(c)|GooglePlace.EXTRA_ATTRACTIONS.contains(c)) {
                     parentCategory = "attractions";
                     iconId = R.drawable.flag_export;
-                } else if (GooglePlace.DINING.contains(c)) {
-                    parentCategory = "dining";
-                    iconId = R.drawable.restaurant;
                 }
             }
             // 'establishment' type is allowed only if it also matches one of the
@@ -107,7 +102,7 @@ public class GooglePlacesTask extends AsyncTask<LatLng, Void, List<GooglePlace>>
             if (parentCategory != null) {
                 GooglePlaceSuggestion suggestion = new GooglePlaceSuggestion(place, parentCategory);
                 BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(iconId);
-                mainActivity.addSuggestion(suggestion, icon);
+                mainActivity.addSuggestion(suggestion, icon, place.getName());
             }
         }
     }
