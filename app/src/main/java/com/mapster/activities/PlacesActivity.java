@@ -275,7 +275,6 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
             case R.id.bike_mode:
                 if (rb.isChecked()) {
                     _transportModeList.add(TravelMode.BIKING.name);
-                    System.out.println(true);
                 }
                 break;
             case R.id.drive_mode:

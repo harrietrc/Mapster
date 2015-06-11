@@ -188,7 +188,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 break;
             }
             if(_transportMode.get(i).equals(_transportMode.get(i + 1))) {
-                System.out.println(_transportMode.get(i)  + " " + _transportMode.get(i + 1));
                 while (_transportMode.get(i).toString().equals(_transportMode.get(i + 1).toString())) {
                     i++;
                     if (i >= _transportMode.size() - 1) {
@@ -377,13 +376,11 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             }
             ArrayList<LatLng> points;
             PolylineOptions polyLineOptions = null;
-            Log.d("SIZE", String.valueOf(mapInformation.getRoutes().size()));
             // traversing through routes
             for (int i = 0; i < mapInformation.getRoutes().size(); i++) {
                 points = new ArrayList<LatLng>();
                 polyLineOptions = new PolylineOptions();
                 Routes route = mapInformation.getRoutes().get(i);
-                System.out.println(route.getRoutePoints().toString());
                 for (int j = 0; j < route.getRoutePoints().size(); j++) {
                     HashMap<String, String> point = route.getRoutePoints().get(j);
                     double lat = Double.parseDouble(point.get("lat"));

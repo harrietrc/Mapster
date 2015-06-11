@@ -47,12 +47,4 @@
             android:text="Transit"
             android:id="@+id/transit_mode"/>
     </RadioGroup>
-
-    <TextView
-        android:id="@+id/date"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:hint = "Date in dd/mm/yyyy"
-        style="@android:style/Widget.Holo.Spinner"
-        android:onClick="showDatePickerDialog"/>
 </LinearLayout>
