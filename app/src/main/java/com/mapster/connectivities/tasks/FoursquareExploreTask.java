@@ -33,7 +33,6 @@ public class FoursquareExploreTask extends AsyncTask<LatLng, Void, List<Foursqua
         FoursquareExploreJsonParser parser = new FoursquareExploreJsonParser();
 
         String response = four.exploreRestaurantsNearLocation(locations[0], _radius, _numberOfResults);
-        System.out.println("FSQUARE " + response);
 
         return null;
     }
