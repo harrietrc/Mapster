@@ -44,7 +44,7 @@ public class FoursquareApi {
         url.append("&client_id=" + _context.getString(R.string.FOURSQUARE_CLIENT_ID));
         url.append("&client_secret=" + _context.getString(R.string.FOURSQUARE_CLIENT_SECRET));
         url.append("&ll=" + lat + "," + lng);
-        System.out.print("FS URL: " + url);
+
         return downloadUrl(url.toString());
     }
 

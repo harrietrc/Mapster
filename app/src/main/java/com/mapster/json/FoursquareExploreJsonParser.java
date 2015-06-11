@@ -31,22 +31,28 @@ public class FoursquareExploreJsonParser {
                         JSONObject blob = groups.getJSONObject(0);
                         if (blob.has("items") && !blob.isNull("items")) {
                             JSONArray items = blob.getJSONArray("items");
-                            for (int i=0; i< items.length(); i++) {
+                            int len = items.length();
+                            for (int i=0; i<items.length(); i++) {
                                 JSONObject jsonVenue = items.getJSONObject(i).getJSONObject("venue");
 
-                                // Basic attributes; always present
                                 String id = jsonVenue.getString("id");
                                 String name = jsonVenue.getString("name");
 
+                                // Location data
                                 JSONObject location = jsonVenue.getJSONObject("location");
-                                String address = location.getString("address");
+                                String address, city, countryCode;
+                                address = city = countryCode = null;
                                 double lat = location.getDouble("lat");
                                 double lng = location.getDouble("lng");
                                 LatLng latLng = new LatLng(lat, lng);
-                                String countryCode = location.getString("cc");
-                                String city = location.getString("city");
+                                if (location.has("address"))
+                                    address = location.getString("address");
+                                if (location.has("city"))
+                                    city = location.getString("city");
+                                if (location.has("cc"))
+                                    countryCode = location.getString("cc");
 
-                                // Attributes that could conceivably be null
+                                // Other attributes that could conceivably be null
                                 String phone, currency, website, imageUrl;
                                 phone = currency = website = imageUrl = null;
                                 Double rating = null;

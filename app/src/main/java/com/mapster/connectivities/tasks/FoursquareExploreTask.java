@@ -8,6 +8,9 @@ import com.mapster.foursquare.FoursquareApi;
 import com.mapster.foursquare.FoursquareVenue;
 import com.mapster.json.FoursquareExploreJsonParser;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,8 +35,17 @@ public class FoursquareExploreTask extends AsyncTask<LatLng, Void, List<Foursqua
         List<FoursquareVenue> restaurants = new ArrayList<>();
         FoursquareExploreJsonParser parser = new FoursquareExploreJsonParser();
 
+        // Make a request to Foursquare to get a list of restaurants (only explores 'food' currently)
         String response = four.exploreRestaurantsNearLocation(locations[0], _radius, _numberOfResults);
 
-        return null;
+        // Parse the response into a list of restaurants
+        try {
+            JSONObject jsonResponse = new JSONObject(response);
+            restaurants = parser.getVenues(jsonResponse);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return restaurants;
     }
 }
