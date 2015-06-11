@@ -30,9 +30,12 @@ import com.mapster.R;
 import com.mapster.connectivities.tasks.ExpediaHotelListTask;
 import com.mapster.connectivities.tasks.GooglePlacesTask;
 import com.mapster.connectivities.tasks.ReadTask;
+import com.mapster.date.CustomDate;
 import com.mapster.filters.Filters;
 import com.mapster.json.JSONParser;
 import com.mapster.map.information.MapInformation;
+import com.mapster.map.information.Path;
+import com.mapster.map.information.Routes;
 import com.mapster.suggestions.Suggestion;
 import com.mapster.suggestions.SuggestionInfoAdapter;
 
@@ -47,8 +50,6 @@ import java.util.Set;
 
 public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener {
     private static final float UNDEFINED_COLOUR = -1;
-    private static final String COORDINATE_LIST = "COORDINATE_LIST";
-    private static final String TRANSPORT_MODE = "TRANSPORT_MODE";
     private ArrayList<String> _coordinateArrayList;
     private ArrayList<List<LatLng>> _latLngArrayList;
     private ArrayList<String> _transportMode;
@@ -56,6 +57,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private GoogleMap _map;
     private ArrayList<List<String>> _sortedCoordinateArrayList;
     private ArrayList<String> _sortedTransportMode;
+    private String _startDateTime;
+    private CustomDate _customDate;
+
     // Markers divided into categories (to make enumeration of categories faster)
     private HashMap<String, List<Marker>> _markersByCategory;
     // All suggestions, keyed by marker ID
@@ -87,6 +91,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         getDataFromPlaceActivity();
         sortCoordinateArrayList();
         convertStringArrayListToLatLngArrayList();
+        _customDate = new CustomDate(_startDateTime);
         _userMarkers = new HashMap<>();
         for(int i = 0; i < _latLngArrayList.size(); i++){
             DirectionsTask downloadTask = new DirectionsTask();
@@ -151,9 +156,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     private void getDataFromPlaceActivity(){
         Intent i = getIntent();
-        _coordinateArrayList = i.getStringArrayListExtra(COORDINATE_LIST);
-        _transportMode = i.getStringArrayListExtra(TRANSPORT_MODE);
-        nameList = i.getStringArrayListExtra("NAME_LIST");
+        _coordinateArrayList = i.getStringArrayListExtra(PlacesActivity.COORDINATE);
+        _transportMode = i.getStringArrayListExtra(PlacesActivity.TRANSPORT);
+        nameList = i.getStringArrayListExtra(PlacesActivity.NAME);
+        _startDateTime = i.getStringExtra(PlacesActivity.START_DATETIME);
     }
 
     private void convertStringArrayListToLatLngArrayList(){
@@ -376,20 +382,22 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             for (int i = 0; i < mapInformation.getRoutes().size(); i++) {
                 points = new ArrayList<LatLng>();
                 polyLineOptions = new PolylineOptions();
-                List<HashMap<String, String>> path = mapInformation.getRoutes().get(i);
-
-                for (int j = 0; j < path.size(); j++) {
-                    HashMap<String, String> point = path.get(j);
+                Routes route = mapInformation.getRoutes().get(i);
+                System.out.println(route.getRoutePoints().toString());
+                for (int j = 0; j < route.getRoutePoints().size(); j++) {
+                    HashMap<String, String> point = route.getRoutePoints().get(j);
                     double lat = Double.parseDouble(point.get("lat"));
                     double lng = Double.parseDouble(point.get("lng"));
                     LatLng position = new LatLng(lat, lng);
                     points.add(position);
                 }
-                System.out.println(points);
                 polyLineOptions.addAll(points);
-                polyLineOptions.width(7f);
+                polyLineOptions.width(10f);
 //                polyLineOptions.color(Color.BLUE);
-                polyLineOptions.color(mapInformation.getRouteColor().get(i));
+//                Log.d("ROUTES", String.valueOf(i));
+//                Log.d("COLOR", String.valueOf(route.getColor()));
+//                Log.d("ROUTES", route.getRoutePoints().toString());
+                polyLineOptions.color(route.getColor());
                 _map.addPolyline(polyLineOptions);
             }
             drawInstructions(mapInformation);
@@ -398,17 +406,16 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         private void drawInstructions(MapInformation mapInformation){
             LinearLayout ll = (LinearLayout)findViewById(R.id.instructions);
             addChildToLayout(ll, "Total Duration: " + mapInformation.getTotalDuration().getName() + " Total Distance: " + mapInformation.getTotalDistance().getName(), 18);
-            for(int i = 0; i < mapInformation.getInstructions().size(); i++){
-                if(!mapInformation.getInstructions().get(i).isEmpty()) {
-                    String name = new String();
-                    if (!mapInformation.getDuration().get(i).getName().isEmpty()) {
-                        name += mapInformation.getDuration().get(i).getName();
-                        name += " ";
-                        name += mapInformation.getDistance().get(i).getName();
-                        addChildToLayout(ll, name, 16);
-                    }
-                    addChildToLayout(ll, mapInformation.getInstructions().get(i), 16);
+            List<Path> paths = mapInformation.getPaths();
+            for(int i = 0; i < paths.size(); i++){
+                StringBuilder name = new StringBuilder();
+                if (!paths.get(i).getDuration().getName().isEmpty()) {
+                    name.append(paths.get(i).getDistance().getName());
+                    name.append(" ");
+                    name.append(paths.get(i).getDuration().getName());
+                    addChildToLayout(ll, name.toString(), 16);
                 }
+                addChildToLayout(ll, paths.get(i).getInstruction().getInstruction(), 16);
             }
         }
 

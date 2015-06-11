@@ -1,16 +1,13 @@
 package com.mapster.activities;
 
 import android.app.DatePickerDialog;
-import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.FragmentTransaction;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.text.format.DateFormat;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -33,9 +30,11 @@ import com.mapster.fragment.TimePickerFragment;
 import com.mapster.geocode.GeoCode;
 import com.mapster.places.autocomplete.PlacesAutoCompleteAdapter;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
@@ -44,6 +43,11 @@ import java.util.concurrent.ExecutionException;
 import static junit.framework.Assert.assertTrue;
 
 public class PlacesActivity extends ActionBarActivity implements OnItemClickListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
+    public static final String COORDINATE = "COORDINATE_LIST";
+    public static final String TRANSPORT = "TRANSPORT_MODE";
+    public static final String NAME = "NAME_LIST";
+    public static final String START_DATETIME = "START_DATETIME";
+
     private PlacesAutoCompleteAdapter _autoCompAdapter;
     private LinkedList<AutoCompleteTextView> _autoCompleteTextViewLinkedList;
     private ArrayList<String> _coordinateArrayList;
@@ -51,18 +55,12 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     private ArrayList<String> _transportModeList;  
     private ArrayList<String> _nameList;
     private TextView _dateTextView;
-    private SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
-
-    @Override
-    public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-        Calendar cal = new GregorianCalendar(year, monthOfYear, dayOfMonth);
-        _dateTextView.setText(format.format(cal.getTime()));
-    }
-
-    @Override
-    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-
-    }
+    private SimpleDateFormat _dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+    private SimpleDateFormat _timeFormat = new SimpleDateFormat("HH:mm");
+    private String _dateStartJourney = _dateFormat.format((new Date()));
+    private String _timeStartJourney = _timeFormat.format (new Date());
+    private String _dateTimeStartJourney;
+    private TextView _timeTextView;
 
     public enum TravelMode{
         DRIVING("driving"), WALKING("walking"), BIKING("bicycling"), TRANSIT("transit");
@@ -80,10 +78,25 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     }
 
     public void showTimePickerDialog(View v){
+        _timeTextView = (TextView)v;
         FragmentTransaction ft = getFragmentManager().beginTransaction();
         DialogFragment newFragment = new TimePickerFragment(PlacesActivity.this);
         newFragment.show(ft, "time_dialog");
     }
+
+    @Override
+    public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+        Calendar cal = new GregorianCalendar(year, monthOfYear, dayOfMonth);
+        _dateStartJourney = _dateFormat.format(cal.getTime());
+        _dateTextView.setText(_dateStartJourney);
+    }
+
+    @Override
+    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+        _timeStartJourney = hourOfDay + ":"  + minute;
+        _timeTextView.setText(_timeStartJourney);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         _autoCompleteTextViewLinkedList = new LinkedList<>();
@@ -198,6 +211,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         if(isNotOriginAndDestinationEmpty()){
             addUserCoordinateToArrayList();
             addTransportModeToList();
+            mergeDateAndTimeToDateTime();
             moveToMainActivityWithData();
         } else {
             Toast.makeText(this,"Origin and Destination fields must not be blank",
@@ -282,20 +296,22 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
             default:
                 break;
         }
+    }
 
+    private void mergeDateAndTimeToDateTime(){
+        _dateTimeStartJourney = _dateStartJourney + " " + _timeStartJourney;
     }
 
     private void moveToMainActivityWithData(){
         Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra("COORDINATE_LIST", _coordinateArrayList);
-        intent.putExtra("TRANSPORT_MODE", _transportModeList);
-        intent.putExtra("NAME_LIST", _nameList);
+        intent.putExtra(COORDINATE, _coordinateArrayList);
+        intent.putExtra(TRANSPORT, _transportModeList);
+        intent.putExtra(NAME, _nameList);
+        intent.putExtra(START_DATETIME, _dateTimeStartJourney);
 
         // Reset name list, otherwise the wrong names will correspond with
         // TODO The coordinates and names should really be stored in the same data structure
         _nameList = new ArrayList<>();
         startActivity(intent);
     }
-
-
 }

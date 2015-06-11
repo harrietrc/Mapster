@@ -28,4 +28,5 @@ dependencies {
         mavenCentral()
     }
     compile 'com.sothree.slidinguppanel:library:3.0.0'
+    compile 'joda-time:joda-time:2.8'
 }

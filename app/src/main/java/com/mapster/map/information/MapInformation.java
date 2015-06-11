@@ -8,24 +8,18 @@ import java.util.List;
  * Created by tommyngo on 30/04/15.
  */
 public class MapInformation {
-    private List<String> _instructions;
-    private List<Distance> _distance;
-    private List<Duration> _duration;
-    private List<List<HashMap<String, String>>> _routes;
+    private List<Path> _paths;
+    private List<Routes> _routes;
     private String _origin;
     private String _destination;
     private Distance _totalDistance;
     private Duration _totalDuration;
-    private List<Integer> _routesColor;
 
     public MapInformation(){
-        _instructions = new ArrayList<>();
-        _distance = new ArrayList<>();
-        _duration = new ArrayList<>();
+        _paths = new ArrayList<>();
         _routes = new ArrayList<>();
         _totalDistance = new Distance();
         _totalDuration = new Duration();
-        _routesColor = new ArrayList<>();
     }
 
     public void setOrigin(String origin){
@@ -60,54 +54,6 @@ public class MapInformation {
         _totalDuration.setName(totalDurationString);
     }
 
-    public void setInstruction(List<String> instruction){
-        _instructions = instruction;
-    }
-
-    public void setDistance(List<Distance> distance){
-        _distance = distance;
-    }
-
-    public void setDuration(List<Duration> duration){
-        _duration = duration;
-    }
-
-    public void setRoutes(List<List<HashMap<String, String>>> routes){
-        _routes = routes;
-    }
-
-    public void addRoutes(List<HashMap<String, String>> path){
-        _routes.add(path);
-    }
-
-    public void addInstructions(String instruction){
-        _instructions.add(instruction);
-    }
-
-    public void addDistance(Distance distance){
-        _distance.add(distance);
-    }
-
-    public void addDuration(Duration duration){
-        _duration.add(duration);
-    }
-
-    public List<String> getInstructions(){
-        return _instructions;
-    }
-
-    public List<Distance> getDistance(){
-        return _distance;
-    }
-
-    public List<Duration> getDuration(){
-        return _duration;
-    }
-
-    public List<List<HashMap<String, String>>> getRoutes(){
-        return _routes;
-    }
-
     public String getOrigin(){
         return _origin;
     }
@@ -124,9 +70,27 @@ public class MapInformation {
         return _totalDuration;
     }
 
-    public List<Integer> getRouteColor (){ return _routesColor; }
+    public List<Path> getPaths() {
+        return _paths;
+    }
 
-    public void setRoutesColor(List<Integer> routeColor) { this._routesColor = routeColor; }
+    public void setPaths(List<Path> paths) {
+        this._paths = paths;
+    }
 
-    public void addRouteColor( int color ){ this._routesColor.add(color); }
+    public void addPath(Path path){
+        _paths.add(path);
+    }
+
+    public List<Routes> getRoutes() {
+        return _routes;
+    }
+
+    public void setRoutes(List<Routes> routes) {
+        this._routes = routes;
+    }
+
+    public void addRoutes(Routes routes){
+        _routes.add(routes);
+    }
 }
