@@ -51,6 +51,16 @@ public class GooglePlaceSuggestion extends Suggestion {
     }
 
     @Override
+    public Double getCostPerPerson() {
+        return null; // Google offers no pricing information
+    }
+
+    @Override
+    public String getCurrencyCode() {
+        return null; // No pricing info = no currency code required
+    }
+
+    @Override
     public void requestSuggestionInfo(Context context) {
         GooglePlaceDetailTask task = new GooglePlaceDetailTask(context);
         task.execute(this);

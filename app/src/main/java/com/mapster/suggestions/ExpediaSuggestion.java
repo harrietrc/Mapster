@@ -17,6 +17,20 @@ public class ExpediaSuggestion extends Suggestion {
         _hotel = hotel;
     }
 
+    /**
+     * With hotels, cost per person
+     * @return
+     */
+    @Override
+    public Double getCostPerPerson() {
+        return null;
+    }
+
+    @Override
+    public String getCurrencyCode() {
+        return _hotel.getCurrencyCode();
+    }
+
     @Override
     public void requestSuggestionInfo(Context context) {
         ExpediaHotelInfoTask task = new ExpediaHotelInfoTask(context);
@@ -30,7 +44,35 @@ public class ExpediaSuggestion extends Suggestion {
      */
     @Override
     public String getInfoWindowString() {
-        return _hotel.toString();
+        StringBuilder sb = new StringBuilder(_hotel.toString());
+        String priceRange = priceRangeToString();
+        if (priceRange != null)
+            sb.append("\n" + priceRange);
+        return sb.toString();
+    }
+
+    /**
+     * Returns a string representation of the price range to append to the snippet that gets
+     * displayed in a marker's infowindow.
+     * @return
+     */
+    public String priceRangeToString() {
+        StringBuilder sb = new StringBuilder();
+        Double lowRate = _hotel.getLowRate();
+        Double highRate = _hotel.getHighRate();
+        String currencySymbol = getCurrencySymbol();
+
+        sb.append(lowRate == null ? "" : currencySymbol + lowRate.intValue());
+
+        if (highRate != null)
+            sb.append(" - ");
+        // TODO This will misrepresent the currency! Need to deal with this. see rateCurrencyCode
+        sb.append(highRate == null ? "" : currencySymbol + highRate.intValue());
+
+        if (!(lowRate== null && highRate == null))
+            sb.append(" a night");
+
+        return sb.toString();
     }
 
     @Override

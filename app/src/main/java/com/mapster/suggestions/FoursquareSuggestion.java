@@ -17,6 +17,16 @@ public class FoursquareSuggestion extends Suggestion {
     }
 
     @Override
+    public Double getCostPerPerson() {
+        return null;
+    }
+
+    @Override
+    public String getCurrencyCode() {
+        return _venue.getCurrencyCode();
+    }
+
+    @Override
     public void requestSuggestionInfo(Context context) {
         // Not necessary at the moment (don't need more detailed information)
     }

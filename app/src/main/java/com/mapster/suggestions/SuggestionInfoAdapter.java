@@ -59,12 +59,7 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
                 }
             });
 
-            builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-
-                }
-            });
+            builder.setNegativeButton(R.string.no, null); // Does nothing when 'No' is clicked
 
             AlertDialog dialog = builder.create();
             dialog.show();

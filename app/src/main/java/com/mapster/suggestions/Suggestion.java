@@ -5,13 +5,48 @@ import android.content.Context;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
+import java.util.Currency;
+
 /**
  * Created by Harriet on 3/22/2015.
  */
 public abstract class Suggestion {
     protected Marker _marker;
     protected boolean _isClicked;
-    protected Integer _priceLevel;
+
+    // Budgeting
+    protected Double _costPerPerson;
+    protected String _currencySymbol;
+
+    public abstract Double getCostPerPerson();
+
+    public abstract String getCurrencyCode();
+
+    /**
+     * Returns the currency symbol that corresponds to the currency code, if it is non-null and
+     * valid
+     * @return The currency symbol as a string
+     */
+    public String getCurrencySymbol() {
+        if (_currencySymbol == null) {
+            String currencyCode = getCurrencyCode();
+            if (currencyCode != null) {
+                // Try to retrieve the symbol that corresponds with the currency code
+                Currency c = null;
+                try {
+                    c = Currency.getInstance(currencyCode);
+                    return c.getSymbol();
+                } catch (IllegalArgumentException e) {
+                    // Currency was invalid - fall through to dollars
+                }
+            }
+        } else {
+            // Assume the currency symbol is already set to something valid
+            return _currencySymbol;
+        }
+        // Falls back to dollars if there is no match
+        return "$";
+    }
 
     /**
      * Accesses various web API's in order to populate this suggestion with information. Currently
