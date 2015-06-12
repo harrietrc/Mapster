@@ -16,6 +16,7 @@ public class MapInformation {
     private String _destination;
     private Distance _totalDistance;
     private Duration _totalDuration;
+    private List<Integer> _routesColor;
 
     public MapInformation(){
         _instructions = new ArrayList<>();
@@ -24,6 +25,7 @@ public class MapInformation {
         _routes = new ArrayList<>();
         _totalDistance = new Distance();
         _totalDuration = new Duration();
+        _routesColor = new ArrayList<>();
     }
 
     public void setOrigin(String origin){
@@ -121,4 +123,10 @@ public class MapInformation {
     public Duration getTotalDuration(){
         return _totalDuration;
     }
+
+    public List<Integer> getRouteColor (){ return _routesColor; }
+
+    public void setRoutesColor(List<Integer> routeColor) { this._routesColor = routeColor; }
+
+    public void addRouteColor( int color ){ this._routesColor.add(color); }
 }

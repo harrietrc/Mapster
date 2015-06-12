@@ -1,5 +1,9 @@
 package com.mapster.json;
 
+import android.graphics.Color;
+import android.os.Debug;
+import android.util.Log;
+
 import com.google.android.gms.maps.model.LatLng;
 import com.mapster.map.information.Distance;
 import com.mapster.map.information.Duration;
@@ -17,6 +21,13 @@ import java.util.List;
  * Created by tommyngo on 14/03/15.
  */
 public class JSONParser {
+    public enum ModeColor{
+        WALKING("#bdbdbd"), DRIVING("#0000ff"), BICYCLING("#00e500");
+        private final String name;
+        private ModeColor(String name){
+            this.name = name;
+        }
+    }
     private MapInformation mapInformation;
     public JSONParser (){
         mapInformation = new MapInformation();
@@ -26,6 +37,7 @@ public class JSONParser {
         JSONArray jRoutes = null;
         JSONArray jLegs = null;
         JSONArray jSteps = null;
+        JSONArray jSubSteps = null;
         try {
             String status = jObject.getString("status");
             if (!status.equals("OK")){
@@ -45,28 +57,55 @@ public class JSONParser {
 
                     /** Traversing all steps */
                     for (int k = 0; k < jSteps.length(); k++) {
-                        String polyline = "";
-                        polyline = (String) ((JSONObject) ((JSONObject) jSteps
-                                .get(k)).get("polyline")).get("points");
-                        List<LatLng> list = decodePoly(polyline);
-                        /** Traversing all points */
-                        for (int l = 0; l < list.size(); l++) {
-                            HashMap<String, String> hm = new HashMap<String, String>();
-                            hm.put("lat",
-                                    Double.toString(((LatLng) list.get(l)).latitude));
-                            hm.put("lng",
-                                    Double.toString(((LatLng) list.get(l)).longitude));
-                            path.add(hm);
+                        try {
+                            jSubSteps = ((JSONObject) jSteps.get(k)).getJSONArray("steps");
+                            jSubSteps.getJSONObject(k).getString("html_instructions");
+                        } catch (JSONException e){
+                            jSubSteps = null;
                         }
-                        // Get Instruction
-                        mapInformation.addInstructions(jSteps.getJSONObject(k).getString("html_instructions"));
+                        if (jSubSteps != null){
+                            for (int l = 0; l < jSubSteps.length(); l++){
+                                path.addAll(getPath(jSubSteps, l));
+//                                Log.d("PATH",getPath(jSubSteps, l).toString());
+                                assignInformationToMapInformation(jSubSteps, l);
+                            }
+                            mapInformation.addRoutes(path);
+                            path.clear();
+                            addColorToRoute(jSteps.getJSONObject(k));
 
-                        //Get Distance
-                        parseDistanceDuration(jSteps.getJSONObject(k), "distance");
-                        // Get Duration
-                        parseDistanceDuration(jSteps.getJSONObject(k), "duration");
+                        } else {
+//                            Log.d("PATH",getPath(jSteps, k).toString());
+                            assignInformationToMapInformation(jSteps, k);
+                            mapInformation.addRoutes(getPath(jSteps, k));
+                            addColorToRoute(jSteps.getJSONObject(k));
+                        }
+                        if (jSteps.getJSONObject(k).get("travel_mode").equals("TRANSIT")) {
+                            JSONObject transitJSON = jSteps.getJSONObject(k).getJSONObject("transit_details");
+                            StringBuilder transit = new StringBuilder();
+                            transit.append("From departure stop: ");
+                            transit.append("<b>" + transitJSON.getJSONObject("departure_stop").get("name") + "</b>");
+                            transit.append("<br/>");
+                            transit.append(" To arrival stop: ");
+                            transit.append("<b>" + transitJSON.getJSONObject("arrival_stop").get("name") + "</b>");
+                            transit.append("<br/>");
+                            transit.append("Head Sign: ");
+                            transit.append("<b>" + transitJSON.getString("headsign") + "</b>");
+                            transit.append("<br/>");
+                            JSONObject line = transitJSON.getJSONObject("line");
+                            if (!line.isNull("short_name")) {
+                                transit.append(line.getJSONObject("vehicle").get("name") + " number: ");
+                                transit.append("<b>" + line.getString("short_name") + "</b>");
+                                transit.append("<br/>");
+                            }
+                            transit.append(line.getJSONObject("vehicle").get("name") + " name: ");
+                            transit.append("<b>" + line.getString("name") + "</b>");
+                            transit.append("<br/>");
+                            transit.append("Number of stops: " + "<b>" + transitJSON.getString("num_stops")+ "</b>");
+                            mapInformation.addInstructions(transit.toString());
+                            mapInformation.addDistance(new Distance("", 0));
+                            mapInformation.addDuration(new Duration("", 0));
+                        }
                     }
-                    mapInformation.addRoutes(path);
                 }
             }
 
@@ -76,6 +115,48 @@ public class JSONParser {
             e.printStackTrace();
         }
         return mapInformation;
+    }
+
+    private void addColorToRoute(JSONObject object){
+        try {
+            switch (object.getString("travel_mode")) {
+                case "TRANSIT":
+                    mapInformation.addRouteColor(Color.parseColor(object.getJSONObject("transit_details").getJSONObject("line").getString("color")));
+                    break;
+                case "WALKING":
+                    mapInformation.addRouteColor(Color.parseColor(ModeColor.WALKING.name));
+                    break;
+                case "DRIVING":
+                    mapInformation.addRouteColor(Color.parseColor(ModeColor.DRIVING.name));
+                    break;
+                case "BICYCLING":
+                    mapInformation.addRouteColor(Color.parseColor(ModeColor.BICYCLING.name));
+                    break;
+            }
+        } catch(JSONException e){
+            e.printStackTrace();
+        }
+    }
+
+    private List<HashMap<String, String>> getPath(JSONArray array, int k){
+        String polyline = "";
+        List<HashMap<String, String>> path = new ArrayList<HashMap<String, String>>();
+        try {
+            polyline = (String) ((JSONObject) ((JSONObject) array.get(k)).get("polyline")).get("points");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        List<LatLng> list = decodePoly(polyline);
+        /** Traversing all points */
+        for (int l = 0; l < list.size(); l++) {
+            HashMap<String, String> hm = new HashMap<String, String>();
+            hm.put("lat",
+                    Double.toString(((LatLng) list.get(l)).latitude));
+            hm.put("lng",
+                    Double.toString(((LatLng) list.get(l)).longitude));
+            path.add(hm);
+        }
+        return path;
     }
 
     /**
@@ -114,6 +195,19 @@ public class JSONParser {
             poly.add(p);
         }
         return poly;
+    }
+
+    private void assignInformationToMapInformation(JSONArray array, int position){
+        // Get Instruction
+        try {
+            mapInformation.addInstructions(array.getJSONObject(position).getString("html_instructions"));
+            //Get Distance
+            parseDistanceDuration(array.getJSONObject(position), "distance");
+            // Get Duration
+            parseDistanceDuration(array.getJSONObject(position), "duration");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     private void parseTotalDistanceDuration(JSONObject jsonObject, String name){
