@@ -16,6 +16,14 @@ public class FoursquareSuggestion extends Suggestion {
         _venue = venue;
     }
 
+    public String getCountryCode() {
+        return _venue.getCountryCode();
+    }
+
+    public String getCity() {
+        return _venue.getCity();
+    }
+
     @Override
     public Double getCostPerPerson() {
         return null;

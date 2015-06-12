@@ -13,6 +13,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 import com.mapster.R;
 import com.mapster.activities.MainActivity;
+import com.mapster.priceestimation.MealPriceEstimate;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
@@ -23,6 +24,7 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
         GoogleMap.OnInfoWindowClickListener {
 
     private LayoutInflater _inflater;
+    private MealPriceEstimate _estimator;
 
     // This field prevents the ImageView from being garbage collected before its drawable can be
     // set, and the image returned by Picasso displayed.
@@ -32,6 +34,7 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
     public SuggestionInfoAdapter(LayoutInflater inflater, Activity activity) {
         _inflater = inflater;
         _activity = activity;
+        _estimator = new MealPriceEstimate(activity);
     }
 
     /**
@@ -43,7 +46,6 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
     public void onInfoWindowClick(Marker marker) {
         MainActivity mainActivity = (MainActivity) _activity;
 
-        String id = marker.getId();
         Suggestion suggestion = mainActivity.getSuggestionByMarker(marker);
         String name = suggestion.getName();
 

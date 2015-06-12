@@ -64,6 +64,9 @@ public class FoursquareExploreJsonParser {
                                         priceLevel = price.getInt("tier");
                                     if (price.has("currency"))
                                         currency = price.getString("currency");
+                                    else {
+                                        System.out.print("NO CURRENCY");
+                                    }
                                 }
 
                                 JSONObject contact = jsonVenue.getJSONObject("contact");

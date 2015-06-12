@@ -76,6 +76,9 @@ public abstract class Suggestion {
         return parsePriceLevel(getPriceLevel());
     }
 
+    /**
+     * Returns a price level between 1 and 4
+     */
     public abstract Integer getPriceLevel();
 
     /**

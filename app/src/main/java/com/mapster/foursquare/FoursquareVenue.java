@@ -43,6 +43,10 @@ public class FoursquareVenue {
         return _name;
     }
 
+    public String getCountryCode() {
+        return _countryCode;
+    }
+
     public Integer getPriceLevel() {
         return _priceLevel;
     }
@@ -72,5 +76,9 @@ public class FoursquareVenue {
         if (_website != null)
             sb.append("\n" + _website);
         return sb.toString();
+    }
+
+    public String getCity() {
+        return _city;
     }
 }

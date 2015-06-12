@@ -77,7 +77,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private Integer _priceLevel;
 
     // Controls the state of the filters
-    Filters _filters;
+    private Filters _filters;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
