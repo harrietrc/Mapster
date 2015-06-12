@@ -1,6 +1,8 @@
 package com.mapster.suggestions;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -17,7 +19,8 @@ import com.squareup.picasso.Picasso;
 /**
  * Created by Harriet on 5/24/2015.
  */
-public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter {
+public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
+        GoogleMap.OnInfoWindowClickListener {
 
     private LayoutInflater _inflater;
 
@@ -31,6 +34,43 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter {
         _activity = activity;
     }
 
+    /**
+     * Called when the info window of a marker (displays the image, contact details, address, etc.
+     * of a suggestion) is clicked. Should only act on interactions with suggestion infowindows.
+     * @param marker
+     */
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+        MainActivity mainActivity = (MainActivity) _activity;
+
+        String id = marker.getId();
+        Suggestion suggestion = mainActivity.getSuggestionByMarker(marker);
+        String name = suggestion.getName();
+
+        if (suggestion != null) {
+            // Marker is a suggestion marker so we should process the event
+            AlertDialog.Builder builder = new AlertDialog.Builder(_activity);
+            builder.setMessage("Add " + name + " to itinerary?");
+
+            builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+
+                }
+            });
+
+            builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+
+                }
+            });
+
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        }
+    }
+
     @Override
     public View getInfoWindow(Marker marker) {
         return null;
@@ -42,11 +82,7 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter {
      * window will be displayed.
      */
     public View getInfoContents(Marker marker) {
-        MainActivity activity = null;
-
-        // TODO Might be better to pass suggestion in somehow
-        if (_activity instanceof MainActivity)
-            activity = (MainActivity) _activity;
+        MainActivity activity = (MainActivity) _activity;
 
         Suggestion suggestion = activity.getSuggestionByMarker(marker);
         View info = _inflater.inflate(R.layout.suggestion_info_window, null);

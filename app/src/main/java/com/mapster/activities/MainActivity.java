@@ -100,8 +100,12 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 13));
         addMarkers();
         _map.setOnMarkerClickListener(this);
-        _map.setInfoWindowAdapter(new SuggestionInfoAdapter(getLayoutInflater(),
-                this));
+
+        // SuggestionInfoAdapter listens for and adapts all infowindow-related activity
+        SuggestionInfoAdapter infoAdapter = new SuggestionInfoAdapter(getLayoutInflater(), this);
+        _map.setInfoWindowAdapter(infoAdapter);
+        _map.setOnInfoWindowClickListener(infoAdapter);
+
         _map.setMyLocationEnabled(true);
         initSuggestionMarkers();
         _suggestionsByMarkerId = new HashMap<>();

@@ -13,6 +13,9 @@
 
     <string name="title_activity_places">Places</string>
 
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+
     <string name="dining">Dining</string>
     <string name="accommodation">Accommodation</string>
     <string name="attractions">Attractions</string>
