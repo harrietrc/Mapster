@@ -14,7 +14,8 @@ import java.util.Set;
  * Created by Harriet on 3/15/2015.
  */
 public class GooglePlace {
-    private LatLng _location;
+    private double _latitude;
+    private double _longitude;
     private String _name;
     private String _id; // Google placeId
     private Float _rating;
@@ -30,14 +31,15 @@ public class GooglePlace {
                        String[] categories, String photoRef) {
         _id = id;
         _name = name;
-        _location = latLng;
+        _latitude = latLng.latitude;
+        _longitude = latLng.longitude;
         _rating = rating;
         _categories = categories;
         _photoReference = photoRef;
     }
 
     public LatLng getLatLng() {
-        return _location;
+        return new LatLng(_latitude, _longitude);
     }
 
     /**

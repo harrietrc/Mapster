@@ -11,11 +11,10 @@ import java.util.Currency;
  * Created by Harriet on 3/22/2015.
  */
 public abstract class Suggestion {
-    protected Marker _marker;
+    protected transient Marker _marker;
     protected boolean _isClicked;
 
     // Budgeting
-    protected Double _costPerPerson;
     protected String _currencySymbol;
 
     public abstract Double getCostPerPerson();

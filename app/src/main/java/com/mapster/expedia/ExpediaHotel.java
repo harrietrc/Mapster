@@ -13,7 +13,8 @@ public class ExpediaHotel {
     private String _thumbnailUrl;
     private Double _lowRate;
     private Double _highRate;
-    private LatLng _location;
+    private double _latitude;
+    private double _longitude;
     private Float _rating; // In stars out of 5
     private String _locationDescription; // A short description of the location, if available
     private String _currencyCode;
@@ -27,7 +28,8 @@ public class ExpediaHotel {
         _hotelId = hotelId;
         _name = name;
         _address = address;
-        _location = latLng;
+        _latitude = latLng.latitude;
+        _longitude = latLng.longitude;
         _rating = rating;
         _lowRate = lowRate;
         _highRate = highRate;
@@ -69,6 +71,6 @@ public class ExpediaHotel {
     }
 
     public LatLng getLocation() {
-        return _location;
+        return new LatLng(_latitude, _longitude);
     }
 }
