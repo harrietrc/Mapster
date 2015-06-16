@@ -10,6 +10,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mapster.itinerary.ItineraryItem;
 import com.mapster.itinerary.UserItem;
+import com.mapster.itinerary.serialisation.ItineraryItemAdapter;
+import com.mapster.itinerary.serialisation.SuggestionAdapter;
+import com.mapster.suggestions.Suggestion;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -29,7 +32,9 @@ public class ItineraryDataSource {
 
     public ItineraryDataSource(Context context) {
         _helper = new ItineraryHelper(context);
-        _gson = new GsonBuilder().excludeFieldsWithModifiers(Modifier.TRANSIENT).create();
+        _gson = new GsonBuilder().registerTypeAdapter(ItineraryItem.class,
+                new ItineraryItemAdapter()).registerTypeAdapter(Suggestion.class,
+                new SuggestionAdapter()).excludeFieldsWithModifiers(Modifier.TRANSIENT).create();
     }
 
     /**
@@ -71,7 +76,7 @@ public class ItineraryDataSource {
      * Inserts an ItineraryItem into the database, serialising it using GSON.
      */
     private void insertItineraryItem(ItineraryItem item) {
-        String serialisedItem = _gson.toJson(item);
+        String serialisedItem = _gson.toJson(item, ItineraryItem.class);
         System.out.println(serialisedItem); // debugging
         ContentValues values = new ContentValues();
         values.put(ItineraryHelper.COLUMN_SERIALISED, serialisedItem);
@@ -89,8 +94,6 @@ public class ItineraryDataSource {
     private ItineraryItem cursorToItem(Cursor cursor) {
         String serialisedItem = cursor.getString(1);
 
-        // TODO Now expects a UserItem rather than an ItineraryItem back. Fix it to be polymorphic
-        // later like so: http://stackoverflow.com/questions/5800433/polymorphism-with-gson
         ItineraryItem item = _gson.fromJson(serialisedItem, ItineraryItem.class);
         return item;
     }

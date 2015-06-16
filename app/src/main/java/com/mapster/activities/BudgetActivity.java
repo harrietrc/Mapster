@@ -22,7 +22,8 @@ public class BudgetActivity extends Activity {
         _itineraryDataSource.open();
 
         List<ItineraryItem> items = getItemsFromDatabase();
-        System.out.println("SIZE ITEMS: " + items.size());
+        // Note that for whatever reason, SuggestionItem._userItem is set to null when deserialised
+        // - possibly because it was a bidirectional relationship? Will look into it.
     }
 
     public List<ItineraryItem> getItemsFromDatabase() {
