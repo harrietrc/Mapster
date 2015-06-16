@@ -2,7 +2,6 @@ package com.mapster.activities;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
@@ -18,8 +17,10 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.mapster.R;
 import com.mapster.geocode.GeoCode;
+import com.mapster.itinerary.UserItem;
 import com.mapster.places.autocomplete.PlacesAutoCompleteAdapter;
 
 import java.util.ArrayList;
@@ -32,10 +33,12 @@ import static junit.framework.Assert.assertTrue;
 public class PlacesActivity extends ActionBarActivity implements OnItemClickListener{
     private PlacesAutoCompleteAdapter _autoCompAdapter;
     private LinkedList<AutoCompleteTextView> _autoCompleteTextViewLinkedList;
-    private ArrayList<String> _coordinateArrayList;
     private List<RadioGroup> _transportModeViewList;
-    private ArrayList<String> _transportModeList;  
-    private ArrayList<String> _nameList;
+    private ArrayList<String> _transportModeList;
+    private ArrayList<String> _coordinateArrayList;
+
+    // List of parcelable user-defined destinations
+    private ArrayList<UserItem> _userItemList;
 
     public enum TravelMode{
         DRIVING("driving"), WALKING("walking"), BIKING("bicycling"), TRANSIT("transit");
@@ -54,7 +57,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         setContentView(R.layout.activity_places);
         addViewsInLayoutToArrayList((LinearLayout) findViewById(R.id.place_activity_layout));
         initializeAutoCompleteTextViewInArrayList();
-        _nameList = new ArrayList<>();
+        _userItemList = new ArrayList<>();
     }
 
     private void addViewsInLayoutToArrayList(LinearLayout llayout){
@@ -191,9 +194,19 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                     String[] coordinate = new GeoCode().execute(text).get();
                     String placeName = text.split(",")[0];
                     placeName = placeName == null? text : placeName;
-                    _nameList.add(placeName);
+
+                    // TODO This is redundant but I haven't gotten around to taking these old lists
+                    // out (see UserItem class). Sorry, will do this later.
                     _coordinateArrayList.add(coordinate[0]);
                     _coordinateArrayList.add(coordinate[1]);
+
+                    Double lat = Double.parseDouble(coordinate[0]);
+                    Double lng = Double.parseDouble(coordinate[1]);
+                    LatLng location = new LatLng(lat, lng);
+
+                    // Create a parcelable representation of the user-defined destination
+                    UserItem item = new UserItem(placeName, location);
+                    _userItemList.add(item);
                 }
             } catch(InterruptedException e){
                 e.printStackTrace();
@@ -248,13 +261,10 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     private void moveToMainActivityWithData(){
         Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra("COORDINATE_LIST", _coordinateArrayList);
+        intent.putParcelableArrayListExtra("USER_ITEM_LIST", _userItemList);
         intent.putExtra("TRANSPORT_MODE", _transportModeList);
-        intent.putExtra("NAME_LIST", _nameList);
+        intent.putExtra("COORDINATE_LIST", _coordinateArrayList);
 
-        // Reset name list, otherwise the wrong names will correspond with
-        // TODO The coordinates and names should really be stored in the same data structure
-        _nameList = new ArrayList<>();
         startActivity(intent);
     }
 }

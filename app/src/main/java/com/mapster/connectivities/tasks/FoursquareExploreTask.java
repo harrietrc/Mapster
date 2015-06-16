@@ -11,6 +11,8 @@ import com.mapster.R;
 import com.mapster.activities.MainActivity;
 import com.mapster.foursquare.FoursquareApi;
 import com.mapster.foursquare.FoursquareVenue;
+import com.mapster.itinerary.SuggestionItem;
+import com.mapster.itinerary.UserItem;
 import com.mapster.json.FoursquareExploreJsonParser;
 import com.mapster.suggestions.FoursquareSuggestion;
 
@@ -28,11 +30,14 @@ public class FoursquareExploreTask extends AsyncTask<LatLng, Void, List<Foursqua
     private Activity _activity;
     private int _radius;
     private int _numberOfResults;
+    private UserItem _item; // The user-defined destination that these venues are suggestions for
 
-    public FoursquareExploreTask(Activity activity, int searchRadius, int numberOfResults) {
+    public FoursquareExploreTask(Activity activity, int searchRadius, int numberOfResults,
+                                 UserItem item) {
         _activity = activity;
         _radius = searchRadius;
         _numberOfResults = numberOfResults;
+        _item = item;
     }
 
     @Override
@@ -60,9 +65,9 @@ public class FoursquareExploreTask extends AsyncTask<LatLng, Void, List<Foursqua
 
         for (FoursquareVenue v: venues) {
             FoursquareSuggestion suggestion = new FoursquareSuggestion(v);
-
             BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.restaurant);
-            mainActivity.addSuggestion(suggestion, icon, v.getName());
+            SuggestionItem item = new SuggestionItem(suggestion, _item);
+            mainActivity.addSuggestionItem(item, icon, v.getName());
         }
     }
 }

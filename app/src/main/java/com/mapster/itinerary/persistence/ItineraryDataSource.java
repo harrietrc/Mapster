@@ -9,9 +9,11 @@ import android.database.sqlite.SQLiteDatabase;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mapster.itinerary.ItineraryItem;
+import com.mapster.itinerary.UserItem;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -51,6 +53,21 @@ public class ItineraryDataSource {
     }
 
     /**
+     * Inserts multiple records into the database. Faster than doing each insert in separate
+     * transactions
+     */
+    public void insertMultipleItineraryItems(Collection<? extends ItineraryItem> items) {
+        try {
+            _database.beginTransaction();
+            for (ItineraryItem item: items)
+                insertItineraryItem(item);
+            _database.setTransactionSuccessful();
+        } finally {
+            _database.endTransaction();
+        }
+    }
+
+    /**
      * Inserts an ItineraryItem into the database, serialising it using GSON.
      */
     private void insertItineraryItem(ItineraryItem item) {
@@ -61,11 +78,19 @@ public class ItineraryDataSource {
         _database.insert(ItineraryHelper.TABLE_ITINERARY_ITEM, null, values);
     }
 
+    public void recreateItinerary() {
+        _database.execSQL("drop table if exists " + ItineraryHelper.TABLE_ITINERARY_ITEM);
+        _helper.onCreate(_database); // Dodgy?
+    }
+
     /**
      * Deserialises the SerialisedItem field and returns that object. Bit of type information lost.
      */
     private ItineraryItem cursorToItem(Cursor cursor) {
         String serialisedItem = cursor.getString(1);
+
+        // TODO Now expects a UserItem rather than an ItineraryItem back. Fix it to be polymorphic
+        // later like so: http://stackoverflow.com/questions/5800433/polymorphism-with-gson
         ItineraryItem item = _gson.fromJson(serialisedItem, ItineraryItem.class);
         return item;
     }

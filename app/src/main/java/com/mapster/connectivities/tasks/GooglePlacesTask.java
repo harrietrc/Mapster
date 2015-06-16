@@ -10,9 +10,12 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.mapster.R;
 import com.mapster.activities.MainActivity;
+import com.mapster.itinerary.SuggestionItem;
+import com.mapster.itinerary.UserItem;
 import com.mapster.json.GooglePlaceJsonParser;
 import com.mapster.places.GooglePlace;
 import com.mapster.suggestions.GooglePlaceSuggestion;
+import com.mapster.suggestions.Suggestion;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,11 +31,14 @@ public class GooglePlacesTask extends AsyncTask<LatLng, Void, List<GooglePlace>>
     private Activity _activity;
     private int _searchRadius;
     private int _numberOfResults;
+    private UserItem _item; // The user-defined item that these attractions are suggestions for
 
-    public GooglePlacesTask(Activity activity, int searchRadius, int numberOfResults) {
+    public GooglePlacesTask(Activity activity, int searchRadius, int numberOfResults,
+                            UserItem item) {
         _activity = activity;
         _searchRadius = searchRadius;
         _numberOfResults = numberOfResults;
+        _item = item;
     }
 
     /**
@@ -102,7 +108,8 @@ public class GooglePlacesTask extends AsyncTask<LatLng, Void, List<GooglePlace>>
             if (parentCategory != null) {
                 GooglePlaceSuggestion suggestion = new GooglePlaceSuggestion(place, parentCategory);
                 BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(iconId);
-                mainActivity.addSuggestion(suggestion, icon, place.getName());
+                SuggestionItem item = new SuggestionItem(suggestion, _item);
+                mainActivity.addSuggestionItem(item, icon, place.getName());
             }
         }
     }

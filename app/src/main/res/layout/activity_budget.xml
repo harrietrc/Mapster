@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent">
+    <TableRow>
+        <TextView
+            android:id="@+id/budget_col_name"/>
+        <TextView
+            android:id="@+id/budget_col_price"/>
+        <Button
+            android:id="@+id/budget_col_options"
+            android:drawableLeft="@drawable/ic_table_edit_grey600_48dp"/>
+        <TextView
+            android:id="@+id/budget_col_total"/>
+        <Button
+            android:id="@+id/budget_col_user_value"
+            android:drawableLeft="@drawable/ic_plus_circle_grey600_48dp"/>
+    </TableRow>
+
+</TableLayout>

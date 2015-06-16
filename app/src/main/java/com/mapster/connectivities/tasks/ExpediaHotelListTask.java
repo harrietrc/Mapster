@@ -10,6 +10,8 @@ import com.mapster.R;
 import com.mapster.activities.MainActivity;
 import com.mapster.expedia.ExpediaApi;
 import com.mapster.expedia.ExpediaHotel;
+import com.mapster.itinerary.SuggestionItem;
+import com.mapster.itinerary.UserItem;
 import com.mapster.json.ExpediaHotelListJsonParser;
 import com.mapster.suggestions.ExpediaSuggestion;
 
@@ -31,11 +33,14 @@ public class ExpediaHotelListTask extends AsyncTask<LatLng, Void, List<ExpediaHo
 
     private int _radius; // The radius in which to search for hotels (currently in km)
     private int _numberOfResults;
+    private UserItem _item; // The user-defined destination that these hotels are suggestions for
 
-    public ExpediaHotelListTask(Activity activity, int searchRadius, int numberOfResults) {
+    public ExpediaHotelListTask(Activity activity, int searchRadius, int numberOfResults,
+                                UserItem item) {
         _activity = activity;
         _radius = searchRadius/1000; // Expects metres, for consistency with the GooglePlaces task
         _numberOfResults = numberOfResults;
+        _item = item;
     }
 
     @Override
@@ -67,14 +72,16 @@ public class ExpediaHotelListTask extends AsyncTask<LatLng, Void, List<ExpediaHo
     protected void onPostExecute(List<ExpediaHotel> hotels) {
         MainActivity mainActivity = (MainActivity) _activity;
 
+        int min = Math.min(_numberOfResults, hotels.size());
+
         // Unfortunately the number of results can't be limited without providing an arrival and
         // departure date, so we have to artificially limit it here for now.
-        for (int i=0; i<_numberOfResults; i++) {
+        for (int i=0; i<min; i++) {
             ExpediaHotel hotel = hotels.get(i);
             ExpediaSuggestion suggestion = new ExpediaSuggestion(hotel);
-
             BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.lodging_0star);
-            mainActivity.addSuggestion(suggestion, icon, hotel.getName());
+            SuggestionItem item = new SuggestionItem(suggestion, _item);
+            mainActivity.addSuggestionItem(item, icon, hotel.getName());
         }
     }
 }

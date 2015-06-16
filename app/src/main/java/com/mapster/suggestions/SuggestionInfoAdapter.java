@@ -13,6 +13,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 import com.mapster.R;
 import com.mapster.activities.MainActivity;
+import com.mapster.itinerary.SuggestionItem;
+import com.mapster.itinerary.UserItem;
 import com.mapster.priceestimation.MealPriceEstimate;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
@@ -44,12 +46,12 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
      */
     @Override
     public void onInfoWindowClick(Marker marker) {
-        MainActivity mainActivity = (MainActivity) _activity;
+        final MainActivity mainActivity = (MainActivity) _activity;
 
-        Suggestion suggestion = mainActivity.getSuggestionByMarker(marker);
-        String name = suggestion.getName();
+        final SuggestionItem item = mainActivity.getSuggestionItemByMarker(marker);
+        String name = item.getSuggestion().getName();
 
-        if (suggestion != null) {
+        if (item != null) {
             // Marker is a suggestion marker so we should process the event
             AlertDialog.Builder builder = new AlertDialog.Builder(_activity);
             builder.setMessage("Add " + name + " to itinerary?");
@@ -57,7 +59,10 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
             builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-
+                    // Add the suggestion to the list for the UserItem it is associated with
+                    UserItem userItem = item.getUserItem();
+                    userItem.addSuggestionItem(item);
+                    mainActivity.setItineraryUpdateRequired();
                 }
             });
 
@@ -81,7 +86,9 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
     public View getInfoContents(Marker marker) {
         MainActivity activity = (MainActivity) _activity;
 
-        Suggestion suggestion = activity.getSuggestionByMarker(marker);
+        SuggestionItem item = activity.getSuggestionItemByMarker(marker);
+        Suggestion suggestion = item == null ? null : item.getSuggestion();
+
         View info = _inflater.inflate(R.layout.suggestion_info_window, null);
 
         TextView title = (TextView) info.findViewById(R.id.title);
@@ -115,7 +122,7 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
                 if (suggestion.isClicked()) {
                     // Marker has been clicked before - don't need to call the callback to load icon
                     // Picasso has a fit() method for fitting to an ImageView, but it doesn't seem to work.
-                    Picasso.with(_activity).load(imageUrl).resize(150,150).centerCrop().into(image);
+                    Picasso.with(_activity).load(imageUrl).resize(150, 150).centerCrop().into(image);
                 } else {
                     // Marker clicked for first time - download the icon and load it into the view
                     suggestion.setClicked(true);
@@ -127,9 +134,8 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
         }
 
         // Hide the ImageView if it has no image
-        if (image.getDrawable() == null) {
+        if (image.getDrawable() == null)
             image.setVisibility(View.GONE);
-        }
 
         return info;
     }
