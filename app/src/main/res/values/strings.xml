@@ -41,4 +41,8 @@
     <string name="FOURSQUARE_CLIENT_SECRET">0EU3YV43WZNSC34KZIX3CPBJCQW1SPNH5Z2MSHNVEJDS4GYF</string>
     <!-- TODO Move all the secret keys!!! -->
 
+    <!-- Content descriptions / accessibility -->
+    <string name="budget_options_description">Edit destination options</string>
+    <string name="budget_edit_cost_description">Enter the actual money spent</string>
+
 </resources>

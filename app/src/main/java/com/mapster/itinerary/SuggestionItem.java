@@ -8,11 +8,13 @@ import com.mapster.suggestions.Suggestion;
  * exported to / imported from a database.
  * Separate from Suggestion (and subclasses) because it is situated as part of an itinerary, and
  * thus has data specific to the user's settings (e.g. number of people, time, etc.)
- * TODO Add number of people, time, etc...
  */
 public class SuggestionItem extends ItineraryItem {
     // Suggestion corresponding with this itinerary item
     private Suggestion _suggestion;
+
+    private int _multiplier;
+    private Double _actualCost; // Entered by the user
 
     // The user-defined place this suggestion is associated with. Could move to Suggestion?
     // This means that there is a bidirectional aggregation relationship between every UserItem
@@ -22,6 +24,24 @@ public class SuggestionItem extends ItineraryItem {
     public SuggestionItem(Suggestion suggestion, UserItem userItem) {
         _suggestion = suggestion;
         _userItem = userItem;
+        _multiplier = 1;
+    }
+
+    public Double getActualCost() {
+        return _actualCost;
+    }
+
+    public void setActualCost(double actualCost) {
+        _actualCost = actualCost;
+    }
+
+    public void setMultiplier(int multiplier) {
+        _multiplier = multiplier;
+    }
+
+    public Double getTotalCost() {
+        Double cost = _suggestion.getCostPerPerson();
+        return cost == null ? null : cost * _multiplier;
     }
 
     public Suggestion getSuggestion() {
