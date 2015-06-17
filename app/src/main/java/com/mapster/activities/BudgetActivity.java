@@ -247,6 +247,12 @@ public class BudgetActivity extends Activity {
                 Double totalCost = item.getTotalCost(BudgetActivity.this);
                 if (totalCost != null)
                     totalCostView.setText(currencySymbol + String.format("%.2f", totalCost));
+
+                // Update actual cost
+                TextView actualCostView = (TextView) row.findViewById(R.id.budget_col_user_value);
+                Double actualCost = item.getActualCost();
+                if (actualCost != null)
+                    actualCostView.setText(currencySymbol + String.format("%.2f", actualCost));
             }
         });
         final AlertDialog dialog = builder.create();
