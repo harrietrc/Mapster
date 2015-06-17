@@ -15,6 +15,8 @@
 
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">Ok</string>
 
     <string name="dining">Dining</string>
     <string name="accommodation">Accommodation</string>
@@ -42,7 +44,11 @@
     <!-- TODO Move all the secret keys!!! -->
 
     <!-- Content descriptions / accessibility -->
-    <string name="budget_options_description">Edit destination options</string>
-    <string name="budget_edit_cost_description">Enter the actual money spent</string>
+    <string name="budget_edit_description">Edit destination options</string>
+
+    <!-- Budget activity -->
+    <string name="number_of_people">Number of people</string>
+    <string name="money_spent">Money spent</string>
+    <string name="delete_destination">Delete destination</string>
 
 </resources>

@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mapster.itinerary.ItineraryItem;
+import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.serialisation.FoursquareSuggestionAdapter;
 import com.mapster.itinerary.serialisation.ItineraryItemAdapter;
 import com.mapster.itinerary.serialisation.SuggestionAdapter;
@@ -18,6 +19,7 @@ import com.mapster.suggestions.Suggestion;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -43,7 +45,8 @@ public class ItineraryDataSource {
      * checks later.
      */
     public List<ItineraryItem> getAllItems() {
-        List<ItineraryItem> items = new ArrayList<>();
+        // Changed this to a linked list to help with removing objects later (see BudgetActivity)
+        List<ItineraryItem> items = new LinkedList<>();
 
         Cursor cursor = _database.query(ItineraryHelper.TABLE_ITINERARY_ITEM,
                 _allColumnsItineraryItem, null, null, null, null, null);

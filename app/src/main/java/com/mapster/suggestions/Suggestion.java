@@ -34,9 +34,8 @@ public abstract class Suggestion {
             String currencyCode = getCurrencyCode();
             if (currencyCode != null) {
                 // Try to retrieve the symbol that corresponds with the currency code
-                Currency c = null;
                 try {
-                    c = Currency.getInstance(currencyCode);
+                    Currency c = Currency.getInstance(currencyCode);
                     return c.getSymbol();
                 } catch (IllegalArgumentException e) {
                     // Currency was invalid - fall through to dollars

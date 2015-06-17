@@ -6,6 +6,7 @@ import android.os.Parcelable;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -31,7 +32,8 @@ public class UserItem extends ItineraryItem implements Parcelable {
         _name = name;
         _latitude = latLng.latitude;
         _longitude = latLng.longitude;
-        _suggestionItems = new ArrayList<>();
+        // Linked list to speed up removals a little
+        _suggestionItems = new LinkedList<>();
     }
 
     public UserItem(Parcel source) {
@@ -41,6 +43,11 @@ public class UserItem extends ItineraryItem implements Parcelable {
         _latitude = source.readDouble();
         _longitude = source.readDouble();
         _suggestionItems = new ArrayList<>();
+    }
+
+    public void removeSuggestionItem(SuggestionItem item) {
+        if(_suggestionItems.remove(item))
+            item.setIsInItinerary(false);
     }
 
     public List<SuggestionItem> getSuggestionItems() {

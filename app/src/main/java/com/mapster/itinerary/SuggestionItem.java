@@ -17,6 +17,7 @@ public class SuggestionItem extends ItineraryItem {
 
     private int _multiplier;
     private Double _actualCost; // Entered by the user
+    private boolean _isInItinerary;
 
     // The user-defined place this suggestion is associated with. Could move to Suggestion?
     // This means that there is a bidirectional aggregation relationship between every UserItem
@@ -27,6 +28,22 @@ public class SuggestionItem extends ItineraryItem {
         _suggestion = suggestion;
         _userItem = userItem;
         _multiplier = 1;
+    }
+
+    public void setUserItem(UserItem item) {
+        _userItem = item;
+    }
+
+    public int getMultiplier() {
+        return _multiplier;
+    }
+
+    public boolean isInItinerary() {
+        return _isInItinerary;
+    }
+
+    public void setIsInItinerary(boolean isInItinerary) {
+        _isInItinerary = isInItinerary;
     }
 
     public Double getActualCost() {

@@ -25,6 +25,8 @@ dependencies {
     compile 'com.google.android.gms:play-services:6.5.87'
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.google.code.gson:gson:2.3.1'
+    compile 'org.apache.commons:commons-lang3:3.4' // Only used to escape &amp; etc. in ExpediaHotel
+
     repositories {
         mavenCentral()
     }

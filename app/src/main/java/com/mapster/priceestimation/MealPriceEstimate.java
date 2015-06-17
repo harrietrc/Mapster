@@ -17,6 +17,7 @@ import java.util.Currency;
 public class MealPriceEstimate {
 
     public static final String DEFAULT_CURRENCY_SYMBOL = "$";
+    public static final String DEFAULT_COUNTRY_CODE = "NZ";
     public static final double DEFAULT_MEAL_PRICE = 18.0;
 
     private MealPriceDataSource _dataSource;
@@ -29,6 +30,8 @@ public class MealPriceEstimate {
     }
 
     public String getCurrencySymbol(String countryCode) {
+        if (countryCode == null)
+            countryCode = DEFAULT_COUNTRY_CODE;
         Country country = _dataSource.getCountry(countryCode);
         if (country != null) {
             String currencyCode = country.getCurrencyCode();

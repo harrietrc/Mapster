@@ -2,13 +2,15 @@ package com.mapster.expedia;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 /**
  * Created by Harriet on 5/25/2015. Holds information about a hotel, retrieved from Expedia.
  */
 public class ExpediaHotel {
 
     private int _hotelId; // Used in requests to Expedia
-    String _name;
+    private String _name;
     private String _address;
     private String _thumbnailUrl;
     private Double _lowRate;
@@ -26,14 +28,14 @@ public class ExpediaHotel {
                         Double lowRate, Double highRate, String locationDescription,
                         String thumbnailUrl, String currencyCode) {
         _hotelId = hotelId;
-        _name = name;
-        _address = address;
+        _name = StringEscapeUtils.unescapeHtml4(name);
+        _address = StringEscapeUtils.unescapeHtml4(address);
         _latitude = latLng.latitude;
         _longitude = latLng.longitude;
         _rating = rating;
         _lowRate = lowRate;
         _highRate = highRate;
-        _locationDescription = locationDescription;
+        _locationDescription = StringEscapeUtils.unescapeHtml4(locationDescription);
         _thumbnailUrl = thumbnailUrl;
         _currencyCode = currencyCode;
     }
