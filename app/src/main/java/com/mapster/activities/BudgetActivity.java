@@ -60,14 +60,18 @@ public class BudgetActivity extends Activity {
         setContentView(R.layout.activity_budget);
 
         // Populate list of totals
-        _totalsMap = new HashMap<>();
-        _totalsList = formatTotalsAsList();
-        _totalsListAdapter = new ArrayAdapter(this, R.layout.budget_total, _totalsList);
+        _totalsList = new ArrayList<>();
+        _totalsListAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, _totalsList);
         ListView totalsListView = (ListView) findViewById(R.id.budget_totals_list);
         totalsListView.setAdapter(_totalsListAdapter);
+        _totalsMap = new HashMap<>();
 
         // Populate the table with the itinerary items from the database
         createRowsFromItems();
+
+        // Display initial values for totals
+        formatTotalsAsList();
+        _totalsListAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -79,14 +83,16 @@ public class BudgetActivity extends Activity {
         super.onResume();
     }
 
-    private List<String> formatTotalsAsList() {
-        List<String> totals = new ArrayList<>();
+    private void formatTotalsAsList() {
+        _totalsList.clear();
         for (Map.Entry pair : _totalsMap.entrySet()) {
             String currencySymbol = Currency.getInstance((String) pair.getKey()).getSymbol();
-            String total = String.format("%.2f", pair.getValue());
-            totals.add(currencySymbol + total);
+            Double total = (Double) pair.getValue();
+            if (total != null) {
+                String totalString = String.format("%.2f", total);
+                _totalsList.add(currencySymbol + totalString);
+            }
         }
-        return totals;
     }
 
     private void createRowsFromItems() {
@@ -113,7 +119,7 @@ public class BudgetActivity extends Activity {
             }
         }
         // Update the list of totals
-        _totalsList = formatTotalsAsList();
+        formatTotalsAsList();
         _totalsListAdapter.notifyDataSetChanged();
     }
 
@@ -218,6 +224,8 @@ public class BudgetActivity extends Activity {
         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                String currencySymbol = item.getSuggestion().getCurrencySymbol(BudgetActivity.this);
+
                 // Save the value for the multiplier (number of people)
                 String multiplierString = multiplierView.getText().toString();
                 if (multiplierString.equals("")) {
@@ -229,30 +237,26 @@ public class BudgetActivity extends Activity {
 
                 // Save the value for the actual amount of money spent
                 String moneySpentString = moneySpentView.getText().toString();
+                TextView actualCostView = (TextView) row.findViewById(R.id.budget_col_user_value);
                 if (moneySpentString.equals("")) {
                     item.setActualCost(0); // Money spent was cleared
+                    actualCostView.setText(null);
                 } else {
                     double moneySpent = Double.parseDouble(moneySpentString);
                     item.setActualCost(moneySpent);
+                    actualCostView.setText(currencySymbol + String.format("%.2f", moneySpent));
                 }
 
                 updateTotal(item, false);
-                _totalsList = formatTotalsAsList();
+                formatTotalsAsList();
                 _totalsListAdapter.notifyDataSetChanged();
                 setEditableValues(multiplierView, moneySpentView, item);
 
                 // Update the total cost
-                String currencySymbol = item.getSuggestion().getCurrencySymbol(BudgetActivity.this);
                 TextView totalCostView = (TextView) row.findViewById(R.id.budget_col_total);
                 Double totalCost = item.getTotalCost(BudgetActivity.this);
                 if (totalCost != null)
                     totalCostView.setText(currencySymbol + String.format("%.2f", totalCost));
-
-                // Update actual cost
-                TextView actualCostView = (TextView) row.findViewById(R.id.budget_col_user_value);
-                Double actualCost = item.getActualCost();
-                if (actualCost != null)
-                    actualCostView.setText(currencySymbol + String.format("%.2f", actualCost));
             }
         });
         final AlertDialog dialog = builder.create();
@@ -266,7 +270,7 @@ public class BudgetActivity extends Activity {
                 userItem.removeSuggestionItem(item);
 
                 // Update the list of totals
-                _totalsList = formatTotalsAsList();
+                formatTotalsAsList();
                 _totalsListAdapter.notifyDataSetChanged();
 
                 // Delete the row in the table and hide the dialogue
