@@ -22,16 +22,16 @@ public abstract class Suggestion {
     // argument should be removed later (after 18/06 due day)
     public abstract Double getCostPerPerson(Context context);
 
-    public abstract String getCurrencyCode();
+    public abstract String getCurrencyCode(Context context); // TODO ditto here
 
     /**
      * Returns the currency symbol that corresponds to the currency code, if it is non-null and
      * valid
      * @return The currency symbol as a string
      */
-    public String getCurrencySymbol() {
+    public String getCurrencySymbol(Context context) { // TODO and here
         if (_currencySymbol == null) {
-            String currencyCode = getCurrencyCode();
+            String currencyCode = getCurrencyCode(context);
             if (currencyCode != null) {
                 // Try to retrieve the symbol that corresponds with the currency code
                 try {

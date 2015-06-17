@@ -6,10 +6,12 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -21,7 +23,11 @@ import com.mapster.itinerary.UserItem;
 import com.mapster.itinerary.persistence.ItineraryDataSource;
 import com.mapster.suggestions.Suggestion;
 
+import java.util.ArrayList;
+import java.util.Currency;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Harriet on 6/16/2015.
@@ -30,9 +36,13 @@ public class BudgetActivity extends Activity {
 
     private ItineraryDataSource _itineraryDataSource;
     private List<ItineraryItem> _items;
-    private boolean _itineraryUpdateRequired;
     private LayoutInflater _inflater;
     private TableLayout _tableLayout;
+
+    // Totals
+    Map<String, Double> _totalsMap; // Maintains state for totals list
+    List<String> _totalsList;
+    ArrayAdapter<String> _totalsListAdapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -42,13 +52,19 @@ public class BudgetActivity extends Activity {
 
         _itineraryDataSource = new ItineraryDataSource(this);
         _itineraryDataSource.open();
-        _itineraryUpdateRequired = false; // TODO use this?
 
         _items = getItemsFromDatabase();
         // Note that for whatever reason, SuggestionItem._userItem is set to null when deserialised
         // - possibly because it was a bidirectional relationship? Will look into it. TODO!
 
         setContentView(R.layout.activity_budget);
+
+        // Populate list of totals
+        _totalsMap = new HashMap<>();
+        _totalsList = formatTotalsAsList();
+        _totalsListAdapter = new ArrayAdapter(this, R.layout.budget_total, _totalsList);
+        ListView totalsListView = (ListView) findViewById(R.id.budget_totals_list);
+        totalsListView.setAdapter(_totalsListAdapter);
 
         // Populate the table with the itinerary items from the database
         createRowsFromItems();
@@ -63,11 +79,21 @@ public class BudgetActivity extends Activity {
         super.onResume();
     }
 
-    public void createRowsFromItems() {
+    private List<String> formatTotalsAsList() {
+        List<String> totals = new ArrayList<>();
+        for (Map.Entry pair : _totalsMap.entrySet()) {
+            String currencySymbol = Currency.getInstance((String) pair.getKey()).getSymbol();
+            String total = String.format("%.2f", pair.getValue());
+            totals.add(currencySymbol + total);
+        }
+        return totals;
+    }
+
+    private void createRowsFromItems() {
         _tableLayout = (TableLayout) findViewById(R.id.budget_table);
 
         for (ItineraryItem item: _items) {
-            TableRow newRow = null;
+            TableRow newRow;
             if (item instanceof UserItem) {
                 // 'Parent' user-defined destination that the suggestions were retrieved for
                 UserItem u = (UserItem) item;
@@ -80,13 +106,31 @@ public class BudgetActivity extends Activity {
                     s.setUserItem(u);
                     TableRow childRow = createSuggestionRow(s);
                     _tableLayout.addView(childRow);
+
+                    // Update total cost with this suggestion
+                    updateTotal(s, false);
                 }
             }
         }
-
+        // Update the list of totals
+        _totalsList = formatTotalsAsList();
+        _totalsListAdapter.notifyDataSetChanged();
     }
 
-    public TableRow createUserDestinationRow(UserItem item) {
+    private void updateTotal(SuggestionItem suggestionItem, boolean wasRemoved) {
+        Suggestion suggestion = suggestionItem.getSuggestion();
+        String currencyCode = suggestion.getCurrencyCode(this);
+        Double totalCost = suggestionItem.getTotalCost(this);
+        if (totalCost != null) {
+            Double currentTotal = _totalsMap.get(currencyCode);
+            if (currentTotal == null)
+                currentTotal = totalCost;
+            currentTotal = wasRemoved ? currentTotal - totalCost : currentTotal + totalCost;
+            _totalsMap.put(currencyCode, currentTotal);
+        }
+    }
+
+    private TableRow createUserDestinationRow(UserItem item) {
         TableRow row = new TableRow(this);
         TableRow v = (TableRow) _inflater.inflate(R.layout.budget_user_destination_table_row, row, false);
 
@@ -103,7 +147,7 @@ public class BudgetActivity extends Activity {
         final TableRow rowView = (TableRow) _inflater.inflate(R.layout.budget_suggestion_table_row, row, false);
 
         Suggestion suggestion = item.getSuggestion();
-        String currencySymbol = suggestion.getCurrencySymbol();
+        String currencySymbol = suggestion.getCurrencySymbol(this);
 
         // TextView: Name of the destination
         TextView nameView = (TextView) rowView.findViewById(R.id.budget_col_suggestion_name);
@@ -149,9 +193,11 @@ public class BudgetActivity extends Activity {
      */
     public void setEditableValues(EditText multiplierView, EditText moneySpentView, SuggestionItem item) {
         multiplierView.setText(Integer.toString(item.getMultiplier()));
+        multiplierView.setSelection(multiplierView.getText().length()); // Put the cursor at the end
         Double initialMoneySpent = item.getActualCost();
         if (initialMoneySpent != null)
             moneySpentView.setText(Double.toString(initialMoneySpent));
+        moneySpentView.setSelection(moneySpentView.getText().length());
     }
 
     public void buildEditDialogue(final SuggestionItem item, final TableRow row) {
@@ -190,18 +236,32 @@ public class BudgetActivity extends Activity {
                     item.setActualCost(moneySpent);
                 }
 
-                // TODO Recalculate
+                updateTotal(item, false);
+                _totalsList = formatTotalsAsList();
+                _totalsListAdapter.notifyDataSetChanged();
                 setEditableValues(multiplierView, moneySpentView, item);
+
+                // Update the total cost
+                String currencySymbol = item.getSuggestion().getCurrencySymbol(BudgetActivity.this);
+                TextView totalCostView = (TextView) row.findViewById(R.id.budget_col_total);
+                Double totalCost = item.getTotalCost(BudgetActivity.this);
+                if (totalCost != null)
+                    totalCostView.setText(currencySymbol + String.format("%.2f", totalCost));
             }
         });
         final AlertDialog dialog = builder.create();
-        dialog.show();
+        dialog.show(); // Leak?
 
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 UserItem userItem = item.getUserItem();
+                updateTotal(item, true);
                 userItem.removeSuggestionItem(item);
+
+                // Update the list of totals
+                _totalsList = formatTotalsAsList();
+                _totalsListAdapter.notifyDataSetChanged();
 
                 // Delete the row in the table and hide the dialogue
                 _tableLayout.removeView(row);
@@ -212,15 +272,13 @@ public class BudgetActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        writeItemsToDatabase(); // Need to debug this TODO
+        writeItemsToDatabase();
         super.onBackPressed();
     }
 
     public void writeItemsToDatabase() {
-        if (_itineraryUpdateRequired) {
-            _itineraryDataSource.recreateItinerary();
-            _itineraryDataSource.insertMultipleItineraryItems(_items);
-        }
+        _itineraryDataSource.recreateItinerary();
+        _itineraryDataSource.insertMultipleItineraryItems(_items);
     }
 
     public List<ItineraryItem> getItemsFromDatabase() {

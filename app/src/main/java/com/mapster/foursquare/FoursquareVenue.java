@@ -21,11 +21,10 @@ public class FoursquareVenue {
     // Used for estimating pricing
     private String _countryCode;
     private String _city;
-    private String _currencyCode;
 
     public FoursquareVenue(String id, String name, String phoneNumber, String address,
                            LatLng latLng, String website, Float rating, String imageUrl,
-                           Integer priceLevel, String countryCode, String city, String currency) {
+                           Integer priceLevel, String countryCode, String city) {
         _id = id;
         _name = name;
         _phoneNumber = phoneNumber;
@@ -38,7 +37,6 @@ public class FoursquareVenue {
         _priceLevel = priceLevel;
         _countryCode = countryCode;
         _city = city;
-        _currencyCode = currency;
     }
 
     public String getName() {
@@ -51,10 +49,6 @@ public class FoursquareVenue {
 
     public Integer getPriceLevel() {
         return _priceLevel;
-    }
-
-    public String getCurrencyCode() {
-        return _currencyCode;
     }
 
     public float getRating() {

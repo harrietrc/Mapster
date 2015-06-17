@@ -27,7 +27,7 @@ public class ExpediaSuggestion extends Suggestion {
     }
 
     @Override
-    public String getCurrencyCode() {
+    public String getCurrencyCode(Context context) {
         return _hotel.getCurrencyCode();
     }
 
@@ -60,7 +60,7 @@ public class ExpediaSuggestion extends Suggestion {
         StringBuilder sb = new StringBuilder();
         Double lowRate = _hotel.getLowRate();
         Double highRate = _hotel.getHighRate();
-        String currencySymbol = getCurrencySymbol();
+        String currencySymbol = getCurrencySymbol(null);
 
         sb.append(lowRate == null ? "" : currencySymbol + lowRate.intValue());
 

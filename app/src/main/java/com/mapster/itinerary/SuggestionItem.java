@@ -68,6 +68,10 @@ public class SuggestionItem extends ItineraryItem {
         return _suggestion;
     }
 
+    public void setSuggestion(Suggestion suggestion) {
+        _suggestion = suggestion;
+    }
+
     public UserItem getUserItem() {
         return _userItem;
     }

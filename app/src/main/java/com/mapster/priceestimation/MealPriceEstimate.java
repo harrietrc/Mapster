@@ -16,35 +16,24 @@ import java.util.Currency;
  */
 public class MealPriceEstimate {
 
-    public static final String DEFAULT_CURRENCY_SYMBOL = "$";
     public static final String DEFAULT_COUNTRY_CODE = "NZ";
     public static final double DEFAULT_MEAL_PRICE = 18.0;
 
     private MealPriceDataSource _dataSource;
-    private Context _context;
 
     public MealPriceEstimate(Context context) {
-        _context = context;
         _dataSource = new MealPriceDataSource(context);
         _dataSource.open();
     }
 
-    public String getCurrencySymbol(String countryCode) {
+    public String getCurrencyCode(String countryCode) {
+        String currencyCode = null;
         if (countryCode == null)
             countryCode = DEFAULT_COUNTRY_CODE;
         Country country = _dataSource.getCountry(countryCode);
-        if (country != null) {
-            String currencyCode = country.getCurrencyCode();
-            if (currencyCode != null) {
-                try {
-                    Currency c = Currency.getInstance(currencyCode);
-                    return c.getSymbol();
-                } catch (IllegalArgumentException e) {
-                    // Let it fall through to the default
-                }
-            }
-        }
-        return DEFAULT_CURRENCY_SYMBOL;
+        if (country != null)
+            currencyCode = country.getCurrencyCode();
+        return currencyCode;
     }
 
     /**

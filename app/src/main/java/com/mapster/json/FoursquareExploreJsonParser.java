@@ -62,11 +62,6 @@ public class FoursquareExploreJsonParser {
                                     JSONObject price = jsonVenue.getJSONObject("price");
                                     if (price.has("tier") && !price.isNull("tier"))
                                         priceLevel = price.getInt("tier");
-                                    if (price.has("currency"))
-                                        currency = price.getString("currency");
-                                    else {
-                                        System.out.print("NO CURRENCY");
-                                    }
                                 }
 
                                 JSONObject contact = jsonVenue.getJSONObject("contact");
@@ -90,7 +85,7 @@ public class FoursquareExploreJsonParser {
 
                                 FoursquareVenue fs = new FoursquareVenue(id, name, phone, address,
                                         latLng, website, rating, imageUrl, priceLevel,
-                                        countryCode, city, currency);
+                                        countryCode, city);
                                 venues.add(fs);
                             }
                         }

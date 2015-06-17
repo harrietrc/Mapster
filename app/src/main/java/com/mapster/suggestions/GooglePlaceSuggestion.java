@@ -60,7 +60,7 @@ public class GooglePlaceSuggestion extends Suggestion {
     }
 
     @Override
-    public String getCurrencyCode() {
+    public String getCurrencyCode(Context context) {
         return null; // No pricing info = no currency code required
     }
 

@@ -96,9 +96,13 @@ public class ItineraryDataSource {
      * Deserialises the SerialisedItem field and returns that object. Bit of type information lost.
      */
     private ItineraryItem cursorToItem(Cursor cursor) {
+        long id = cursor.getLong(0);
         String serialisedItem = cursor.getString(1);
 
         ItineraryItem item = _gson.fromJson(serialisedItem, ItineraryItem.class);
+        // Might be better to create a custom deserialiser to set the ID through the constructor
+        item.setId(id);
+
         return item;
     }
 

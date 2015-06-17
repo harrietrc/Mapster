@@ -43,13 +43,10 @@ public class FoursquareSuggestion extends Suggestion {
     }
 
     @Override
-    public String getCurrencyCode() {
-        String code = _venue.getCurrencyCode();
-        if (code == null) {
-            String countryCode = _venue.getCountryCode(); // May be null (falls back to "NZ")
-            code = _priceEstimator.getCurrencySymbol(countryCode);
-        }
-        return code;
+    public String getCurrencyCode(Context context) {
+        if (_priceEstimator == null)
+            _priceEstimator = new MealPriceEstimate(context);
+        return _priceEstimator.getCurrencyCode(_venue.getCountryCode());
     }
 
     @Override

@@ -50,5 +50,6 @@
     <string name="number_of_people">Number of people</string>
     <string name="money_spent">Money spent</string>
     <string name="delete_destination">Delete destination</string>
+    <string name="total">Total</string>
 
 </resources>
