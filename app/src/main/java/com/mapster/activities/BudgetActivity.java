@@ -70,6 +70,7 @@ public class BudgetActivity extends Activity {
         createRowsFromItems();
 
         // Display initial values for totals
+        calculateTotals();
         formatTotalsAsList();
         _totalsListAdapter.notifyDataSetChanged();
     }
@@ -112,28 +113,13 @@ public class BudgetActivity extends Activity {
                     s.setUserItem(u);
                     TableRow childRow = createSuggestionRow(s);
                     _tableLayout.addView(childRow);
-
-                    // Update total cost with this suggestion
-                    updateTotal(s, false);
                 }
             }
         }
         // Update the list of totals
+        calculateTotals();
         formatTotalsAsList();
         _totalsListAdapter.notifyDataSetChanged();
-    }
-
-    private void updateTotal(SuggestionItem suggestionItem, boolean wasRemoved) {
-        Suggestion suggestion = suggestionItem.getSuggestion();
-        String currencyCode = suggestion.getCurrencyCode(this);
-        Double totalCost = suggestionItem.getTotalCost(this);
-        if (totalCost != null) {
-            Double currentTotal = _totalsMap.get(currencyCode);
-            if (currentTotal == null)
-                currentTotal = totalCost;
-            currentTotal = wasRemoved ? currentTotal - totalCost : currentTotal + totalCost;
-            _totalsMap.put(currencyCode, currentTotal);
-        }
     }
 
     private TableRow createUserDestinationRow(UserItem item) {
@@ -247,9 +233,10 @@ public class BudgetActivity extends Activity {
                     actualCostView.setText(currencySymbol + String.format("%.2f", moneySpent));
                 }
 
-                updateTotal(item, false);
+                calculateTotals();
                 formatTotalsAsList();
                 _totalsListAdapter.notifyDataSetChanged();
+
                 setEditableValues(multiplierView, moneySpentView, item);
 
                 // Update the total cost
@@ -266,10 +253,10 @@ public class BudgetActivity extends Activity {
             @Override
             public void onClick(View v) {
                 UserItem userItem = item.getUserItem();
-                updateTotal(item, true);
                 userItem.removeSuggestionItem(item);
 
                 // Update the list of totals
+                calculateTotals();
                 formatTotalsAsList();
                 _totalsListAdapter.notifyDataSetChanged();
 
@@ -278,6 +265,26 @@ public class BudgetActivity extends Activity {
                 dialog.hide();
             }
         });
+    }
+
+    /**
+     * Recalculates the totals for the entire itinerary
+     */
+    public void calculateTotals() {
+        // Totally reinitialise the map of totals and recreate it from the itinerary
+        _totalsMap = new HashMap<>();
+
+        for (ItineraryItem item: _items) {
+            // This is the only possibility at the moment - UserItems only
+            if (item instanceof UserItem)
+                for (SuggestionItem s: ((UserItem) item).getSuggestionItems()) {
+                    String currencyCode = s.getSuggestion().getCurrencyCode(this);
+                    Double total = _totalsMap.get(currencyCode);
+                    Double suggestionCost = s.getTotalCost(this);
+                    Double sum = total == null ? suggestionCost : total + suggestionCost;
+                    _totalsMap.put(currencyCode, sum);
+                }
+        }
     }
 
     @Override
