@@ -9,9 +9,10 @@ import android.database.sqlite.SQLiteDatabase;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mapster.itinerary.ItineraryItem;
-import com.mapster.itinerary.UserItem;
+import com.mapster.itinerary.serialisation.FoursquareSuggestionAdapter;
 import com.mapster.itinerary.serialisation.ItineraryItemAdapter;
 import com.mapster.itinerary.serialisation.SuggestionAdapter;
+import com.mapster.suggestions.FoursquareSuggestion;
 import com.mapster.suggestions.Suggestion;
 
 import java.lang.reflect.Modifier;

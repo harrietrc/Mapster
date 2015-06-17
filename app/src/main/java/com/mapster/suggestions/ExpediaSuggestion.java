@@ -22,8 +22,8 @@ public class ExpediaSuggestion extends Suggestion {
      * @return
      */
     @Override
-    public Double getCostPerPerson() {
-        return null;
+    public Double getCostPerPerson(Context context) {
+        return _hotel.estimateAverageRate();
     }
 
     @Override

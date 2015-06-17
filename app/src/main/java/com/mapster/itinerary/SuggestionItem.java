@@ -1,5 +1,7 @@
 package com.mapster.itinerary;
 
+import android.content.Context;
+
 import com.mapster.suggestions.Suggestion;
 
 /**
@@ -39,8 +41,9 @@ public class SuggestionItem extends ItineraryItem {
         _multiplier = multiplier;
     }
 
-    public Double getTotalCost() {
-        Double cost = _suggestion.getCostPerPerson();
+    // TODO Remove Context argument. See Suggestion.getCostPerPerson()
+    public Double getTotalCost(Context context) {
+        Double cost = _suggestion.getCostPerPerson(context);
         return cost == null ? null : cost * _multiplier;
     }
 

@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.mapster.foursquare.FoursquareVenue;
+import com.mapster.priceestimation.MealPriceEstimate;
 
 /**
  * Created by Harriet on 6/11/2015.
@@ -11,9 +12,11 @@ import com.mapster.foursquare.FoursquareVenue;
 public class FoursquareSuggestion extends Suggestion {
 
     private FoursquareVenue _venue;
+    private transient MealPriceEstimate _priceEstimator;
 
-    public FoursquareSuggestion(FoursquareVenue venue) {
+    public FoursquareSuggestion(FoursquareVenue venue, Context context) {
         _venue = venue;
+        _priceEstimator = new MealPriceEstimate(context);
     }
 
     public String getCountryCode() {
@@ -25,8 +28,18 @@ public class FoursquareSuggestion extends Suggestion {
     }
 
     @Override
-    public Double getCostPerPerson() {
-        return null;
+    public Double getCostPerPerson(Context context) {
+        // TODO Temporary! Sorry. For serialisation - see superclass comment.
+        if (_priceEstimator == null)
+            _priceEstimator = new MealPriceEstimate(context);
+        return _priceEstimator.estimateMealPrice(this);
+    }
+
+    /**
+     * This is used during deserialisation to reinitialise _priceEstimator (transient)
+     */
+    public void setPriceEstimator(Context context) {
+        _priceEstimator = new MealPriceEstimate(context);
     }
 
     @Override

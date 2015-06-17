@@ -17,7 +17,10 @@ public abstract class Suggestion {
     // Budgeting
     protected String _currencySymbol;
 
-    public abstract Double getCostPerPerson();
+    // TODO!! The Context arg was a quick fix for something that should have been dealt with in
+    // itinerary.serialisation.FoursquareSuggestionAdapter. It was taking too long to fix but the
+    // argument should be removed later (after 18/06 due day)
+    public abstract Double getCostPerPerson(Context context);
 
     public abstract String getCurrencyCode();
 

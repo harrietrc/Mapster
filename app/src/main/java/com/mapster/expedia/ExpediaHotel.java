@@ -38,6 +38,11 @@ public class ExpediaHotel {
         _currencyCode = currencyCode;
     }
 
+    public Double estimateAverageRate() {
+        // Might want to refine this
+        return (_lowRate + _highRate) / 2;
+    }
+
     public String getThumbnailUrl() {
         return _thumbnailUrl;
     }

@@ -64,7 +64,7 @@ public class FoursquareExploreTask extends AsyncTask<LatLng, Void, List<Foursqua
         MainActivity mainActivity = (MainActivity) _activity;
 
         for (FoursquareVenue v: venues) {
-            FoursquareSuggestion suggestion = new FoursquareSuggestion(v);
+            FoursquareSuggestion suggestion = new FoursquareSuggestion(v, _activity);
             BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.restaurant);
             SuggestionItem item = new SuggestionItem(suggestion, _item);
             mainActivity.addSuggestionItem(item, icon, v.getName());

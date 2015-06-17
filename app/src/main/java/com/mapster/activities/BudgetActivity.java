@@ -94,9 +94,9 @@ public class BudgetActivity extends Activity {
 
         // TextView: Cost per person (or base cost with no modifiers)
         TextView baseCostView = (TextView) v.findViewById(R.id.budget_col_base_cost);
-        Double baseCost = suggestion.getCostPerPerson();
+        Double baseCost = suggestion.getCostPerPerson(this);
         if (baseCost != null)
-            baseCostView.setText(currencySymbol + String.valueOf(baseCost));
+            baseCostView.setText(currencySymbol + String.format("%.2f", baseCost));
 
         // Button: Opens configuration options like number of people
         ImageButton optionsButton = (ImageButton) v.findViewById(R.id.budget_col_button_options);
@@ -104,15 +104,15 @@ public class BudgetActivity extends Activity {
 
         // TextView: Calculated total, including multipliers/modifiers
         TextView totalCostView = (TextView) v.findViewById(R.id.budget_col_total);
-        Double totalCost = item.getTotalCost();
+        Double totalCost = item.getTotalCost(this);
         if (totalCost != null)
-            totalCostView.setText(currencySymbol + String.valueOf(totalCost));
+            totalCostView.setText(currencySymbol + String.format("%.2f", totalCost));
 
         // TextView: Displays the actual money spent, if provided by the user
         TextView actualCostView = (TextView) v.findViewById(R.id.budget_col_user_value);
         Double actualCost = item.getActualCost();
         if (actualCost != null)
-            actualCostView.setText(currencySymbol + String.valueOf(actualCost));
+            actualCostView.setText(currencySymbol + String.format("%.2f", actualCost));
 
         // Button: Opens a dialogue that allows the user to enter the actual money spent
         ImageButton editCostButton = (ImageButton) v.findViewById(R.id.budget_col_button_user_value);

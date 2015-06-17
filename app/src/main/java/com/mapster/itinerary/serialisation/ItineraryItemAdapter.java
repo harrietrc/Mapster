@@ -27,7 +27,7 @@ public class ItineraryItemAdapter implements JsonSerializer<ItineraryItem>,
         JsonPrimitive primitive = (JsonPrimitive) jsonObject.get(CLASSNAME);
         String className = primitive.getAsString();
 
-        Class<?> klass = null;
+        Class<?> klass;
         try {
             klass = Class.forName(className);
         } catch (ClassNotFoundException e) {

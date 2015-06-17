@@ -49,11 +49,11 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
         final MainActivity mainActivity = (MainActivity) _activity;
 
         final SuggestionItem item = mainActivity.getSuggestionItemByMarker(marker);
-        String name = item.getSuggestion().getName();
 
         if (item != null) {
             // Marker is a suggestion marker so we should process the event
             AlertDialog.Builder builder = new AlertDialog.Builder(_activity);
+            String name = item.getSuggestion().getName();
             builder.setMessage("Add " + name + " to itinerary?");
 
             builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {

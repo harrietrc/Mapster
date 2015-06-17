@@ -51,8 +51,12 @@ public class GooglePlaceSuggestion extends Suggestion {
     }
 
     @Override
-    public Double getCostPerPerson() {
-        return null; // Google offers no pricing information
+    public Double getCostPerPerson(Context context) {
+        /*
+        Google offers no pricing information and attractions are too varied to make a meaningful
+        estimate
+        */
+        return null;
     }
 
     @Override
