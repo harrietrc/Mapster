@@ -48,8 +48,10 @@
 
     <!-- Budget activity -->
     <string name="number_of_people">Number of people</string>
-    <string name="money_spent">Money spent</string>
+    <string name="money_spent">Amount spent</string>
     <string name="delete_destination">Delete destination</string>
     <string name="total">Total</string>
+    <string name="destination">Destination</string>
+    <string name="cost">Cost</string>
 
 </resources>
