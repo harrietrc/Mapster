@@ -75,4 +75,9 @@ public class SuggestionItem extends ItineraryItem {
     public UserItem getUserItem() {
         return _userItem;
     }
+
+    @Override
+    public String getName() {
+        return _suggestion.getName();
+    }
 }

@@ -66,7 +66,7 @@ public class BudgetFragment extends Fragment {
         // Display initial values for totals
         updateTotals();
 
-        return _tableLayout;
+        return v;
     }
 
     // Not sure whether onResume() is called after the Activity's onResume(), so I replaced it with this
@@ -96,19 +96,16 @@ public class BudgetFragment extends Fragment {
         List<ItineraryItem> items = ((BudgetActivity) getActivity()).getItems();
 
         for (ItineraryItem item: items) {
-            TableRow newRow;
             if (item instanceof UserItem) {
                 // 'Parent' user-defined destination that the suggestions were retrieved for
                 UserItem u = (UserItem) item;
-                newRow = createUserDestinationRow(u);
-                _tableLayout.addView(newRow);
+                createUserDestinationRow(u);
 
                 // 'Child' suggestions that the user added to the itinerary for their destination
                 for (SuggestionItem s: u.getSuggestionItems()) {
                     // TODO Hack until I figure out why _userItem isn't getting deserialised
                     s.setUserItem(u);
-                    TableRow childRow = createSuggestionRow(s);
-                    _tableLayout.addView(childRow);
+                    createSuggestionRow(s);
                 }
             }
         }
@@ -122,7 +119,7 @@ public class BudgetFragment extends Fragment {
         _totalsListAdapter.notifyDataSetChanged();
     }
 
-    private TableRow createUserDestinationRow(UserItem item) {
+    private void createUserDestinationRow(UserItem item) {
         TableRow row = new TableRow(getActivity());
         TableRow v = (TableRow) _inflater.inflate(R.layout.budget_user_destination_table_row, row, false);
 
@@ -131,10 +128,10 @@ public class BudgetFragment extends Fragment {
         String title = item.getName();
         titleView.setText(title);
 
-        return v;
+        _tableLayout.addView(v);
     }
 
-    public TableRow createSuggestionRow(final SuggestionItem item) {
+    public void createSuggestionRow(final SuggestionItem item) {
         TableRow row = new TableRow(getActivity());
         final TableRow rowView = (TableRow) _inflater.inflate(R.layout.budget_suggestion_table_row, row, false);
 
@@ -174,7 +171,7 @@ public class BudgetFragment extends Fragment {
             }
         });
 
-        return rowView;
+        _tableLayout.addView(rowView);
     }
 
     /**

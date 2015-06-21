@@ -6,11 +6,20 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TableLayout;
+import android.widget.TableRow;
+import android.widget.TextView;
 
+import com.mapster.R;
 import com.mapster.activities.BudgetActivity;
 import com.mapster.activities.MainActivity;
 import com.mapster.itinerary.ItineraryItem;
+import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
+
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,10 +33,18 @@ import java.util.List;
 public class ScheduleFragment extends Fragment {
 
     private List<ItineraryItem> _sortedItems;
+    private TableLayout _tableLayout;
+    private LayoutInflater _inflater;
+    private DateTimeFormatter _timeFormatter;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        _inflater = inflater;
+
+        // Formats arrival time for the UI
+        _timeFormatter = DateTimeFormat.fullDate(); // TODO Fiddle with this
+
         // Construct a list of all the itinerary items, ordered by date
         List<ItineraryItem> items = ((BudgetActivity) getActivity()).getItems();
         _sortedItems = new LinkedList<>();
@@ -39,6 +56,39 @@ public class ScheduleFragment extends Fragment {
                 _sortedItems.addAll(((UserItem) item).getSuggestionItems());
         Collections.sort(_sortedItems); // Sort by date/time
 
-        return super.onCreateView(inflater, container, savedInstanceState);
+        // Set up the main table view for this fragment
+        View v = _inflater.inflate(R.layout.schedule_fragment, container, false);
+        _tableLayout = (TableLayout) v.findViewById(R.id.schedule_table);
+
+        createRowsFromItems();
+
+        return v;
+    }
+
+    private void createRowsFromItems() {
+        for (ItineraryItem item: _sortedItems) {
+            if (item instanceof UserItem) {
+                createRow(item, R.layout.schedule_user_destination_table_row);
+            } else if (item instanceof  SuggestionItem)  {
+                createRow(item, R.layout.schedule_suggestion_table_row);
+            }
+        }
+    }
+
+    public void createRow(ItineraryItem item, int layoutId) {
+        TableRow row = new TableRow(getActivity());
+        TableRow v = (TableRow) _inflater.inflate(layoutId, row, false);
+
+        // Name of the destination
+        TextView titleView = (TextView) v.findViewById(R.id.name);
+        titleView.setText(item.getName());
+
+        // Scheduled arrival time
+        TextView timeView = (TextView) v.findViewById(R.id.time);
+        DateTime time = item.getTime();
+        if (time != null) // Set to null if the date is missing
+            timeView.setText(_timeFormatter.print(item.getTime()));
+
+        _tableLayout.addView(v);
     }
 }

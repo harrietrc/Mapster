@@ -58,6 +58,7 @@ public class UserItem extends ItineraryItem implements Parcelable {
         _suggestionItems.add(item);
     }
 
+    @Override
     public String getName() {
         return _name;
     }

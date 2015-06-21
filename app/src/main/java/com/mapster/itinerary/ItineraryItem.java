@@ -13,7 +13,7 @@ public abstract class ItineraryItem implements Comparable<ItineraryItem> {
     private Long _id; // Corresponds with key from itinerary database
 
     // Time stuff (could encapsulate in a separate class)
-    private int _year, _month, _day, _hour, _minute;
+    private Integer _year, _month, _day, _hour, _minute;
 
     /**
      * Compares the itinerary item based on its time/date fields
@@ -38,7 +38,16 @@ public abstract class ItineraryItem implements Comparable<ItineraryItem> {
     }
 
     public DateTime getTime() {
-        return new DateTime(_year, _month, _day, _hour, _minute);
+        if (_year == null || _month == null || _day == null) {
+            return null;
+        } else {
+            // Default values for hours and minutes
+            if (_hour == null)
+                _hour = 0;
+            if (_minute == null)
+                _minute = 0;
+            return new DateTime(_year, _month, _day, _hour, _minute);
+        }
     }
 
     public Long getId() {
@@ -49,4 +58,5 @@ public abstract class ItineraryItem implements Comparable<ItineraryItem> {
         _id = id;
     }
 
+    public abstract String getName();
 }
