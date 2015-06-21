@@ -12,7 +12,6 @@ import android.widget.TextView;
 
 import com.mapster.R;
 import com.mapster.activities.BudgetActivity;
-import com.mapster.activities.MainActivity;
 import com.mapster.itinerary.ItineraryItem;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
@@ -21,8 +20,6 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,7 +32,8 @@ public class ScheduleFragment extends Fragment {
     private List<ItineraryItem> _sortedItems;
     private TableLayout _tableLayout;
     private LayoutInflater _inflater;
-    private DateTimeFormatter _timeFormatter;
+    private DateTimeFormatter _timeFormatter; // Prints only the time (no month or day)
+    private DateTimeFormatter _dateFormatter; // Prints only the date
 
     @Nullable
     @Override
@@ -43,7 +41,8 @@ public class ScheduleFragment extends Fragment {
         _inflater = inflater;
 
         // Formats arrival time for the UI
-        _timeFormatter = DateTimeFormat.fullDate(); // TODO Fiddle with this
+        _dateFormatter = DateTimeFormat.mediumDate(); // TODO Fiddle with this
+        _timeFormatter = DateTimeFormat.shortTime();
 
         // Construct a list of all the itinerary items, ordered by date
         List<ItineraryItem> items = ((BudgetActivity) getActivity()).getItems();
@@ -66,13 +65,39 @@ public class ScheduleFragment extends Fragment {
     }
 
     private void createRowsFromItems() {
+        DateTime currentTime = new DateTime();
         for (ItineraryItem item: _sortedItems) {
+            DateTime itemTime = item.getTime();
+            // Add a row with just the date, if this item has a different date to the previous one
+            if (currentTime != null && !currentTime.equals(itemTime))
+                createDateRow(itemTime);
+            currentTime = itemTime;
+            // Create a row for the itinerary item with its name
             if (item instanceof UserItem) {
                 createRow(item, R.layout.schedule_user_destination_table_row);
             } else if (item instanceof  SuggestionItem)  {
                 createRow(item, R.layout.schedule_suggestion_table_row);
             }
         }
+    }
+
+    /**
+     * Creates a row with just the date
+     * @param time
+     */
+    public void createDateRow(DateTime time) {
+        TableRow row = new TableRow(getActivity());
+        TableRow v = (TableRow) _inflater.inflate(R.layout.schedule_date_table_row, row, false);
+
+        TextView dateView = (TextView) v.findViewById(R.id.date);
+
+        if (time == null) {
+            dateView.setText("Unspecified time");
+        } else {
+            dateView.setText(_dateFormatter.print(time));
+        }
+
+        _tableLayout.addView(v);
     }
 
     public void createRow(ItineraryItem item, int layoutId) {
@@ -87,7 +112,7 @@ public class ScheduleFragment extends Fragment {
         TextView timeView = (TextView) v.findViewById(R.id.time);
         DateTime time = item.getTime();
         if (time != null) // Set to null if the date is missing
-            timeView.setText(_timeFormatter.print(item.getTime()));
+            timeView.setText(_timeFormatter.print(time)); // TODO Change to only display time
 
         _tableLayout.addView(v);
     }

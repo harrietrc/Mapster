@@ -136,7 +136,7 @@ public class BudgetFragment extends Fragment {
         final TableRow rowView = (TableRow) _inflater.inflate(R.layout.budget_suggestion_table_row, row, false);
 
         Suggestion suggestion = item.getSuggestion();
-        String currencySymbol = suggestion.getCurrencySymbol(getActivity());
+        String currencySymbol = suggestion.getCurrencySymbol();
 
         // TextView: Name of the destination
         TextView nameView = (TextView) rowView.findViewById(R.id.budget_col_suggestion_name);
@@ -145,13 +145,13 @@ public class BudgetFragment extends Fragment {
 
         // TextView: Cost per person (or base cost with no modifiers)
         TextView baseCostView = (TextView) rowView.findViewById(R.id.budget_col_base_cost);
-        Double baseCost = suggestion.getCostPerPerson(getActivity());
+        Double baseCost = suggestion.getCostPerPerson();
         if (baseCost != null)
             baseCostView.setText(currencySymbol + String.format("%.2f", baseCost));
 
         // TextView: Calculated total, including multipliers/modifiers
         TextView totalCostView = (TextView) rowView.findViewById(R.id.budget_col_total);
-        Double totalCost = item.getTotalCost(getActivity());
+        Double totalCost = item.getTotalCost();
         if (totalCost != null)
             totalCostView.setText(currencySymbol + String.format("%.2f", totalCost));
 
@@ -207,7 +207,7 @@ public class BudgetFragment extends Fragment {
         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                String currencySymbol = item.getSuggestion().getCurrencySymbol(getActivity());
+                String currencySymbol = item.getSuggestion().getCurrencySymbol();
 
                 // Save the value for the multiplier (number of people)
                 String multiplierString = multiplierView.getText().toString();
@@ -237,7 +237,7 @@ public class BudgetFragment extends Fragment {
 
                 // Update the total cost
                 TextView totalCostView = (TextView) row.findViewById(R.id.budget_col_total);
-                Double totalCost = item.getTotalCost(getActivity());
+                Double totalCost = item.getTotalCost();
                 if (totalCost != null)
                     totalCostView.setText(currencySymbol + String.format("%.2f", totalCost));
             }
@@ -275,9 +275,9 @@ public class BudgetFragment extends Fragment {
             // This is the only possibility at the moment - UserItems only
             if (item instanceof UserItem)
                 for (SuggestionItem s: ((UserItem) item).getSuggestionItems()) {
-                    String currencyCode = s.getSuggestion().getCurrencyCode(getActivity());
+                    String currencyCode = s.getSuggestion().getCurrencyCode();
                     Double total = _totalsMap.get(currencyCode);
-                    Double suggestionCost = s.getTotalCost(getActivity());
+                    Double suggestionCost = s.getTotalCost();
                     if (total == null && suggestionCost != null) {
                         _totalsMap.put(currencyCode, suggestionCost);
                     } else if (suggestionCost != null) {

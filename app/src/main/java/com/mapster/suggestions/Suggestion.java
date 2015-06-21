@@ -20,18 +20,18 @@ public abstract class Suggestion {
     // TODO!! The Context arg was a quick fix for something that should have been dealt with in
     // itinerary.serialisation.FoursquareSuggestionAdapter. It was taking too long to fix but the
     // argument should be removed later (after 18/06 due day)
-    public abstract Double getCostPerPerson(Context context);
+    public abstract Double getCostPerPerson();
 
-    public abstract String getCurrencyCode(Context context); // TODO ditto here
+    public abstract String getCurrencyCode();
 
     /**
      * Returns the currency symbol that corresponds to the currency code, if it is non-null and
      * valid
      * @return The currency symbol as a string
      */
-    public String getCurrencySymbol(Context context) { // TODO and here
+    public String getCurrencySymbol() {
         if (_currencySymbol == null) {
-            String currencyCode = getCurrencyCode(context);
+            String currencyCode = getCurrencyCode();
             if (currencyCode != null) {
                 // Try to retrieve the symbol that corresponds with the currency code
                 try {

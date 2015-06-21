@@ -51,7 +51,7 @@ public class GooglePlaceSuggestion extends Suggestion {
     }
 
     @Override
-    public Double getCostPerPerson(Context context) {
+    public Double getCostPerPerson() {
         /*
         Google offers no pricing information and attractions are too varied to make a meaningful
         estimate
@@ -60,7 +60,7 @@ public class GooglePlaceSuggestion extends Suggestion {
     }
 
     @Override
-    public String getCurrencyCode(Context context) {
+    public String getCurrencyCode() {
         return null; // No pricing info = no currency code required
     }
 

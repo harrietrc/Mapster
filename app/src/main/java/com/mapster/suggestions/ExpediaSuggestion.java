@@ -22,12 +22,12 @@ public class ExpediaSuggestion extends Suggestion {
      * @return
      */
     @Override
-    public Double getCostPerPerson(Context context) {
+    public Double getCostPerPerson() {
         return _hotel.estimateAverageRate();
     }
 
     @Override
-    public String getCurrencyCode(Context context) {
+    public String getCurrencyCode() {
         return _hotel.getCurrencyCode();
     }
 
@@ -60,7 +60,7 @@ public class ExpediaSuggestion extends Suggestion {
         StringBuilder sb = new StringBuilder();
         Double lowRate = _hotel.getLowRate();
         Double highRate = _hotel.getHighRate();
-        String currencySymbol = getCurrencySymbol(null);
+        String currencySymbol = getCurrencySymbol();
 
         sb.append(lowRate == null ? "" : currencySymbol + lowRate.intValue());
 

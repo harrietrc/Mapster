@@ -28,24 +28,12 @@ public class FoursquareSuggestion extends Suggestion {
     }
 
     @Override
-    public Double getCostPerPerson(Context context) {
-        // TODO Temporary! Sorry. For serialisation - see superclass comment.
-        if (_priceEstimator == null)
-            _priceEstimator = new MealPriceEstimate(context);
+    public Double getCostPerPerson() {
         return _priceEstimator.estimateMealPrice(this);
     }
 
-    /**
-     * This is used during deserialisation to reinitialise _priceEstimator (transient)
-     */
-    public void setPriceEstimator(Context context) {
-        _priceEstimator = new MealPriceEstimate(context);
-    }
-
     @Override
-    public String getCurrencyCode(Context context) {
-        if (_priceEstimator == null)
-            _priceEstimator = new MealPriceEstimate(context);
+    public String getCurrencyCode() {
         return _priceEstimator.getCurrencyCode(_venue.getCountryCode());
     }
 
@@ -56,7 +44,9 @@ public class FoursquareSuggestion extends Suggestion {
 
     @Override
     public String getInfoWindowString() {
-        return _venue.toString();
+        String info = _venue.toString();
+        info += String.format("\n~$%.2f per person", getCostPerPerson());
+        return info;
     }
 
     @Override
