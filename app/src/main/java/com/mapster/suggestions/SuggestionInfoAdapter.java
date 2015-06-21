@@ -5,14 +5,17 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.TimePicker;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 import com.mapster.R;
 import com.mapster.activities.MainActivity;
+import com.mapster.itinerary.ItineraryItem;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
 import com.mapster.priceestimation.MealPriceEstimate;
@@ -64,15 +67,79 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
                     // Add the suggestion to the list for the UserItem it is associated with
                     UserItem userItem = item.getUserItem();
                     userItem.addSuggestionItem(item);
+
+                    // Prompt the user to enter a date for the suggestion (currently optional)
+                    showDateDialogue(item);
+
                     mainActivity.setItineraryUpdateRequired();
                 }
             });
-
-            builder.setNegativeButton(R.string.no, null); // Does nothing when 'No' is clicked
+            builder.setNegativeButton(R.string.no, null);
 
             AlertDialog dialog = builder.create();
             dialog.show();
         }
+    }
+
+    /**
+     * Second stage in the call chain of dialogues that is invoked when an item is added to the
+     * itinerary
+     * @param item Suggestion added to the itinerary
+     */
+    public void showDateDialogue(final ItineraryItem item) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(_activity);
+        builder.setTitle("Arrival date");
+
+        // View for this dialogue - a date picker, which sets the item's date fields
+        View v = _inflater.inflate(R.layout.date_dialogue, null, false);
+        final DatePicker picker = (DatePicker) v.findViewById(R.id.date_picker);
+        builder.setView(v);
+
+        // Listeners for button presses - save state and transition to the next dialogue
+        builder.setNegativeButton(R.string.skip, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Skip - go to the time picker without saving state
+                showTimePicker(item);
+            }
+        }).setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Save date picker state to itinerary item and go to the time picker
+                item.setDate(picker.getYear(), picker.getMonth(), picker.getDayOfMonth());
+                showTimePicker(item);
+            }
+        });
+
+        AlertDialog dialogue = builder.create();
+        dialogue.show();
+    }
+
+    /**
+     * Third stage in the call chain that is invoked when an item is added to the itinerary. Allows
+     * the user to set a time for the item. Currently skippable.
+     * @param item
+     */
+    public void showTimePicker(final ItineraryItem item) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(_activity);
+        builder.setTitle("Arrival time");
+
+        // View for this dialogue - time picker used to set item's time fields
+        View v = _inflater.inflate(R.layout.time_dialogue, null, false);
+        final TimePicker picker = (TimePicker) v.findViewById(R.id.time_picker);
+        builder.setView(v);
+
+        // Save time values (or skip and let control fall back to activity)
+        builder.setNegativeButton(R.string.skip, null).setPositiveButton(R.string.ok,
+                new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                item.setTime(picker.getCurrentHour(), picker.getCurrentMinute());
+            }
+        });
+
+        AlertDialog dialogue = builder.create();
+        dialogue.show();
     }
 
     @Override
