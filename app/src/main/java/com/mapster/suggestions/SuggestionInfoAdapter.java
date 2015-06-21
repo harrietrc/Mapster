@@ -29,7 +29,6 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
         GoogleMap.OnInfoWindowClickListener {
 
     private LayoutInflater _inflater;
-    private MealPriceEstimate _estimator;
 
     // This field prevents the ImageView from being garbage collected before its drawable can be
     // set, and the image returned by Picasso displayed.
@@ -39,7 +38,6 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
     public SuggestionInfoAdapter(LayoutInflater inflater, Activity activity) {
         _inflater = inflater;
         _activity = activity;
-        _estimator = new MealPriceEstimate(activity);
     }
 
     /**
@@ -96,13 +94,8 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
         builder.setView(v);
 
         // Listeners for button presses - save state and transition to the next dialogue
-        builder.setNegativeButton(R.string.skip, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // Skip - go to the time picker without saving state
-                showTimePicker(item);
-            }
-        }).setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+        builder.setNegativeButton(R.string.skip, null).setPositiveButton(R.string.ok,
+                new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 // Save date picker state to itinerary item and go to the time picker
