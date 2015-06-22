@@ -7,7 +7,6 @@ import android.util.Log;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.mapster.R;
 import com.mapster.activities.MainActivity;
 import com.mapster.itinerary.SuggestionItem;
@@ -15,7 +14,6 @@ import com.mapster.itinerary.UserItem;
 import com.mapster.json.GooglePlaceJsonParser;
 import com.mapster.places.GooglePlace;
 import com.mapster.suggestions.GooglePlaceSuggestion;
-import com.mapster.suggestions.Suggestion;
 
 import org.json.JSONException;
 import org.json.JSONObject;

@@ -2,6 +2,10 @@
 <TableRow xmlns:android="http://schemas.android.com/apk/res/android"
           android:layout_width="match_parent"
           android:layout_height="match_parent">
+    <ImageButton
+        android:maxWidth="40dp"
+        android:contentDescription="@string/budget_edit_description"
+        android:id="@+id/budget_col_edit"/>
     <TextView
         android:id="@+id/budget_col_suggestion_name"
         android:layout_width="wrap_content"
@@ -31,8 +35,5 @@
         android:paddingBottom="3dp"
         android:paddingTop="3dp"
         android:paddingRight="10dp"/>
-    <ImageButton
-        android:maxWidth="40dp"
-        android:contentDescription="@string/budget_edit_description"
-        android:id="@+id/budget_col_edit"/>
+
 </TableRow>

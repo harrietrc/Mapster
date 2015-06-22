@@ -35,6 +35,7 @@ import com.mapster.itinerary.ItineraryItem;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
 import com.mapster.itinerary.persistence.ItineraryDataSource;
+import com.mapster.itinerary.persistence.UpdateMainFromItineraryTask;
 import com.mapster.json.JSONParser;
 import com.mapster.map.information.MapInformation;
 import com.mapster.suggestions.Suggestion;
@@ -163,58 +164,13 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _drawerLayout.setDrawerListener(drawerListener);
     }
 
-//    @Override
-//    public void onResume() {
-//        // TODO Improve this; it's very heavy-handed and messy. At least make it a task.
-//        // Get the itinerary from the database and update the Activity's items here with any changes
-//
-//        List<ItineraryItem> items = _itineraryDataSource.getAllItems();
-//        Collection<UserItem> existingItems = _userItemsByMarkerId.values();
-//
-//        // Make a map where existing ItineraryItems are keyed by ID.
-//        Map<Long, ItineraryItem> oldItems = new HashMap<>();
-//        for (UserItem oldItem: existingItems) {
-//            oldItems.put(oldItem.getId(), oldItem);
-//            for (SuggestionItem s : oldItem.getSuggestionItems())
-//                oldItems.put(s.getId(), s);
-//        }
-//
-//        /*
-//        Swap out suggestions in deserialised UserItems for those here (which have markers),
-//        gradually updating the map of ItineraryItems to the updated items. Suggestions are not
-//        expected to be modified outside this activity (although any ItineraryItems may be)
-//        */
-//        // The database currently only stores UserItems so this is redundant, but it's not in the schema
-//        for (ItineraryItem item: items) {
-//            if (item instanceof UserItem) {
-//                for (SuggestionItem s : (((UserItem) item).getSuggestionItems())) {
-//                    Long id = s.getId();
-//                    SuggestionItem old = (SuggestionItem) oldItems.get(id);
-//                    if (old != null) {
-//                        s.setSuggestion(old.getSuggestion());
-//                        oldItems.put(id, s);
-//                    }
-//                }
-//                oldItems.put(item.getId(), item);
-//            }
-//        }
-//
-//        // Update UserItem map
-//        for (Map.Entry pair : _userItemsByMarkerId.entrySet()) {
-//            Long id = ((UserItem) pair.getValue()).getId();
-//            if (id != null)
-//                _userItemsByMarkerId.put((String) pair.getKey(), (UserItem) oldItems.get(id));
-//        }
-//
-//        // Update SuggestionItem map
-//        for (Map.Entry pair : _suggestionItemsByMarkerId.entrySet()) {
-//            Long id = ((SuggestionItem) pair.getValue()).getId();
-//            if (id != null)
-//                _suggestionItemsByMarkerId.put((String) pair.getKey(), (SuggestionItem) oldItems.get(id));
-//        }
-//
-//        super.onResume();
-//    }
+    @Override
+    public void onResume() {
+        UpdateMainFromItineraryTask updateTask = new UpdateMainFromItineraryTask(
+                _suggestionItemsByMarkerId, _userItemsByMarkerId, _itineraryDataSource);
+        updateTask.execute();
+        super.onResume();
+    }
 
     public void setItineraryUpdateRequired() {
         _itineraryUpdateRequired = true;

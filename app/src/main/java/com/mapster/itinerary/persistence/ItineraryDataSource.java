@@ -37,7 +37,7 @@ public class ItineraryDataSource {
                 new ItineraryItemAdapter()).registerTypeAdapter(Suggestion.class,
                 new SuggestionAdapter()).registerTypeAdapter(FoursquareSuggestion.class,
                 new FoursquareSuggestionInstanceCreator(context))
-                .excludeFieldsWithModifiers(Modifier.TRANSIENT).create();
+                .excludeFieldsWithModifiers(Modifier.TRANSIENT, Modifier.STATIC).create();
     }
 
     /**
@@ -81,7 +81,6 @@ public class ItineraryDataSource {
      */
     private void insertItineraryItem(ItineraryItem item) {
         String serialisedItem = _gson.toJson(item, ItineraryItem.class);
-        System.out.println(serialisedItem); // debugging
         ContentValues values = new ContentValues();
         values.put(ItineraryHelper.COLUMN_SERIALISED, serialisedItem);
         _database.insert(ItineraryHelper.TABLE_ITINERARY_ITEM, null, values);
@@ -96,13 +95,8 @@ public class ItineraryDataSource {
      * Deserialises the SerialisedItem field and returns that object. Bit of type information lost.
      */
     private ItineraryItem cursorToItem(Cursor cursor) {
-        long id = cursor.getLong(0);
         String serialisedItem = cursor.getString(1);
-
         ItineraryItem item = _gson.fromJson(serialisedItem, ItineraryItem.class);
-        // Might be better to create a custom deserialiser to set the ID through the constructor
-        item.setId(id);
-
         return item;
     }
 

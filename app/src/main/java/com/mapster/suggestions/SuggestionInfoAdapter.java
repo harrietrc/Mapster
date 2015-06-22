@@ -18,7 +18,6 @@ import com.mapster.activities.MainActivity;
 import com.mapster.itinerary.ItineraryItem;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
-import com.mapster.priceestimation.MealPriceEstimate;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
@@ -52,8 +51,6 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
         final SuggestionItem item = mainActivity.getSuggestionItemByMarker(marker);
 
         if (item != null && !item.isInItinerary()) {
-            item.setIsInItinerary(true);
-
             // Marker is a suggestion marker so we should process the event
             AlertDialog.Builder builder = new AlertDialog.Builder(_activity);
             String name = item.getSuggestion().getName();
@@ -62,14 +59,17 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
             builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    // Add the suggestion to the list for the UserItem it is associated with
-                    UserItem userItem = item.getUserItem();
-                    userItem.addSuggestionItem(item);
+                // Add the suggestion to the list for the UserItem it is associated with
+                UserItem userItem = item.getUserItem();
+                userItem.addSuggestionItem(item);
 
-                    // Prompt the user to enter a date for the suggestion (currently optional)
-                    showDateDialogue(item);
+                // Prompt the user to enter a date for the suggestion (currently optional)
+                showDateDialogue(item);
 
-                    mainActivity.setItineraryUpdateRequired();
+                // Flag this to not issue this prompt next time
+                item.setIsInItinerary(true);
+
+                mainActivity.setItineraryUpdateRequired();
                 }
             });
             builder.setNegativeButton(R.string.no, null);

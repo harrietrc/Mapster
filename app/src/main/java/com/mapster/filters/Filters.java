@@ -1,12 +1,9 @@
 package com.mapster.filters;
 
 import android.content.Context;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ExpandableListView;
 
-import com.mapster.R;
 import com.mapster.activities.MainActivity;
 
 import java.util.ArrayList;

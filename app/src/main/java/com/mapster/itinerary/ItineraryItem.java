@@ -4,13 +4,21 @@ import com.mapster.itinerary.utils.ItineraryItemTimeComparator;
 
 import org.joda.time.DateTime;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  * Created by Harriet on 6/12/2015.
  * Add functionality as needed.
  */
 public abstract class ItineraryItem implements Comparable<ItineraryItem> {
 
-    private Long _id; // Corresponds with key from itinerary database
+    /*
+    Unique identifier for itinerary item, used when matching itinerary items when carrying them
+    between activities. Can't use the ID from the database because the tables are occasionally
+    dropped to reset them.
+    */
+    static final AtomicLong NEXT_ID = new AtomicLong(0);
+    final long _id = NEXT_ID.getAndIncrement();
 
     // Time stuff (could encapsulate in a separate class)
     private Integer _year, _month, _day, _hour, _minute;
@@ -50,12 +58,8 @@ public abstract class ItineraryItem implements Comparable<ItineraryItem> {
         }
     }
 
-    public Long getId() {
+    public long getId() {
         return _id;
-    }
-
-    public void setId(long id) {
-        _id = id;
     }
 
     public abstract String getName();
