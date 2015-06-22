@@ -410,46 +410,46 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
         private void drawInstructions(MapInformation mapInformation){
             LinearLayout ll = (LinearLayout)findViewById(R.id.instructions);
-            addChildToLayout(ll, "Total Duration: " + mapInformation.getTotalDuration().getName() + " Total Distance: " + mapInformation.getTotalDistance().getName(), 18, true);
+            addChildToLayout(ll, "Total Duration: " + mapInformation.getTotalDuration().getName() + " Total Distance: " + mapInformation.getTotalDistance().getName(), 18);
             List<Path> paths = mapInformation.getPaths();
+            Path path = null;
+            StringBuilder name = null;
             for(int i = 0; i < paths.size(); i++){
-               addChildToLayout(ll, paths.get(i).getInstruction().getInstruction().replaceAll("<(/)?div(.+?(?=>))?>", ". "), 16, true);
+                path = paths.get(i);
+                name = new StringBuilder();
+                name.append(path.getInstruction().getInstruction().replaceAll("<(/)?div(.+?(?=>))?>", ". "));
                 if (!paths.get(i).getDuration().getName().isEmpty()) {
-                    StringBuilder name = new StringBuilder();
-                    name.append(paths.get(i).getMode() + ": ");
+                    name.append("<br/>");
+                    name.append(path.getMode() + ": ");
                     name.append("For ");
-                    name.append(paths.get(i).getDistance().getName());
+                    name.append(path.getDistance().getName());
                     name.append(", ");
-                    name.append(paths.get(i).getDuration().getName());
+                    name.append(path.getDuration().getName());
                     name.append(" at ");
-                    name.append(paths.get(i).getDate().toString());
-                    addChildToLayout(ll, name.toString(), 16, false);
+                    name.append(path.getDate().toString());
                 }
+                addChildToLayout(ll, name.toString(), 16);
             }
         }
 
-        private void addChildToLayout(LinearLayout ll, String name, int size, boolean isNewMode){
-            ll.addView(createTextView(name, size, isNewMode));
+        private void addChildToLayout(LinearLayout ll, String name, int size){
+            ll.addView(createTextView(name, size));
         }
     }
 
-    protected TextView createTextView(String name, int size, boolean isNewMode){
+    protected TextView createTextView(String name, int size){
         TextView valueTV = new TextView(this);
         valueTV.setText(Html.fromHtml(name));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT
                 ,LinearLayout.LayoutParams.WRAP_CONTENT);
-        if (isNewMode) {
-            params.setMargins(0, 30, 0, 0);
-        } else {
-            params.setMargins(0, 5, 0, 0);
-        }
+        params.setMargins(0, 30, 0, 0);
         valueTV.setTextSize(size);
         valueTV.setLayoutParams(params);
         valueTV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                System.out.println(((TextView)v).getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-                ((TextView)v).setPaintFlags( ((TextView)v).getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            System.out.println(((TextView)v).getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            ((TextView)v).setPaintFlags( ((TextView)v).getPaintFlags() ^ Paint.STRIKE_THRU_TEXT_FLAG);
             }
         });
         return valueTV;
