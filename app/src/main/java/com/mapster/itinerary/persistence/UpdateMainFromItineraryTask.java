@@ -61,6 +61,11 @@ public class UpdateMainFromItineraryTask extends AsyncTask<Void, Void, Void> {
             }
         }
 
+        // Make a copy of the old ItineraryItems - quickfix for deserialisation issues (_userItem
+        // field of Suggestionitem isn't deserialised - will look into fixing this)
+        Map<Long, ItineraryItem> oldItems = new HashMap<>();
+        oldItems.putAll(allItems);
+
         /*
         Swap out suggestions in deserialised UserItems for those here (which have markers),
         gradually updating the map of ItineraryItems to the updated items. Suggestions are not
@@ -68,7 +73,8 @@ public class UpdateMainFromItineraryTask extends AsyncTask<Void, Void, Void> {
         */
         for (ItineraryItem item: dbItems) {
             if (item instanceof UserItem) {
-                for (SuggestionItem s : (((UserItem) item).getSuggestionItems())) {
+                UserItem userItem = (UserItem) item;
+                for (SuggestionItem s : userItem.getSuggestionItems()) {
                     Long id = s.getId();
                     SuggestionItem old = (SuggestionItem) allItems.get(id);
                     s.setSuggestion(old.getSuggestion());
@@ -94,8 +100,18 @@ public class UpdateMainFromItineraryTask extends AsyncTask<Void, Void, Void> {
         for (Map.Entry pair : _suggestionItemsByMarkerId.entrySet()) {
             Long id = ((SuggestionItem) pair.getValue()).getId();
             SuggestionItem dbItem = (SuggestionItem) allItems.get(id);
+
             // Get the updated item from the DB if available, else use the item that's already there
             SuggestionItem item = dbItem == null ? (SuggestionItem) pair.getValue() : dbItem;
+
+            // For some reason the nested UserItem isn't deserialised. Temporary work-around
+            // TODO Consider removing that bidirectional relationship so this isn't necessary
+            SuggestionItem oldSuggestion = (SuggestionItem) oldItems.get(item.getId());
+            if (oldSuggestion == null)
+                oldSuggestion = item;
+            long oldUserItemId = oldSuggestion.getUserItem().getId();
+            item.setUserItem((UserItem) allItems.get(oldUserItemId));
+
             _suggestionItemsByMarkerId.put((String) pair.getKey(), item);
         }
         return null;

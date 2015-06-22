@@ -36,13 +36,6 @@ public class BudgetActivity extends FragmentActivity {
     }
 
     @Override
-    protected void onResume() {
-        _items = getItemsFromDatabase();
-        _budgetFragment.resetTable();
-        super.onResume();
-    }
-
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Set up the data - accessed and shared by both fragments
         _itineraryDataSource = new ItineraryDataSource(this);

@@ -69,6 +69,10 @@ public class BudgetFragment extends Fragment {
         return v;
     }
 
+    public void refreshDataAndViews() {
+
+    }
+
     // Not sure whether onResume() is called after the Activity's onResume(), so I replaced it with this
     public void resetTable() {
         // Clear the table and recreate the rows - heavy handed and could be replaced with that flag?

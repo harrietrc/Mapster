@@ -166,9 +166,12 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     @Override
     public void onResume() {
-        UpdateMainFromItineraryTask updateTask = new UpdateMainFromItineraryTask(
-                _suggestionItemsByMarkerId, _userItemsByMarkerId, _itineraryDataSource);
-        updateTask.execute();
+        if (!_suggestionItemsByMarkerId.isEmpty()) {
+            // Don't want this to run straight after the first onCreate() call
+            UpdateMainFromItineraryTask updateTask = new UpdateMainFromItineraryTask(
+                    _suggestionItemsByMarkerId, _userItemsByMarkerId, _itineraryDataSource);
+            updateTask.execute();
+        }
         super.onResume();
     }
 

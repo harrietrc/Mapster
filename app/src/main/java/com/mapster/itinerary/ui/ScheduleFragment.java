@@ -45,6 +45,17 @@ public class ScheduleFragment extends Fragment {
         _timeFormatter = DateTimeFormat.shortTime();
 
         // Construct a list of all the itinerary items, ordered by date
+        refreshDataFromDatabase();
+
+        // Set up the main table view for this fragment
+        View v = _inflater.inflate(R.layout.schedule_fragment, container, false);
+        _tableLayout = (TableLayout) v.findViewById(R.id.schedule_table);
+
+        createRowsFromItems();
+        return v;
+    }
+
+    private void refreshDataFromDatabase() {
         List<ItineraryItem> items = ((BudgetActivity) getActivity()).getItems();
         _sortedItems = new LinkedList<>();
         // Add the user-defined items
@@ -54,14 +65,6 @@ public class ScheduleFragment extends Fragment {
             if (item instanceof UserItem)
                 _sortedItems.addAll(((UserItem) item).getSuggestionItems());
         Collections.sort(_sortedItems); // Sort by date/time
-
-        // Set up the main table view for this fragment
-        View v = _inflater.inflate(R.layout.schedule_fragment, container, false);
-        _tableLayout = (TableLayout) v.findViewById(R.id.schedule_table);
-
-        createRowsFromItems();
-
-        return v;
     }
 
     private void createRowsFromItems() {
@@ -69,8 +72,9 @@ public class ScheduleFragment extends Fragment {
         for (ItineraryItem item: _sortedItems) {
             DateTime itemTime = item.getTime();
             // Add a row with just the date, if this item has a different date to the previous one
-            if (currentTime != null && !currentTime.equals(itemTime))
-                createDateRow(itemTime);
+            if (currentTime != null)
+                if (itemTime == null || !currentTime.toLocalDate().equals(itemTime.toLocalDate()))
+                    createDateRow(itemTime);
             currentTime = itemTime;
             // Create a row for the itinerary item with its name
             if (item instanceof UserItem) {
