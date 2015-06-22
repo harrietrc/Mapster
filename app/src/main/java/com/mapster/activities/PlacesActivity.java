@@ -57,7 +57,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     private TextView _dateTextView;
     private SimpleDateFormat _dateFormat = new SimpleDateFormat("dd/MM/yyyy");
     private SimpleDateFormat _timeFormat = new SimpleDateFormat("HH:mm");
-    private String _dateStartJourney = _dateFormat.format((new Date()));
+    private String _dateStartJourney;
     private String _timeStartJourney = _timeFormat.format (new Date());
     private String _dateTimeStartJourney;
     private TextView _timeTextView;
@@ -298,6 +298,10 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     }
 
     private void mergeDateAndTimeToDateTime(){
+        if (_dateStartJourney == null)
+            _dateStartJourney = _dateFormat.format(new Date());
+        if (_timeStartJourney == null)
+            _timeStartJourney = _timeFormat.format(new Date());
         _dateTimeStartJourney = _dateStartJourney + " " + _timeStartJourney;
     }
 

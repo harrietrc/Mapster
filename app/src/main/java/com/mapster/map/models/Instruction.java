@@ -1,4 +1,4 @@
-package com.mapster.map.information;
+package com.mapster.map.models;
 
 /**
  * Created by tommyngo on 11/06/15.

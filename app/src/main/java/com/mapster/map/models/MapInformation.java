@@ -1,7 +1,8 @@
-package com.mapster.map.information;
+package com.mapster.map.models;
+
+import com.mapster.date.CustomDate;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -14,12 +15,14 @@ public class MapInformation {
     private String _destination;
     private Distance _totalDistance;
     private Duration _totalDuration;
+    private CustomDate _date;
 
-    public MapInformation(){
+    public MapInformation(CustomDate date){
         _paths = new ArrayList<>();
         _routes = new ArrayList<>();
         _totalDistance = new Distance();
         _totalDuration = new Duration();
+        _date = date;
     }
 
     public void setOrigin(String origin){
@@ -79,6 +82,14 @@ public class MapInformation {
     }
 
     public void addPath(Path path){
+        if(path.getDate() == null) {
+            CustomDate date = new CustomDate(_date.toString());
+            _date.addSeconds(path.getDuration().getValue());
+            date.addSeconds(path.getDuration().getValue());
+            path.setDate(date);
+        } else {
+            _date = path.getDate();
+        }
         _paths.add(path);
     }
 
@@ -93,4 +104,8 @@ public class MapInformation {
     public void addRoutes(Routes routes){
         _routes.add(routes);
     }
+
+    public void setDate(CustomDate date){ _date = date; }
+
+    public CustomDate getDate() { return _date; };
 }

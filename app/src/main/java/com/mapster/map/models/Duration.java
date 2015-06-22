@@ -1,18 +1,20 @@
-package com.mapster.map.information;
+package com.mapster.map.models;
 
 /**
  * Created by tommyngo on 1/05/15.
  */
-public class Distance {
+public class Duration {
     private String _name;
     private int _value;
-    public Distance(String name, int value){
+    public Duration(String name, int value){
         this._name = name;
         this._value = value;
     }
-    public Distance(){
+
+    public Duration(){
 
     }
+
     public void setValue(int value){
         _value = value;
     }

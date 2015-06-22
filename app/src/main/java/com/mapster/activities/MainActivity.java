@@ -1,7 +1,7 @@
 package com.mapster.activities;
 
 import android.content.Intent;
-import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
@@ -13,6 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,12 +34,15 @@ import com.mapster.connectivities.tasks.ReadTask;
 import com.mapster.date.CustomDate;
 import com.mapster.filters.Filters;
 import com.mapster.json.JSONParser;
-import com.mapster.map.information.MapInformation;
-import com.mapster.map.information.Path;
-import com.mapster.map.information.Routes;
+import com.mapster.map.models.MapInformation;
+import com.mapster.map.models.Path;
+import com.mapster.map.models.Routes;
 import com.mapster.suggestions.Suggestion;
 import com.mapster.suggestions.SuggestionInfoAdapter;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Seconds;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -59,6 +63,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private ArrayList<String> _sortedTransportMode;
     private String _startDateTime;
     private CustomDate _customDate;
+    private MapInformation _mapInformation;
 
     // Markers divided into categories (to make enumeration of categories faster)
     private HashMap<String, List<Marker>> _markersByCategory;
@@ -291,7 +296,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
         url.append(waypoints);
         url.append("&destination=" + destinationCoordinate.latitude + "," + destinationCoordinate.longitude);
+        url.append("&departure_time=" + _customDate.secondsBetween());
         url.append("&mode=" + transportMode);
+        url.append("&key=" + getString(R.string.API_KEY));
         System.out.println(url);
         return url.toString();
     }
@@ -360,7 +367,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
             try {
                 jObject = new JSONObject(jsonData[0]);
-                JSONParser parser = new JSONParser();
+                JSONParser parser = new JSONParser(_customDate);
                 mapInformation = parser.parse(jObject);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -374,6 +381,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 createToast("Routes not found", Toast.LENGTH_SHORT);
                 return;
             }
+            _mapInformation = mapInformation;
             ArrayList<LatLng> points;
             PolylineOptions polyLineOptions = null;
             // traversing through routes
@@ -402,39 +410,55 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
         private void drawInstructions(MapInformation mapInformation){
             LinearLayout ll = (LinearLayout)findViewById(R.id.instructions);
-            addChildToLayout(ll, "Total Duration: " + mapInformation.getTotalDuration().getName() + " Total Distance: " + mapInformation.getTotalDistance().getName(), 18);
+            addChildToLayout(ll, "Total Duration: " + mapInformation.getTotalDuration().getName() + " Total Distance: " + mapInformation.getTotalDistance().getName(), 18, true);
             List<Path> paths = mapInformation.getPaths();
             for(int i = 0; i < paths.size(); i++){
-                StringBuilder name = new StringBuilder();
+               addChildToLayout(ll, paths.get(i).getInstruction().getInstruction().replaceAll("<(/)?div(.+?(?=>))?>", ". "), 16, true);
                 if (!paths.get(i).getDuration().getName().isEmpty()) {
+                    StringBuilder name = new StringBuilder();
+                    name.append(paths.get(i).getMode() + ": ");
+                    name.append("For ");
                     name.append(paths.get(i).getDistance().getName());
-                    name.append(" ");
+                    name.append(", ");
                     name.append(paths.get(i).getDuration().getName());
-                    addChildToLayout(ll, name.toString(), 16);
+                    name.append(" at ");
+                    name.append(paths.get(i).getDate().toString());
+                    addChildToLayout(ll, name.toString(), 16, false);
                 }
-                addChildToLayout(ll, paths.get(i).getInstruction().getInstruction(), 16);
             }
         }
 
-        private void addChildToLayout(LinearLayout ll, String name, int size){
-            ll.addView(createTextView(name, size));
+        private void addChildToLayout(LinearLayout ll, String name, int size, boolean isNewMode){
+            ll.addView(createTextView(name, size, isNewMode));
         }
     }
 
-    protected TextView createTextView(String name, int size){
+    protected TextView createTextView(String name, int size, boolean isNewMode){
         TextView valueTV = new TextView(this);
         valueTV.setText(Html.fromHtml(name));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT
                 ,LinearLayout.LayoutParams.WRAP_CONTENT);
-        params.setMargins(0, 10, 0, 10);
+        if (isNewMode) {
+            params.setMargins(0, 30, 0, 0);
+        } else {
+            params.setMargins(0, 5, 0, 0);
+        }
         valueTV.setTextSize(size);
         valueTV.setLayoutParams(params);
+        valueTV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                System.out.println(((TextView)v).getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+                ((TextView)v).setPaintFlags( ((TextView)v).getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            }
+        });
         return valueTV;
     }
 
     protected void createToast(String name, int duration){
         Toast.makeText(this, name, duration).show();
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -638,4 +662,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 m.setVisible(isVisible);
         }
     }
+    @Override
+    public void onBackPressed(){
+        finish();
+        super.onBackPressed();
+    }
+
 }

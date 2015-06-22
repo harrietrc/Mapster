@@ -1,4 +1,4 @@
-package com.mapster.map.information;
+package com.mapster.map.models;
 
 import java.util.HashMap;
 import java.util.List;
