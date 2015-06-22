@@ -54,5 +54,6 @@
     <string name="total">Total</string>
     <string name="destination">Destination</string>
     <string name="cost">Cost</string>
+    <string name="edit">Edit</string>
 
 </resources>

@@ -19,6 +19,7 @@ import android.widget.Toast;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.LatLng;
@@ -51,7 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener {
+public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener, OnMapReadyCallback {
     private static final float UNDEFINED_COLOUR = -1;
     private static final String COORDINATE_LIST = "COORDINATE_LIST";
     private static final String TRANSPORT_MODE = "TRANSPORT_MODE";
@@ -121,25 +122,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _userItemsByMarkerId = new HashMap<>();
         _suggestionItemsByMarkerId = new HashMap<>();
 
-        for(int i = 0; i < _latLngArrayList.size(); i++){
-            DirectionsTask downloadTask = new DirectionsTask();
-            String url = getMapsApiDirectionsUrl(_latLngArrayList.get(i), _sortedTransportMode.get(i));
-            downloadTask.execute(url);
-        }
-
-        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(_latLngArrayList.get(0).get(0),
-                13));
-        addMarkers();
-        _map.setOnMarkerClickListener(this);
-
-        // SuggestionInfoAdapter listens for and adapts all infowindow-related activity
-        SuggestionInfoAdapter infoAdapter = new SuggestionInfoAdapter(getLayoutInflater(), this);
-        _map.setInfoWindowAdapter(infoAdapter);
-        _map.setOnInfoWindowClickListener(infoAdapter);
-
-        _map.setMyLocationEnabled(true);
-        initSuggestionMarkers();
-
         // Populate the filters drawer/list
         ExpandableListView filters = (ExpandableListView) findViewById(R.id.filter_list);
         _filters = new Filters(filters);
@@ -197,7 +179,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private void initializeGoogleMap(){
         SupportMapFragment fm = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
-        _map = fm.getMap();
+        fm.getMapAsync(this);
     }
 
     private void getDataFromPlaceActivity(){
@@ -382,6 +364,29 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
         // Refilter markers
         setVisibilityByFilters();
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        _map = googleMap;
+        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(_latLngArrayList.get(0).get(0),
+                13));
+        addMarkers();
+        _map.setOnMarkerClickListener(this);
+
+        // SuggestionInfoAdapter listens for and adapts all infowindow-related activity
+        SuggestionInfoAdapter infoAdapter = new SuggestionInfoAdapter(getLayoutInflater(), this);
+        _map.setInfoWindowAdapter(infoAdapter);
+        _map.setOnInfoWindowClickListener(infoAdapter);
+
+        _map.setMyLocationEnabled(true);
+        initSuggestionMarkers();
+
+        for(int i = 0; i < _latLngArrayList.size(); i++){
+            DirectionsTask downloadTask = new DirectionsTask();
+            String url = getMapsApiDirectionsUrl(_latLngArrayList.get(i), _sortedTransportMode.get(i));
+            downloadTask.execute(url);
+        }
     }
 
     private class DirectionsTask extends ReadTask {
