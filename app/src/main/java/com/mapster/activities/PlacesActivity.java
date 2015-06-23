@@ -187,6 +187,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     private void addUserCoordinateToArrayList(){
         _coordinateArrayList = new ArrayList<>();
+        _userItemList = new ArrayList<>();
         for (AutoCompleteTextView acTextView : _autoCompleteTextViewLinkedList){
             try {
                 if(!acTextView.getText().toString().isEmpty()) {
