@@ -22,6 +22,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -48,6 +49,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener, OnMapReadyCallback {
@@ -148,8 +150,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     public void onResume() {
         if (!_suggestionItemsByMarkerId.isEmpty()) {
             // Don't want this to run straight after the first onCreate() call
-            UpdateMainFromItineraryTask updateTask = new UpdateMainFromItineraryTask(
-                    _suggestionItemsByMarkerId, _userItemsByMarkerId, _itineraryDataSource);
+            UpdateMainFromItineraryTask updateTask = new UpdateMainFromItineraryTask(this);
             updateTask.execute();
         }
         super.onResume();
@@ -387,6 +388,18 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
     }
 
+    public ItineraryDataSource getItineraryDatasource() {
+        return _itineraryDataSource;
+    }
+
+    public Map<String, UserItem> getUserItemsByMarkerId() {
+        return _userItemsByMarkerId;
+    }
+
+    public Map<String, SuggestionItem> getSuggestionItemsByMarkerId() {
+        return _suggestionItemsByMarkerId;
+    }
+
     private class DirectionsTask extends ReadTask {
         @Override
         protected void onPostExecute(String result) {
@@ -542,10 +555,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         List<Marker> markers = _markersByCategory.get(_currentCategory);
 
         if (_currentCategory == null) {
-            setAllMarkersVisible(true);
+            setSuggestionMarkersVisible(true);
         } else {
             // Hide everything else
-            setAllMarkersVisible(false);
+            setSuggestionMarkersVisible(false);
             setMarkerListVisible(true, markers);
         }
     }
@@ -584,6 +597,26 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 }
             }
         }
+    }
+
+    public void setSuggestionItemMarker(SuggestionItem item) {
+        Suggestion suggestion = item.getSuggestion();
+        Marker marker = suggestion.getMarker();
+        int iconId = 0;
+        BitmapDescriptor icon;
+        switch (suggestion.getCategory()) {
+            case "dining":
+                iconId = item.isInItinerary() ? R.drawable.restaurant_red : R.drawable.restaurant;
+                break;
+            case "accommodation":
+                iconId = item.isInItinerary() ? R.drawable.lodging_0star_red : R.drawable.lodging_0star;
+                break;
+            case "attractions":
+                iconId = item.isInItinerary() ? R.drawable.flag_export_red : R.drawable.flag_export;
+                break;
+        }
+        icon = BitmapDescriptorFactory.fromResource(iconId);
+        marker.setIcon(icon);
     }
 
     /**
@@ -670,7 +703,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
      */
     public void onClearClick(View v) {
         // Clear the markers
-        setAllMarkersVisible(false);
+        setSuggestionMarkersVisible(false);
 
         // Reset the RadioButtons
         _filters.clearAllFilterRadioButtons();
@@ -688,19 +721,20 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     private void setMarkerListVisible(boolean isVisible, List<Marker> markers) {
-        if (markers != null) {
+        if (markers != null)
             for (Marker m: markers)
                 m.setVisible(isVisible);
-        }
     }
 
-    private void setAllMarkersVisible(boolean isVisible) {
-        Collection all = _markersByCategory.values();
-        for (Object o: all) {
-            ArrayList<Marker> markerList = (ArrayList) o;
-            for (Marker m: markerList)
-                m.setVisible(isVisible);
-        }
+    /**
+     * Sets visibility of all the suggestion markers except the ones in the itinerary, which should
+     * always be displayed.
+     * @param isVisible Visibility for the markers
+     */
+    private void setSuggestionMarkersVisible(boolean isVisible) {
+        for (SuggestionItem item: _suggestionItemsByMarkerId.values())
+            if (!item.isInItinerary())
+                item.getSuggestion().getMarker().setVisible(isVisible);
     }
 
     private void startBudgetActivity() {

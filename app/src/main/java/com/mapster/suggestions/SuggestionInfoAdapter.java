@@ -69,6 +69,7 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
                 // Flag this to not issue this prompt next time
                 item.setIsInItinerary(true);
 
+                mainActivity.setSuggestionItemMarker(item);
                 mainActivity.setItineraryUpdateRequired();
                 }
             });
