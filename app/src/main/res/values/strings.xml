@@ -25,7 +25,7 @@
     <string name="all">All</string>
     <string name="clear">Clear</string>
 
-    <string name="budget_button">Budget</string>
+    <string name="itinerary_button">Itinerary</string>
     <string name="multiplier" >x</string>
 
     <!-- Placeholders - shouldn't actually be shown -->

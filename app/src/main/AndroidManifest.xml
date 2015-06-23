@@ -48,7 +48,7 @@
             android:label="@string/app_name" >
         </activity>
         <activity
-            android:name=".activities.BudgetActivity"
+            android:name=".activities.ItineraryActivity"
             android:label="Budget">
         </activity>
     </application>

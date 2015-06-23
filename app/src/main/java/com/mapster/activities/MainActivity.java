@@ -32,7 +32,6 @@ import com.mapster.connectivities.tasks.FoursquareExploreTask;
 import com.mapster.connectivities.tasks.GooglePlacesTask;
 import com.mapster.connectivities.tasks.ReadTask;
 import com.mapster.filters.Filters;
-import com.mapster.itinerary.ItineraryItem;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
 import com.mapster.itinerary.persistence.ItineraryDataSource;
@@ -49,7 +48,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener, OnMapReadyCallback {
@@ -714,7 +712,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             _itineraryDataSource.insertMultipleItineraryItems(userItems);
             _itineraryUpdateRequired = false;
         }
-        Intent intent = new Intent(this, BudgetActivity.class);
+        Intent intent = new Intent(this, ItineraryActivity.class);
         startActivity(intent);
     }
 }

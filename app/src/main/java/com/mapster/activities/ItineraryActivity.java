@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * Created by Harriet on 6/16/2015.
  */
-public class BudgetActivity extends FragmentActivity {
+public class ItineraryActivity extends FragmentActivity {
 
     // Data about the itinerary
     private ItineraryDataSource _itineraryDataSource;

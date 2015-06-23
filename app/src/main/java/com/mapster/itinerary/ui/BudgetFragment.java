@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -16,7 +17,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.mapster.R;
-import com.mapster.activities.BudgetActivity;
+import com.mapster.activities.ItineraryActivity;
 import com.mapster.itinerary.ItineraryItem;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
@@ -67,10 +68,6 @@ public class BudgetFragment extends Fragment {
         return v;
     }
 
-    public void refreshDataAndViews() {
-
-    }
-
     // Not sure whether onResume() is called after the Activity's onResume(), so I replaced it with this
     public void resetTable() {
         // Clear the table and recreate the rows - heavy handed and could be replaced with that flag?
@@ -94,7 +91,7 @@ public class BudgetFragment extends Fragment {
 
     private void createRowsFromItems() {
         // TODO Shift itinerary data out of activity to a datasource class?
-        List<ItineraryItem> items = ((BudgetActivity) getActivity()).getItems();
+        List<ItineraryItem> items = ((ItineraryActivity) getActivity()).getItems();
 
         for (ItineraryItem item: items) {
             if (item instanceof UserItem) {
@@ -163,12 +160,23 @@ public class BudgetFragment extends Fragment {
             actualCostView.setText(currencySymbol + String.format("%.2f", actualCost));
 
         // Button: Opens a dialogue for editing the number of people, money spent, etc.
-        ImageButton editButton = (ImageButton) rowView.findViewById(R.id.budget_col_edit);
-        editButton.setImageResource(R.drawable.ic_table_edit_grey600_48dp);
+        final ImageButton editButton = (ImageButton) rowView.findViewById(R.id.budget_col_edit);
         editButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 buildEditDialogue(item, rowView);
+            }
+        });
+
+        // Set the edit button's height to be the same as its width
+        ViewTreeObserver vto = editButton.getViewTreeObserver();
+        vto.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            public boolean onPreDraw() {
+                int x;
+                editButton.getViewTreeObserver().removeOnPreDrawListener(this);
+                x = editButton.getMeasuredWidth();
+                editButton.setLayoutParams(new LinearLayout.LayoutParams(x, x));
+                return true;
             }
         });
 
@@ -270,7 +278,7 @@ public class BudgetFragment extends Fragment {
         _totalsMap = new HashMap<>();
 
         // TODO See other note about datasource
-        List<ItineraryItem> items = ((BudgetActivity) getActivity()).getItems();
+        List<ItineraryItem> items = ((ItineraryActivity) getActivity()).getItems();
 
         for (ItineraryItem item: items) {
             // This is the only possibility at the moment - UserItems only
@@ -278,7 +286,11 @@ public class BudgetFragment extends Fragment {
                 for (SuggestionItem s: ((UserItem) item).getSuggestionItems()) {
                     String currencyCode = s.getSuggestion().getCurrencyCode();
                     Double total = _totalsMap.get(currencyCode);
-                    Double suggestionCost = s.getTotalCost();
+
+                    // Use the entered value as the cost if available - else use the estimate.
+                    Double userCost = s.getActualCost();
+                    Double suggestionCost = userCost == null? s.getTotalCost() : userCost;
+
                     if (total == null && suggestionCost != null) {
                         _totalsMap.put(currencyCode, suggestionCost);
                     } else if (suggestionCost != null) {

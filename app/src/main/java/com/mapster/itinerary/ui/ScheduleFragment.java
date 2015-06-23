@@ -7,10 +7,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.mapster.R;
-import com.mapster.activities.BudgetActivity;
+import com.mapster.activities.ItineraryActivity;
 import com.mapster.itinerary.ItineraryItem;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
@@ -55,7 +56,7 @@ public class ScheduleFragment extends Fragment {
     }
 
     private void refreshDataFromDatabase() {
-        List<ItineraryItem> items = ((BudgetActivity) getActivity()).getItems();
+        List<ItineraryItem> items = ((ItineraryActivity) getActivity()).getItems();
         _sortedItems = new LinkedList<>();
         // Add the user-defined items
         _sortedItems.addAll(items);
@@ -104,8 +105,8 @@ public class ScheduleFragment extends Fragment {
     }
 
     public void createRow(ItineraryItem item, int layoutId) {
-        LinearLayout row = new LinearLayout(getActivity());
-        LinearLayout v = (LinearLayout) _inflater.inflate(layoutId, row, false);
+        RelativeLayout row = new RelativeLayout(getActivity());
+        RelativeLayout v = (RelativeLayout) _inflater.inflate(layoutId, row, false);
 
         // Name of the destination
         TextView titleView = (TextView) v.findViewById(R.id.name);
