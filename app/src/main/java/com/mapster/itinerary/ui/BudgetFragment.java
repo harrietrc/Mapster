@@ -13,8 +13,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
 
 import com.mapster.R;
@@ -36,7 +34,7 @@ import java.util.Map;
 public class BudgetFragment extends Fragment {
 
     private LayoutInflater _inflater;
-    private TableLayout _tableLayout;
+    private LinearLayout _layout;
 
     // Totals
     Map<String, Double> _totalsMap; // Maintains state for totals list
@@ -51,7 +49,7 @@ public class BudgetFragment extends Fragment {
 
         // Inflate the layout and get a reference to the table
         View v = _inflater.inflate(R.layout.budget_fragment, container, false);
-        _tableLayout = (TableLayout) v.findViewById(R.id.budget_table);
+        _layout = (LinearLayout) v.findViewById(R.id.budget_layout);
 
         // Populate list of totals
         _totalsList = new ArrayList<>();
@@ -76,8 +74,8 @@ public class BudgetFragment extends Fragment {
     // Not sure whether onResume() is called after the Activity's onResume(), so I replaced it with this
     public void resetTable() {
         // Clear the table and recreate the rows - heavy handed and could be replaced with that flag?
-        if (_tableLayout != null) {
-            _tableLayout.removeAllViews();
+        if (_layout != null) {
+            _layout.removeAllViews();
             createRowsFromItems();
         }
     }
@@ -95,7 +93,6 @@ public class BudgetFragment extends Fragment {
     }
 
     private void createRowsFromItems() {
-        _tableLayout = (TableLayout) _tableLayout.findViewById(R.id.budget_table);
         // TODO Shift itinerary data out of activity to a datasource class?
         List<ItineraryItem> items = ((BudgetActivity) getActivity()).getItems();
 
@@ -124,20 +121,20 @@ public class BudgetFragment extends Fragment {
     }
 
     private void createUserDestinationRow(UserItem item) {
-        TableRow row = new TableRow(getActivity());
-        TableRow v = (TableRow) _inflater.inflate(R.layout.budget_user_destination_table_row, row, false);
+        LinearLayout row = new LinearLayout(getActivity());
+        LinearLayout v = (LinearLayout) _inflater.inflate(R.layout.budget_user_destination_row, row, false);
 
         // Add other info or styling if you want; currently just displays the destination name
         TextView titleView = (TextView) v.findViewById(R.id.budget_col_user_dest_name);
         String title = item.getName();
         titleView.setText(title);
 
-        _tableLayout.addView(v);
+        _layout.addView(v);
     }
 
     public void createSuggestionRow(final SuggestionItem item) {
-        TableRow row = new TableRow(getActivity());
-        final TableRow rowView = (TableRow) _inflater.inflate(R.layout.budget_suggestion_table_row, row, false);
+        LinearLayout row = new LinearLayout(getActivity());
+        final LinearLayout rowView = (LinearLayout) _inflater.inflate(R.layout.budget_suggestion_row, row, false);
 
         Suggestion suggestion = item.getSuggestion();
         String currencySymbol = suggestion.getCurrencySymbol();
@@ -175,7 +172,7 @@ public class BudgetFragment extends Fragment {
             }
         });
 
-        _tableLayout.addView(rowView);
+        _layout.addView(rowView);
     }
 
     /**
@@ -193,7 +190,7 @@ public class BudgetFragment extends Fragment {
         moneySpentView.setSelection(moneySpentView.getText().length());
     }
 
-    public void buildEditDialogue(final SuggestionItem item, final TableRow row) {
+    public void buildEditDialogue(final SuggestionItem item, final LinearLayout row) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
         // Inflate the dialogue layout and get references to all the relevant views
@@ -259,7 +256,7 @@ public class BudgetFragment extends Fragment {
                 updateTotals();
 
                 // Delete the row in the table and hide the dialogue
-                _tableLayout.removeView(row);
+                _layout.removeView(row);
                 dialog.hide();
             }
         });

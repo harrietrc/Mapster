@@ -6,8 +6,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TableLayout;
-import android.widget.TableRow;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.mapster.R;
@@ -30,7 +29,7 @@ import java.util.List;
 public class ScheduleFragment extends Fragment {
 
     private List<ItineraryItem> _sortedItems;
-    private TableLayout _tableLayout;
+    private LinearLayout _layout;
     private LayoutInflater _inflater;
     private DateTimeFormatter _timeFormatter; // Prints only the time (no month or day)
     private DateTimeFormatter _dateFormatter; // Prints only the date
@@ -49,7 +48,7 @@ public class ScheduleFragment extends Fragment {
 
         // Set up the main table view for this fragment
         View v = _inflater.inflate(R.layout.schedule_fragment, container, false);
-        _tableLayout = (TableLayout) v.findViewById(R.id.schedule_table);
+        _layout = (LinearLayout) v.findViewById(R.id.schedule_layout);
 
         createRowsFromItems();
         return v;
@@ -78,9 +77,9 @@ public class ScheduleFragment extends Fragment {
             currentTime = itemTime;
             // Create a row for the itinerary item with its name
             if (item instanceof UserItem) {
-                createRow(item, R.layout.schedule_user_destination_table_row);
+                createRow(item, R.layout.schedule_user_destination_row);
             } else if (item instanceof  SuggestionItem)  {
-                createRow(item, R.layout.schedule_suggestion_table_row);
+                createRow(item, R.layout.schedule_suggestion_row);
             }
         }
     }
@@ -90,8 +89,8 @@ public class ScheduleFragment extends Fragment {
      * @param time
      */
     public void createDateRow(DateTime time) {
-        TableRow row = new TableRow(getActivity());
-        TableRow v = (TableRow) _inflater.inflate(R.layout.schedule_date_table_row, row, false);
+        LinearLayout row = new LinearLayout(getActivity());
+        LinearLayout v = (LinearLayout) _inflater.inflate(R.layout.schedule_date_row, row, false);
 
         TextView dateView = (TextView) v.findViewById(R.id.date);
 
@@ -101,12 +100,12 @@ public class ScheduleFragment extends Fragment {
             dateView.setText(_dateFormatter.print(time));
         }
 
-        _tableLayout.addView(v);
+        _layout.addView(v);
     }
 
     public void createRow(ItineraryItem item, int layoutId) {
-        TableRow row = new TableRow(getActivity());
-        TableRow v = (TableRow) _inflater.inflate(layoutId, row, false);
+        LinearLayout row = new LinearLayout(getActivity());
+        LinearLayout v = (LinearLayout) _inflater.inflate(layoutId, row, false);
 
         // Name of the destination
         TextView titleView = (TextView) v.findViewById(R.id.name);
@@ -118,6 +117,6 @@ public class ScheduleFragment extends Fragment {
         if (time != null) // Set to null if the date is missing
             timeView.setText(_timeFormatter.print(time)); // TODO Change to only display time
 
-        _tableLayout.addView(v);
+        _layout.addView(v);
     }
 }

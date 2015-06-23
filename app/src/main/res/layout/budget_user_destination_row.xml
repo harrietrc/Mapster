@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TableRow xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="horizontal"
           android:background="@android:color/black"
           android:layout_width="match_parent"
-          android:layout_height="match_parent">
+          android:layout_height="wrap_content">
     <!-- Overly simple, but likely to get more complex later. -->
     <TextView
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
         android:paddingLeft="10dp"
         android:paddingBottom="3dp"
         android:paddingTop="3dp"
@@ -13,4 +16,4 @@
         android:textSize="15sp"
         android:ellipsize="end"
         android:id="@+id/budget_col_user_dest_name"/>
-</TableRow>
+</LinearLayout>

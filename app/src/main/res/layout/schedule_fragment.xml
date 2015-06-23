@@ -5,9 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
-    <TableLayout
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/schedule_table">
-    </TableLayout>
+        android:id="@+id/schedule_layout">
+    </LinearLayout>
 </LinearLayout>

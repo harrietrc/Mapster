@@ -6,11 +6,13 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <TableLayout
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/budget_table">
-        <TableRow
+        android:id="@+id/budget_layout">
+        <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <TextView
@@ -33,9 +35,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/money_spent"/>
-        </TableRow>
+        </LinearLayout>
         <!-- Rows are added programmatically -->
-    </TableLayout>
+    </LinearLayout>
     <LinearLayout
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
