@@ -12,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -29,6 +30,8 @@ import com.mapster.fragment.DatePickerFragment;
 import com.mapster.fragment.TimePickerFragment;
 import com.mapster.geocode.GeoCode;
 import com.mapster.places.autocomplete.PlacesAutoCompleteAdapter;
+
+import org.joda.time.LocalTime;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -93,7 +96,8 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     @Override
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-        _timeStartJourney = hourOfDay + ":"  + minute;
+        LocalTime lt = new LocalTime(hourOfDay, minute);
+        _timeStartJourney = lt.toString("HH:mm");
         _timeTextView.setText(_timeStartJourney);
     }
 
@@ -218,6 +222,33 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                            Toast.LENGTH_SHORT).show();
         }
     }
+
+    public void addDate(View view){
+        LinearLayout ll = addDateToStopPoint(view);
+        ViewGroup vg = (ViewGroup)(view.getParent());
+        vg.removeView(view);
+    }
+
+    private LinearLayout addDateToStopPoint(View view){
+        LinearLayout layoutAddPoint = (LinearLayout) findViewById(R.id.add_stop_points);
+        LinearLayout layoutToAddDate = null;
+        for (int i = 0; i < layoutAddPoint.getChildCount(); i++) {
+            LinearLayout ll = (LinearLayout)layoutAddPoint.getChildAt(i);
+            for(int j = 0; j < ll.getChildCount(); j++){
+                if (view.equals(ll.getChildAt(j))) {
+                    layoutToAddDate = (LinearLayout) ll.getChildAt(j + 1);
+                    break;
+                }
+            }
+        }
+        LinearLayout inflateLayout = (LinearLayout)View.inflate(
+                this, R.layout.add_date, null);
+        layoutToAddDate.addView(inflateLayout);
+        layoutToAddDate.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT));
+        return inflateLayout;
+    }
+
 
     private boolean isNotOriginAndDestinationEmpty(){
         AutoCompleteTextView originInList = _autoCompleteTextViewLinkedList.get(0);

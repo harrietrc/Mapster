@@ -47,4 +47,20 @@
             android:text="Transit"
             android:id="@+id/transit_mode"/>
     </RadioGroup>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add departure date to travel to next location"
+        android:onClick="addDate"
+        android:clickable="true"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="5pt"
+        android:textSize="7pt"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:id="@+id/add_date">
+    </LinearLayout>
 </LinearLayout>

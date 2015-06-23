@@ -100,7 +100,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _userMarkers = new HashMap<>();
         for(int i = 0; i < _latLngArrayList.size(); i++){
             DirectionsTask downloadTask = new DirectionsTask();
-            String url = getMapsApiDirectionsUrl(_latLngArrayList.get(i), _sortedTransportMode.get(i));
+            String url = getMapsApiDirectionsUrl(_latLngArrayList.get(i), _sortedTransportMode.get(i),i );
             downloadTask.execute(url);
         }
 
@@ -200,8 +200,28 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                     }
                 }
             }
+
             helper = addPointToList(i, posInCoordinateArrayList);
-            _sortedCoordinateArrayList.add(helper);
+            System.out.println(helper);
+            if (helper.size() > 4 && _sortedTransportMode.get(_sortedTransportMode.size() - 1).equals(PlacesActivity.TravelMode.TRANSIT.name().toLowerCase())){
+                List<String> transitHelper = null;
+                for(int j = 0; j < helper.size(); j += 2){
+                    transitHelper = new ArrayList<>();
+
+                    for(int k = j; k < j + 4; k ++){
+                        transitHelper.add(helper.get(k));
+                    }
+                    _sortedCoordinateArrayList.add(transitHelper);
+                    if (j > 1)
+                        _sortedTransportMode.add(_sortedTransportMode.get(_sortedTransportMode.size() - 1));
+                    System.out.println(_sortedCoordinateArrayList.size());
+                    System.out.println(_sortedTransportMode.size());
+                    if (j == helper.size() - 4)
+                        break;
+                }
+            } else {
+                _sortedCoordinateArrayList.add(helper);
+            }
             posInCoordinateArrayList = i + 1;
         }
     }
@@ -279,7 +299,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
     }
 
-    private String getMapsApiDirectionsUrl(List<LatLng> latLngArrayList, String transportMode) {
+    private String getMapsApiDirectionsUrl(List<LatLng> latLngArrayList, String transportMode, int number) {
         int size = latLngArrayList.size();
         LatLng originCoordinate = latLngArrayList.get(0);
         LatLng destinationCoordinate = latLngArrayList.get(size - 1);
@@ -296,9 +316,11 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
         url.append(waypoints);
         url.append("&destination=" + destinationCoordinate.latitude + "," + destinationCoordinate.longitude);
-        url.append("&departure_time=" + _customDate.secondsBetween());
+        if (number == 0)
+            url.append("&departure_time=" + _customDate.secondsBetween());
+            url.append("&departure_time=" + _customDate.secondsBetween());
         url.append("&mode=" + transportMode);
-        url.append("&key=" + getString(R.string.API_KEY));
+//        url.append("&key=" + getString(R.string.API_KEY));
         System.out.println(url);
         return url.toString();
     }
@@ -667,5 +689,4 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         finish();
         super.onBackPressed();
     }
-
 }
