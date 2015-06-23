@@ -18,8 +18,10 @@ import com.mapster.suggestions.GooglePlaceSuggestion;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Harriet on 5/26/2015.
@@ -30,6 +32,16 @@ public class GooglePlacesTask extends AsyncTask<LatLng, Void, List<GooglePlace>>
     private int _searchRadius;
     private int _numberOfResults;
     private UserItem _item; // The user-defined item that these attractions are suggestions for
+
+    /*
+        Two alternatives for retrieving results:
+        - True: There are some categories ('point_of_interest', 'natural_feature') that can't be
+          queried for in a request to the Places API. This option will filter for them once the
+          results are returned and keep 'paging' the API until there are enough results.
+        - False: Ignore the extra categories. Gives less relevant results but I found that with
+          the first option not enough results were returned, as paging is limited to 3 pages.
+     */
+    private static final boolean FILTER_RESULTS = false;
 
     public GooglePlacesTask(Activity activity, int searchRadius, int numberOfResults,
                             UserItem item) {
@@ -48,36 +60,78 @@ public class GooglePlacesTask extends AsyncTask<LatLng, Void, List<GooglePlace>>
         GooglePlaceJsonParser placeJsonParser = new GooglePlaceJsonParser();
         List<GooglePlace> places = new ArrayList<>();
 
-        List<String> urls = new ArrayList<>();
+        String url = buildPlacesUrl(locs[0]);
 
-        urls.add(buildPlacesUrl(locs[0], GooglePlace.getAttractionCategories()));
-
-        for (String url: urls) {
-            // Query the Google Places API to get nearby places
-            String response = null;
-            try {
-                com.mapster.connectivities.HttpConnection http = new com.mapster.connectivities.HttpConnection();
-                response = http.readUrl(url);
-            } catch (Exception e) {
-                Log.d("Background Task", e.toString());
-            }
-
-            // Parse JSON response into GooglePlaces
-            try {
-                JSONObject jsonResponse = new JSONObject(response);
-                List<GooglePlace> parsed = placeJsonParser.parse(jsonResponse);
-
-                // Limit the number of suggestions per category
-                List<GooglePlace> shortList = parsed;
-                if (places.size() > _numberOfResults)
-                    shortList = parsed.subList(0, _numberOfResults);
-                places.addAll(shortList);
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+        // Query the Google Places API to get nearby places
+        String response = null;
+        com.mapster.connectivities.HttpConnection http = null;
+        try {
+            http = new com.mapster.connectivities.HttpConnection();
+            response = http.readUrl(url);
+        } catch (IOException e) {
+            Log.d("Background Task", e.toString());
         }
-        return places;
+
+        // Parse JSON response into GooglePlaces
+        JSONObject jsonResponse = null;
+        try {
+            jsonResponse = new JSONObject(response);
+            places = placeJsonParser.parse(jsonResponse);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        List<GooglePlace> filteredPlaces = filterPlaces(places);
+
+        if (filteredPlaces.size() < _numberOfResults) {
+            // Keep paging the Places API until we have enough results
+            while (filteredPlaces.size() < _numberOfResults) {
+                String nextPageToken = placeJsonParser.getNextPageToken(jsonResponse);
+                if (nextPageToken == null)
+                    break;
+
+                // Get and parse the next page of results
+                String nextPageUrl = buildNextPageUrl(nextPageToken);
+                List<GooglePlace> newPlaces = new ArrayList<>();
+                try {
+                    String newResponse = http.readUrl(nextPageUrl);
+                    jsonResponse = new JSONObject(newResponse);
+                    newPlaces = placeJsonParser.parse(jsonResponse);
+                } catch (IOException | JSONException e) {
+                    e.printStackTrace();
+                }
+
+                // Filter the new results and add the relevant ones to our list
+                List<GooglePlace> newFilteredPlaces = filterPlaces(newPlaces);
+                filteredPlaces.addAll(newFilteredPlaces);
+            }
+        } else {
+            // Truncate the list of places to be no longer than the specified number of results
+            filteredPlaces = new ArrayList<>(filteredPlaces.subList(0, _numberOfResults));
+        }
+
+        return filteredPlaces;
+    }
+
+    public List<GooglePlace> filterPlaces(List<GooglePlace> places) {
+        List<GooglePlace> filteredPlaces = new ArrayList<>();
+
+        if (!FILTER_RESULTS) // See comment for this constant
+            return places;
+
+        // The request retrieved places that fit the default category because there are some
+        // categories that cannot be queried for. Filter for attractions here
+        Set<String> allCategories = GooglePlace.getAttractionCategories();
+        for (GooglePlace place: places) {
+            Set<String> placeCategories = place.getCategories();
+
+            // If the place fits some of the categories that we recognise as attractions, keep it
+            placeCategories.retainAll(allCategories);
+            if (placeCategories.size() > 0)
+                filteredPlaces.add(place);
+        }
+
+        return filteredPlaces;
     }
 
     /**
@@ -89,32 +143,25 @@ public class GooglePlacesTask extends AsyncTask<LatLng, Void, List<GooglePlace>>
         MainActivity mainActivity = (MainActivity) _activity;
 
         for (GooglePlace place: places) {
-            // Save the marker in the correct categories
-            String[] categories = place.getCategories();
-            String parentCategory = null;
-            int iconId = 0;
-            // TODO Can probably simplify this a bit
-            for (String c : categories) {
-                // Not the best way to do this, but ok for 2 categories.
-                if (GooglePlace.ATTRACTIONS.contains(c)|GooglePlace.EXTRA_ATTRACTIONS.contains(c)) {
-                    parentCategory = "attractions";
-                    iconId = R.drawable.flag_export;
-                }
-            }
-            // 'establishment' type is allowed only if it also matches one of the
-            // EXTRA_ATTRACTIONS types - if not, discard the Place.
-            if (parentCategory != null) {
-                GooglePlaceSuggestion suggestion = new GooglePlaceSuggestion(place, parentCategory);
-                BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(iconId);
-                SuggestionItem item = new SuggestionItem(suggestion, _item);
-                mainActivity.addSuggestionItem(item, icon, place.getName());
-            }
+            GooglePlaceSuggestion suggestion = new GooglePlaceSuggestion(place);
+            BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.flag_export);
+            SuggestionItem item = new SuggestionItem(suggestion, _item);
+            mainActivity.addSuggestionItem(item, icon, place.getName());
         }
     }
 
-    public String buildPlacesUrl(LatLng location, String[] types) {
+    public String buildNextPageUrl(String nextPageToken) {
+        StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place"
+                + "/nearbysearch/json?");
+        sb.append("key=" + _activity.getResources().getString(R.string.API_KEY));
+        sb.append("&pagetoken=" + nextPageToken);
+        return sb.toString();
+    }
+
+    public String buildPlacesUrl(LatLng location) {
         double lat = location.latitude;
         double lng = location.longitude;
+        Set<String> types = GooglePlace.ATTRACTIONS;
 
         StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place"
                 + "/nearbysearch/json?");
@@ -122,16 +169,19 @@ public class GooglePlacesTask extends AsyncTask<LatLng, Void, List<GooglePlace>>
         sb.append("&location=" + lat + "," + lng);
         sb.append("&radius=" + _searchRadius);
         sb.append("&rankby=prominence");
-        if (types.length > 0) {
-            sb.append("&types=");
-            String delim = "";
-            for (String s: types) {
-                sb.append(delim);
-                sb.append(s);
-                delim = "|";
+
+        // Essentially renders the paging/filtering stuff useless but it wasn't retrieving enough results
+        if (!FILTER_RESULTS)
+            if (types.size() > 0) {
+                sb.append("&types=");
+                String delim = "";
+                for (String s: types) {
+                    sb.append(delim);
+                    sb.append(s);
+                    delim = "|";
+                }
             }
-        }
-        String url = sb.toString();
-        return url;
+
+        return sb.toString();
     }
 }

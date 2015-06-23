@@ -6,8 +6,10 @@ import android.util.Log;
 import com.google.android.gms.maps.model.LatLng;
 import com.mapster.R;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -19,7 +21,6 @@ public class GooglePlace {
     private String _name;
     private String _id; // Google placeId
     private Float _rating;
-    private String[] _categories;
     private String _photoReference;
 
     // Save the details of a place, if they are retrieved.
@@ -27,15 +28,21 @@ public class GooglePlace {
 
     private Integer _priceLevel; // Rates the expense of the place, with 0 being free and 4 very expensive
 
-    public GooglePlace(String id, String name, LatLng latLng, Float rating,
-                       String[] categories, String photoRef) {
+    // All the categories that this place belongs to
+    private Set<String> _categories;
+
+    public GooglePlace(String id, String name, LatLng latLng, Float rating, String photoRef, Set<String> categories) {
         _id = id;
         _name = name;
         _latitude = latLng.latitude;
         _longitude = latLng.longitude;
         _rating = rating;
-        _categories = categories;
         _photoReference = photoRef;
+        _categories = categories;
+    }
+
+    public Set<String> getCategories() {
+        return _categories;
     }
 
     public LatLng getLatLng() {
@@ -74,23 +81,21 @@ public class GooglePlace {
         _detail = detail;
     }
 
-    private static String[] _allCategories;
-
     // Default category for uncategorised places
-    public static final String DEFAULT = "establishment";
+    public static final Set<String> DEFAULT = new HashSet<>(Arrays.asList("establishment"));
 
-    public static final HashSet<String> PLACES_OF_WORSHIP = new HashSet<>(Arrays.asList(
+    public static final Set<String> PLACES_OF_WORSHIP = new HashSet<>(Arrays.asList(
         // Not really sure what to do with these - how do you differentiate something like the
         // Sagrada Familia from just your local church? Probably by rating and popularity.
         "church", "hindu_temple", "mosque", "place_of_worship", "synagogue"
     ));
 
-    public static final HashSet<String> ENTERTAINMENT = new HashSet<>(Arrays.asList(
+    public static final Set<String> ENTERTAINMENT = new HashSet<>(Arrays.asList(
         "bowling_alley", "casino", "movie_theatre", "night_club", "spa"
     ));
 
-    public static final HashSet<String> ATTRACTIONS = new HashSet<>(Arrays.asList(
-        "amusement_park", "aquarium", "zoo", "art_gallery", "museum", "park"
+    public static final Set<String> ATTRACTIONS = new HashSet<>(Arrays.asList(
+        "amusement_park", "aquarium", "zoo", "art_gallery", "museum"//, "park" TOO MANY PARKS!
     ));
 
     /**
@@ -101,40 +106,15 @@ public class GooglePlace {
         "point_of_interest", "natural_feature"
     ));
 
-    public static final HashSet<String> DINING = new HashSet<>(Arrays.asList(
-        "bakery", "bar", "cafe", "food", "restaurant"
-    ));
-
     public static final HashSet<String> SHOPPING = new HashSet<>(Arrays.asList(
         "book_store", "clothing_store", "department_store", "shopping_mall"
     ));
 
-    public static final HashSet<String> ACCOMMODATION = new HashSet<>(Arrays.asList(
-        "campground", "lodging" // Hotels, B&B's, etc. fall under lodging
-    ));
-
-    public static String[] getAccommodationCategories() {
-        return ACCOMMODATION.toArray(new String[ACCOMMODATION.size()]);
-    }
-
-    public static String[] getDiningCategories() {
-        return DINING.toArray(new String[DINING.size()]);
-    }
-
-    public static String[] getAttractionCategories() {
-        return ATTRACTIONS.toArray(new String[ATTRACTIONS.size()]);
-    }
-
-    public static String[] getAllCategories() {
-        if (_allCategories == null) {
-            Set<String> cats = new HashSet<>();
-            cats.addAll(ATTRACTIONS);
-            cats.addAll(DINING);
-            cats.addAll(ACCOMMODATION);
-//            cats.add(DEFAULT);
-            _allCategories = cats.toArray(new String[cats.size()]);
-        }
-        return _allCategories;
+    public static Set<String> getAllCategories() {
+        Set<String> cats = new HashSet<>();
+        cats.addAll(ATTRACTIONS);
+        cats.addAll(DEFAULT);
+        return cats;
     }
 
     public String getName() {
@@ -166,7 +146,10 @@ public class GooglePlace {
         return _rating == null ? 0 : _rating;
     }
 
-    public String[] getCategories() {
-        return _categories;
+    public static Set<String> getAttractionCategories() {
+        Set<String> allAttractionCategories = new HashSet<>();
+        allAttractionCategories.addAll(ATTRACTIONS);
+        allAttractionCategories.addAll(EXTRA_ATTRACTIONS);
+        return allAttractionCategories;
     }
 }

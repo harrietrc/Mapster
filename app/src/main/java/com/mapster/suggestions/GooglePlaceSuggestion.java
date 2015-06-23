@@ -16,9 +16,8 @@ public class GooglePlaceSuggestion extends Suggestion {
     private GooglePlace _place;
     private String _category;
 
-    public GooglePlaceSuggestion(GooglePlace place, String category) {
-        // TODO Set category from GooglePlace as well
-        _category = category;
+    public GooglePlaceSuggestion(GooglePlace place) {
+        _category = "attractions";
         _isClicked = false;
         _place = place;
     }
