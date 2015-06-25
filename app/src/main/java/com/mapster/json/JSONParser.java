@@ -34,7 +34,9 @@ public class JSONParser {
     public JSONParser (CustomDate date){
         mapInformation = new MapInformation(date);
     }
-    public MapInformation parse(JSONObject jObject) {
+    public MapInformation parse(JSONObject jObject, MapInformation map) {
+        if (map != null)
+            this.mapInformation = map;
         HashMap<String, Integer> helper = new HashMap<>();
         JSONArray jRoutes = null;
         JSONArray jLegs = null;
@@ -47,6 +49,7 @@ public class JSONParser {
                 return null;
             }
             StringBuilder string = new StringBuilder();
+            System.out.println(mapInformation);
             string.append("Start Date: <b>" + mapInformation.getDate().toString() + "</b>");
             Path originalDate = new Path (new Distance("", 0), new Instruction(string.toString()), new Duration("", 0), mapInformation.getDate(), "");
             mapInformation.addPath(originalDate);

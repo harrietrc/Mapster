@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Created by tommyngo on 30/04/15.
  */
-public class MapInformation {
+public class MapInformation{
     private List<Path> _paths;
     private List<Routes> _routes;
     private String _origin;
@@ -108,4 +108,6 @@ public class MapInformation {
     public void setDate(CustomDate date){ _date = date; }
 
     public CustomDate getDate() { return _date; };
+
+
 }
