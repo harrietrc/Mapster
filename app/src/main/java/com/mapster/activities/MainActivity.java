@@ -206,13 +206,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         int i = 0;
         while( i <_userItemList.size()){
             if (i >= _userItemList.size() - 1) {
-                System.out.println(i);
-                System.out.println(posInCoordinateArrayList);
                 _sortedTransportMode.add(_userItemList.get(i - 1).getTravelMode());
                 helper = addPointToList(i, posInCoordinateArrayList);
                 _sortedCoordinateArrayList.add(helper);
-                System.out.println(_sortedTransportMode);
-                System.out.println(_sortedCoordinateArrayList);
                 break;
             } else {
                 _sortedTransportMode.add(_userItemList.get(i).getTravelMode());
@@ -226,9 +222,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 }
             }
             i++;
-
-            System.out.println(i);
-            System.out.println(posInCoordinateArrayList);
             helper = addPointToList(i, posInCoordinateArrayList);
             if (helper.size() > 2 && _sortedTransportMode.get(_sortedTransportMode.size() - 1).equals(PlacesActivity.TravelMode.TRANSIT.name().toLowerCase())){
                 List<LatLng> transitHelper = null;
@@ -241,14 +234,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                     if (j > 0)
                         _sortedTransportMode.add(_sortedTransportMode.get(_sortedTransportMode.size() - 1));
                 }
-
-                System.out.println(_sortedTransportMode);
-                System.out.println(_sortedCoordinateArrayList);
             } else {
                 _sortedCoordinateArrayList.add(helper);
             }
-            System.out.println(_sortedTransportMode);
-            System.out.println(_sortedCoordinateArrayList);
             posInCoordinateArrayList = i;
         }
     }

@@ -48,16 +48,12 @@ import java.util.concurrent.ExecutionException;
 import static junit.framework.Assert.assertTrue;
 
 public class PlacesActivity extends ActionBarActivity implements OnItemClickListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
-    public static final String COORDINATE = "COORDINATE_LIST";
-    public static final String TRANSPORT = "TRANSPORT_MODE";
-    public static final String NAME = "NAME_LIST";
+
     public static final String START_DATETIME = "START_DATETIME";
 
     private PlacesAutoCompleteAdapter _autoCompAdapter;
     private LinkedList<AutoCompleteTextView> _autoCompleteTextViewLinkedList;
     private List<RadioGroup> _transportModeViewList;
-    private ArrayList<String> _transportModeList;
-    private ArrayList<String> _nameList;
     private TextView _dateTextView;
     private SimpleDateFormat _dateFormat = new SimpleDateFormat("dd/MM/yyyy");
     private SimpleDateFormat _timeFormat = new SimpleDateFormat("HH:mm");
@@ -65,7 +61,6 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     private String _timeStartJourney = _timeFormat.format (new Date());
     private String _dateTimeStartJourney;
     private TextView _timeTextView;
-    private ArrayList<String> _coordinateArrayList;
 
     // List of parcelable user-defined destinations
     private ArrayList<UserItem> _userItemList;
@@ -345,7 +340,6 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     private void moveToMainActivityWithData(){
         Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra(NAME, _nameList);
         intent.putExtra(START_DATETIME, _dateTimeStartJourney);
         intent.putParcelableArrayListExtra("USER_ITEM_LIST", _userItemList);
 
