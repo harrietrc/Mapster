@@ -64,7 +64,6 @@ public class GooglePlaceDetailTask extends AsyncTask<GooglePlaceSuggestion, Void
         Marker marker = suggestion.getMarker();
         String info = suggestion.getInfoWindowString();
         marker.setSnippet(info);
-        marker.setTitle(suggestion.getName());
         marker.showInfoWindow(); // Might run into some timing issues here
     }
 

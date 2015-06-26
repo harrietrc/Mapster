@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:paddingBottom="1dp"
+    android:paddingTop="1dp"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:id="@+id/budget_col_suggestion_name"
+        android:layout_weight="0.3"
+        android:textColor="#287AA9"
+        android:ellipsize="end"
+        android:ems="10"
+        android:paddingRight="2dp"
+        android:paddingLeft="2dp"
+        />
+    <TextView
+        android:layout_weight="0.195"
+        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:paddingRight="2dp"
+        android:paddingLeft="2dp"
+        android:id="@+id/budget_col_base_cost"/>
+    <TextView
+        android:layout_weight="0.195"
+        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:paddingRight="2dp"
+        android:paddingLeft="2dp"
+        android:id="@+id/budget_col_total"/>
+    <TextView
+        android:layout_weight="0.195"
+        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:paddingRight="2dp"
+        android:paddingLeft="2dp"
+        android:id="@+id/budget_col_user_value"/>
+    <ImageButton
+        android:layout_weight="0.115"
+        android:background="@drawable/ic_table_edit_grey600_48dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:contentDescription="@string/budget_edit_description"
+        android:id="@+id/budget_col_edit"/>
+</LinearLayout>

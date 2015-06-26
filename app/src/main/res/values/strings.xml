@@ -4,23 +4,29 @@
     <string name="app_name">Mapster</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-    <!--<string name="API_KEY">AIzaSyBM7NSP59Z4Lhfk975jtoMR2O1g4BPTos4</string>-->
-    <string name="YELP_CONSUMER_KEY">JtK8bdHS-tk1xOHJZsPa5Q</string>
-    <string name="YELP_TOKEN">1NJPh7dnIXFYmSddco6Ato4oXJzaE25h</string>
+    <string name="API_KEY">AIzaSyBM7NSP59Z4Lhfk975jtoMR2O1g4BPTos4</string>
     <!--<string name="API_KEY">AIzaSyDGbryAn8AT_UliJQk6OnCQ0b-CMLJhNFw</string>-->
-    <!--This one's yours, Tommy - wasn't working for Places API for me today-->
 
     <!-- Alternative API Key - use if we reach the request limit (or use the one commented out above) -->
     <!-- email: mapsterfolife@gmail.com password: mymapster (if you want to add APIs)  -->
-    <string name="API_KEY">AIzaSyAh-GF9VWptgEAzMjr7drnNMCRHOHM0Lps</string>
+    <!--<string name="API_KEY">AIzaSyAh-GF9VWptgEAzMjr7drnNMCRHOHM0Lps</string>-->
 
     <string name="title_activity_places">Places</string>
+
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">Ok</string>
+    <string name="skip">Skip</string>
 
     <string name="dining">Dining</string>
     <string name="accommodation">Accommodation</string>
     <string name="attractions">Attractions</string>
     <string name="all">All</string>
     <string name="clear">Clear</string>
+
+    <string name="itinerary_button">Itinerary</string>
+    <string name="multiplier" >x</string>
 
     <!-- Placeholders - shouldn't actually be shown -->
     <string name="price_level_one">$</string>
@@ -32,5 +38,22 @@
     <string name="EXPEDIA_API_KEY">2fp0is48pt2tmnl7sjehfaeuja</string>
     <string name="EXPEDIA_CID">487641</string>
     <string name="EXPEDIA_SECRET">3c2s654ll7aa0</string> <!-- MOVE THIS! -->
+    
+    <!-- Foursquare -->
+    <string name="FOURSQUARE_CLIENT_ID">T35QVK5TNX2OU3055HUARX3QPCZRIUHIASCOAIE55LXU2BAE</string>
+    <string name="FOURSQUARE_CLIENT_SECRET">0EU3YV43WZNSC34KZIX3CPBJCQW1SPNH5Z2MSHNVEJDS4GYF</string>
+    <!-- TODO Move all the secret keys!!! -->
+
+    <!-- Content descriptions / accessibility -->
+    <string name="budget_edit_description">Edit destination options</string>
+
+    <!-- Budget activity -->
+    <string name="number_of_people">Number of people</string>
+    <string name="money_spent">Amount spent</string>
+    <string name="delete_destination">Delete destination</string>
+    <string name="total">Total</string>
+    <string name="destination">Destination</string>
+    <string name="cost">Cost</string>
+    <string name="edit">Edit</string>
 
 </resources>

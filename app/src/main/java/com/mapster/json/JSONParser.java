@@ -1,8 +1,6 @@
 package com.mapster.json;
 
 import android.graphics.Color;
-import android.os.Debug;
-import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.mapster.map.information.Distance;

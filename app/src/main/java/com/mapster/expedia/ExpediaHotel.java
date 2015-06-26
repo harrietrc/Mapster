@@ -2,44 +2,47 @@ package com.mapster.expedia;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 /**
  * Created by Harriet on 5/25/2015. Holds information about a hotel, retrieved from Expedia.
  */
 public class ExpediaHotel {
 
     private int _hotelId; // Used in requests to Expedia
-    String _name;
+    private String _name;
     private String _address;
     private String _thumbnailUrl;
-    private Double _lowRate; // Note that these are actually returned as floats/doubles
+    private Double _lowRate;
     private Double _highRate;
-    private LatLng _location;
+    private double _latitude;
+    private double _longitude;
     private Float _rating; // In stars out of 5
     private String _locationDescription; // A short description of the location, if available
+    private String _currencyCode;
 
     /**
      * Everything passed into this constructor is retrievable in a HotelListRequest.
      */
     public ExpediaHotel(Integer hotelId, String name, String address, LatLng latLng, Float rating,
                         Double lowRate, Double highRate, String locationDescription,
-                        String thumbnailUrl) {
+                        String thumbnailUrl, String currencyCode) {
         _hotelId = hotelId;
-        _name = name;
-        _address = address;
-        _location = latLng;
+        _name = StringEscapeUtils.unescapeHtml4(name);
+        _address = StringEscapeUtils.unescapeHtml4(address);
+        _latitude = latLng.latitude;
+        _longitude = latLng.longitude;
         _rating = rating;
         _lowRate = lowRate;
         _highRate = highRate;
-        _locationDescription = locationDescription;
+        _locationDescription = StringEscapeUtils.unescapeHtml4(locationDescription);
         _thumbnailUrl = thumbnailUrl;
+        _currencyCode = currencyCode;
     }
 
-    public int getHotelId() {
-        return _hotelId;
-    }
-
-    public String getAddress() {
-        return _address;
+    public Double estimateAverageRate() {
+        // Might want to refine this
+        return (_lowRate + _highRate) / 2;
     }
 
     public String getThumbnailUrl() {
@@ -58,42 +61,16 @@ public class ExpediaHotel {
         return _rating == null ? 0 : _rating;
     }
 
-    public String getLocationDescription() {
-        return _locationDescription;
-    }
-
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(_address);
         if (_locationDescription != null)
             sb.append("\n" + _locationDescription);
-        String priceRange = priceRangeToString();
-        if (priceRange != null)
-            sb.append("\n" + priceRange);
         return sb.toString();
     }
 
-    /**
-     * Returns a string representation of the price range to append to the snippet that gets
-     * displayed in a marker's infowindow.
-     * @return
-     */
-    public String priceRangeToString() {
-        StringBuilder sb = new StringBuilder();
-        Double lowRate = getLowRate();
-        Double highRate = getHighRate();
-
-        sb.append(lowRate == null ? "" : "$" + lowRate.intValue());
-
-        if (highRate != null)
-            sb.append(" - ");
-
-        sb.append(highRate == null ? "" : "$" + highRate.intValue());
-
-        if (!(lowRate== null && highRate == null))
-            sb.append(" a night");
-
-        return sb.toString();
+    public String getCurrencyCode() {
+        return _currencyCode;
     }
 
     public String getName() {
@@ -101,6 +78,6 @@ public class ExpediaHotel {
     }
 
     public LatLng getLocation() {
-        return _location;
+        return new LatLng(_latitude, _longitude);
     }
 }
