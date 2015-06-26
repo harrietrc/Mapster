@@ -1,7 +1,6 @@
 package com.mapster.activities;
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Paint;
 import android.os.AsyncTask;
@@ -9,13 +8,11 @@ import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,7 +32,6 @@ import com.mapster.R;
 import com.mapster.connectivities.tasks.ExpediaHotelListTask;
 import com.mapster.connectivities.tasks.FoursquareExploreTask;
 import com.mapster.connectivities.tasks.GooglePlacesTask;
-import com.mapster.connectivities.tasks.ReadTask;
 import com.mapster.date.CustomDate;
 import com.mapster.filters.Filters;
 import com.mapster.itinerary.SuggestionItem;
@@ -49,9 +45,6 @@ import com.mapster.map.models.Routes;
 import com.mapster.suggestions.Suggestion;
 import com.mapster.suggestions.SuggestionInfoAdapter;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Seconds;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -62,9 +55,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener, OnMapReadyCallback {
     private static final float UNDEFINED_COLOUR = -1;
@@ -157,7 +147,14 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     @Override
+    protected void onPause() {
+        _itineraryDataSource.close();
+        super.onPause();
+    }
+
+    @Override
     public void onResume() {
+        _itineraryDataSource.open();
         if (!_suggestionItemsByMarkerId.isEmpty()) {
             // Don't want this to run straight after the first onCreate() call
             UpdateMainFromItineraryTask updateTask = new UpdateMainFromItineraryTask(this);
@@ -348,15 +345,23 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     private void addMarkers() {
+        // TODO Temporary fix, I'll need to go over your code properly and suss out what _sortedCoordinateArrayList
+        // is (the 'helper' stuff up in sortCoordinateArrayList().
+        Set<String> names = new HashSet<>();
+
         if (_map != null) {
             for(List<LatLng> latLng : _sortedCoordinateArrayList){
                 for (int i=0; i<latLng.size(); i++){
                     LatLng position = latLng.get(i);
                     UserItem item = _userItemList.get(i);
                     String name = item.getName();
-                    Marker m = _map.addMarker(new MarkerOptions().position(position).title(name));
-                    _userMarkers.put(m.getId(), false);
-                    _userItemsByMarkerId.put(m.getId(), item);
+                    // See other TODO: Prevents duplicates in budget/schedule
+                    if (!names.contains(name)) {
+                        Marker m = _map.addMarker(new MarkerOptions().position(position).title(name));
+                        _userMarkers.put(m.getId(), false);
+                        _userItemsByMarkerId.put(m.getId(), item);
+                        names.add(name);
+                    }
                 }
             }
         }

@@ -4,7 +4,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.mapster.activities.PlacesActivity;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
