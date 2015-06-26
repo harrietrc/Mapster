@@ -1,7 +1,9 @@
 package com.mapster.activities;
 
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
@@ -13,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,25 +33,33 @@ import com.mapster.R;
 import com.mapster.connectivities.tasks.ExpediaHotelListTask;
 import com.mapster.connectivities.tasks.GooglePlacesTask;
 import com.mapster.connectivities.tasks.ReadTask;
+import com.mapster.date.CustomDate;
 import com.mapster.filters.Filters;
 import com.mapster.json.JSONParser;
-import com.mapster.map.information.MapInformation;
+import com.mapster.map.models.MapInformation;
+import com.mapster.map.models.Path;
+import com.mapster.map.models.Routes;
 import com.mapster.suggestions.Suggestion;
 import com.mapster.suggestions.SuggestionInfoAdapter;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Seconds;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
-public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener {
+public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener{
     private static final float UNDEFINED_COLOUR = -1;
-    private static final String COORDINATE_LIST = "COORDINATE_LIST";
-    private static final String TRANSPORT_MODE = "TRANSPORT_MODE";
     private ArrayList<String> _coordinateArrayList;
     private ArrayList<List<LatLng>> _latLngArrayList;
     private ArrayList<String> _transportMode;
@@ -56,6 +67,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private GoogleMap _map;
     private ArrayList<List<String>> _sortedCoordinateArrayList;
     private ArrayList<String> _sortedTransportMode;
+    private String _startDateTime;
+    private CustomDate _customDate;
+
     // Markers divided into categories (to make enumeration of categories faster)
     private HashMap<String, List<Marker>> _markersByCategory;
     // All suggestions, keyed by marker ID
@@ -80,7 +94,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        //TODO refactor
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
@@ -88,12 +101,11 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         getDataFromPlaceActivity();
         sortCoordinateArrayList();
         convertStringArrayListToLatLngArrayList();
+        _customDate = new CustomDate(_startDateTime);
         _userMarkers = new HashMap<>();
-        for(int i = 0; i < _latLngArrayList.size(); i++){
-            DirectionsTask downloadTask = new DirectionsTask();
-            String url = getMapsApiDirectionsUrl(_latLngArrayList.get(i), _sortedTransportMode.get(i));
-            downloadTask.execute(url);
-        }
+
+        ParserTask task = new ParserTask(this);
+        task.execute();
 
         _map.moveCamera(CameraUpdateFactory.newLatLngZoom(_latLngArrayList.get(0).get(0),
                 13));
@@ -127,6 +139,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             public void onDrawerStateChanged(int newState) {}
         };
         _drawerLayout.setDrawerListener(drawerListener);
+
     }
 
     public Suggestion getSuggestionByMarker(Marker marker) {
@@ -152,9 +165,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     private void getDataFromPlaceActivity(){
         Intent i = getIntent();
-        _coordinateArrayList = i.getStringArrayListExtra(COORDINATE_LIST);
-        _transportMode = i.getStringArrayListExtra(TRANSPORT_MODE);
-        nameList = i.getStringArrayListExtra("NAME_LIST");
+        _coordinateArrayList = i.getStringArrayListExtra(PlacesActivity.COORDINATE);
+        _transportMode = i.getStringArrayListExtra(PlacesActivity.TRANSPORT);
+        nameList = i.getStringArrayListExtra(PlacesActivity.NAME);
+        _startDateTime = i.getStringExtra(PlacesActivity.START_DATETIME);
     }
 
     private void convertStringArrayListToLatLngArrayList(){
@@ -183,7 +197,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 break;
             }
             if(_transportMode.get(i).equals(_transportMode.get(i + 1))) {
-                System.out.println(_transportMode.get(i)  + " " + _transportMode.get(i + 1));
                 while (_transportMode.get(i).toString().equals(_transportMode.get(i + 1).toString())) {
                     i++;
                     if (i >= _transportMode.size() - 1) {
@@ -191,8 +204,25 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                     }
                 }
             }
+
             helper = addPointToList(i, posInCoordinateArrayList);
-            _sortedCoordinateArrayList.add(helper);
+            if (helper.size() > 4 && _sortedTransportMode.get(_sortedTransportMode.size() - 1).equals(PlacesActivity.TravelMode.TRANSIT.name().toLowerCase())){
+                List<String> transitHelper = null;
+                for(int j = 0; j < helper.size(); j += 2){
+                    transitHelper = new ArrayList<>();
+
+                    for(int k = j; k < j + 4; k ++){
+                        transitHelper.add(helper.get(k));
+                    }
+                    _sortedCoordinateArrayList.add(transitHelper);
+                    if (j > 1)
+                        _sortedTransportMode.add(_sortedTransportMode.get(_sortedTransportMode.size() - 1));
+                    if (j == helper.size() - 4)
+                        break;
+                }
+            } else {
+                _sortedCoordinateArrayList.add(helper);
+            }
             posInCoordinateArrayList = i + 1;
         }
     }
@@ -270,7 +300,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
     }
 
-    private String getMapsApiDirectionsUrl(List<LatLng> latLngArrayList, String transportMode) {
+    private String getMapsApiDirectionsUrl(List<LatLng> latLngArrayList, String transportMode, MapInformation mapInformation) {
         int size = latLngArrayList.size();
         LatLng originCoordinate = latLngArrayList.get(0);
         LatLng destinationCoordinate = latLngArrayList.get(size - 1);
@@ -287,7 +317,13 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
         url.append(waypoints);
         url.append("&destination=" + destinationCoordinate.latitude + "," + destinationCoordinate.longitude);
+        if (mapInformation == null)
+            url.append("&departure_time=" + _customDate.secondsBetween());
+        else {
+            url.append("&departure_time=" + mapInformation.getDate().secondsBetween());
+        }
         url.append("&mode=" + transportMode);
+//        url.append("&key=" + getString(R.string.API_KEY));
         System.out.println(url);
         return url.toString();
     }
@@ -323,14 +359,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         setVisibilityByFilters();
     }
 
-    private class DirectionsTask extends ReadTask {
-        @Override
-        protected void onPostExecute(String result) {
-            super.onPostExecute(result);
-            new ParserTask().execute(result);
-        }
-    }
-
     /**
      * @param latLng = The latitude and longitude of the new marker
      * @param bd = An icon for the marker
@@ -345,52 +373,82 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     private class ParserTask extends
-            AsyncTask<String, Integer, MapInformation> {
+            AsyncTask<Void, Integer, MapInformation> {
+        private ProgressDialog _dialog;
+        MainActivity _mainMainActivity;
+        ParserTask(MainActivity mainActivity){
+            _mainMainActivity = mainActivity;
+        }
 
         @Override
-        protected MapInformation doInBackground(
-                String... jsonData) {
-
-            JSONObject jObject;
+        protected void onPreExecute() {
+            super.onPreExecute();
+            _dialog = new ProgressDialog(_mainMainActivity);
+            _dialog.setMessage("Please wait...");
+            _dialog.show();
+        }
+        @Override
+        protected MapInformation doInBackground(Void... params) {
             MapInformation mapInformation = null;
+            JSONObject jObject;
+            for(int i = 0; i < _latLngArrayList.size(); i++) {
+                String url = getMapsApiDirectionsUrl(_latLngArrayList.get(i), _sortedTransportMode.get(i),mapInformation);
+                if (mapInformation != null)
+                    _customDate = mapInformation.getDate();
+                String jsonData = readTask(url);
 
-            try {
-                jObject = new JSONObject(jsonData[0]);
-                JSONParser parser = new JSONParser();
-                mapInformation = parser.parse(jObject);
-            } catch (Exception e) {
-                e.printStackTrace();
+                try {
+                    jObject = new JSONObject(jsonData);
+                    JSONParser parser = new JSONParser(_customDate);
+                    mapInformation = parser.parse(jObject, mapInformation);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
             return mapInformation;
         }
 
+        private String readTask(String url) {
+            String data = "";
+            com.mapster.connectivities.HttpConnection http = new com.mapster.connectivities.HttpConnection();
+            try {
+                 data = http.readUrl(url);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return data;
+        }
+
         @Override
         protected void onPostExecute(MapInformation mapInformation) {
+
+            _dialog.dismiss();
             if(mapInformation == null){
                 createToast("Routes not found", Toast.LENGTH_SHORT);
                 return;
             }
+
             ArrayList<LatLng> points;
             PolylineOptions polyLineOptions = null;
-            Log.d("SIZE", String.valueOf(mapInformation.getRoutes().size()));
             // traversing through routes
             for (int i = 0; i < mapInformation.getRoutes().size(); i++) {
                 points = new ArrayList<LatLng>();
                 polyLineOptions = new PolylineOptions();
-                List<HashMap<String, String>> path = mapInformation.getRoutes().get(i);
-
-                for (int j = 0; j < path.size(); j++) {
-                    HashMap<String, String> point = path.get(j);
+                Routes route = mapInformation.getRoutes().get(i);
+                for (int j = 0; j < route.getRoutePoints().size(); j++) {
+                    HashMap<String, String> point = route.getRoutePoints().get(j);
                     double lat = Double.parseDouble(point.get("lat"));
                     double lng = Double.parseDouble(point.get("lng"));
                     LatLng position = new LatLng(lat, lng);
                     points.add(position);
                 }
-                System.out.println(points);
                 polyLineOptions.addAll(points);
-                polyLineOptions.width(7f);
+                polyLineOptions.width(10f);
 //                polyLineOptions.color(Color.BLUE);
-                polyLineOptions.color(mapInformation.getRouteColor().get(i));
+//                Log.d("ROUTES", String.valueOf(i));
+//                Log.d("COLOR", String.valueOf(route.getColor()));
+//                Log.d("ROUTES", route.getRoutePoints().toString());
+                polyLineOptions.color(route.getColor());
                 _map.addPolyline(polyLineOptions);
             }
             drawInstructions(mapInformation);
@@ -399,17 +457,24 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         private void drawInstructions(MapInformation mapInformation){
             LinearLayout ll = (LinearLayout)findViewById(R.id.instructions);
             addChildToLayout(ll, "Total Duration: " + mapInformation.getTotalDuration().getName() + " Total Distance: " + mapInformation.getTotalDistance().getName(), 18);
-            for(int i = 0; i < mapInformation.getInstructions().size(); i++){
-                if(!mapInformation.getInstructions().get(i).isEmpty()) {
-                    String name = new String();
-                    if (!mapInformation.getDuration().get(i).getName().isEmpty()) {
-                        name += mapInformation.getDuration().get(i).getName();
-                        name += " ";
-                        name += mapInformation.getDistance().get(i).getName();
-                        addChildToLayout(ll, name, 16);
-                    }
-                    addChildToLayout(ll, mapInformation.getInstructions().get(i), 16);
+            List<Path> paths = mapInformation.getPaths();
+            Path path = null;
+            StringBuilder name = null;
+            for(int i = 0; i < paths.size(); i++){
+                path = paths.get(i);
+                name = new StringBuilder();
+                name.append(path.getInstruction().getInstruction().replaceAll("<(/)?div(.+?(?=>))?>", ". "));
+                if (!paths.get(i).getDuration().getName().isEmpty()) {
+                    name.append("<br/>");
+                    name.append(path.getMode() + ": ");
+                    name.append("For ");
+                    name.append(path.getDistance().getName());
+                    name.append(", ");
+                    name.append(path.getDuration().getName());
+                    name.append(" at ");
+                    name.append(path.getDate().toString());
                 }
+                addChildToLayout(ll, name.toString(), 16);
             }
         }
 
@@ -423,15 +488,22 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         valueTV.setText(Html.fromHtml(name));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT
                 ,LinearLayout.LayoutParams.WRAP_CONTENT);
-        params.setMargins(0, 10, 0, 10);
+        params.setMargins(0, 30, 0, 0);
         valueTV.setTextSize(size);
         valueTV.setLayoutParams(params);
+        valueTV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+            ((TextView)v).setPaintFlags( ((TextView)v).getPaintFlags() ^ Paint.STRIKE_THRU_TEXT_FLAG);
+            }
+        });
         return valueTV;
     }
 
     protected void createToast(String name, int duration){
         Toast.makeText(this, name, duration).show();
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -634,5 +706,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             for (Marker m: markerList)
                 m.setVisible(isVisible);
         }
+    }
+    @Override
+    public void onBackPressed(){
+        finish();
+        super.onBackPressed();
     }
 }

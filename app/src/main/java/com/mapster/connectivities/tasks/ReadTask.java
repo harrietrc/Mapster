@@ -15,8 +15,8 @@ public class ReadTask extends AsyncTask<String, Void, String> {
     private String downloadUrl(String url) {
         String data = "";
         try {
-            com.mapster.connectivities.HttpConnection http = new com.mapster.connectivities.HttpConnection();
-            data = http.readUrl(url);
+
+
         } catch (Exception e) {
             Log.d("Background Task", e.toString());
         }

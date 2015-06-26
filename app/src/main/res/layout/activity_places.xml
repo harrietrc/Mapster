@@ -56,6 +56,27 @@
                 android:id="@+id/transit_mode"/>
         </RadioGroup>
         <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/date"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".70"
+                android:hint = "Start Date"
+                style="@android:style/Widget.Holo.Spinner"
+                android:onClick="showDatePickerDialog"/>
+            <TextView
+                android:id="@+id/time"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".30"
+                android:hint = "Start Time"
+                style="@android:style/Widget.Holo.Spinner"
+                android:onClick="showTimePickerDialog"/>
+        </LinearLayout>
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -90,14 +111,16 @@
                 android:text="OK"
                 android:id="@+id/ok"
                 android:layout_weight=".50"
-                android:onClick="ok"/>
+                android:onClick="ok"
+                style="@android:style/Widget.Button"/>
             <Button
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="Clear All"
                 android:id="@+id/clear"
                 android:layout_weight=".50"
-                android:onClick="clearAll"/>
+                android:onClick="clearAll"
+                style="@android:style/Widget.Button"/>
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

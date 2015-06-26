@@ -1,41 +1,71 @@
 package com.mapster.activities;
 
+import android.app.DatePickerDialog;
+import android.app.DialogFragment;
+import android.app.FragmentTransaction;
+import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AutoCompleteTextView;
+import android.widget.DatePicker;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.mapster.R;
+import com.mapster.fragment.DatePickerFragment;
+import com.mapster.fragment.TimePickerFragment;
 import com.mapster.geocode.GeoCode;
+import com.mapster.map.models.Coordinate;
 import com.mapster.places.autocomplete.PlacesAutoCompleteAdapter;
 
+import org.joda.time.LocalTime;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static junit.framework.Assert.assertTrue;
 
-public class PlacesActivity extends ActionBarActivity implements OnItemClickListener{
+public class PlacesActivity extends ActionBarActivity implements OnItemClickListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
+    public static final String COORDINATE = "COORDINATE_LIST";
+    public static final String TRANSPORT = "TRANSPORT_MODE";
+    public static final String NAME = "NAME_LIST";
+    public static final String START_DATETIME = "START_DATETIME";
+
     private PlacesAutoCompleteAdapter _autoCompAdapter;
     private LinkedList<AutoCompleteTextView> _autoCompleteTextViewLinkedList;
     private ArrayList<String> _coordinateArrayList;
     private List<RadioGroup> _transportModeViewList;
     private ArrayList<String> _transportModeList;  
     private ArrayList<String> _nameList;
+    private TextView _dateTextView;
+    private SimpleDateFormat _dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+    private SimpleDateFormat _timeFormat = new SimpleDateFormat("HH:mm");
+    private String _dateStartJourney;
+    private String _timeStartJourney = _timeFormat.format (new Date());
+    private String _dateTimeStartJourney;
+    private TextView _timeTextView;
+    private List<Coordinate> _coordinateList;
 
     public enum TravelMode{
         DRIVING("driving"), WALKING("walking"), BIKING("bicycling"), TRANSIT("transit");
@@ -43,6 +73,34 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         private TravelMode(String name){
             this.name = name;
         }
+    }
+
+    public void showDatePickerDialog(View v) {
+        _dateTextView = (TextView)v;
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        DialogFragment newFragment = new DatePickerFragment(PlacesActivity.this);
+        newFragment.show(ft, "date_dialog");
+    }
+
+    public void showTimePickerDialog(View v){
+        _timeTextView = (TextView)v;
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        DialogFragment newFragment = new TimePickerFragment(PlacesActivity.this);
+        newFragment.show(ft, "time_dialog");
+    }
+
+    @Override
+    public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+        Calendar cal = new GregorianCalendar(year, monthOfYear, dayOfMonth);
+        _dateStartJourney = _dateFormat.format(cal.getTime());
+        _dateTextView.setText(_dateStartJourney);
+    }
+
+    @Override
+    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+        LocalTime lt = new LocalTime(hourOfDay, minute);
+        _timeStartJourney = lt.toString("HH:mm");
+        _timeTextView.setText(_timeStartJourney);
     }
 
     @Override
@@ -159,12 +217,40 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         if(isNotOriginAndDestinationEmpty()){
             addUserCoordinateToArrayList();
             addTransportModeToList();
+            mergeDateAndTimeToDateTime();
             moveToMainActivityWithData();
         } else {
             Toast.makeText(this,"Origin and Destination fields must not be blank",
                            Toast.LENGTH_SHORT).show();
         }
     }
+
+    public void addDate(View view){
+        LinearLayout ll = addDateToStopPoint(view);
+        ViewGroup vg = (ViewGroup)(view.getParent());
+        vg.removeView(view);
+    }
+
+    private LinearLayout addDateToStopPoint(View view){
+        LinearLayout layoutAddPoint = (LinearLayout) findViewById(R.id.add_stop_points);
+        LinearLayout layoutToAddDate = null;
+        for (int i = 0; i < layoutAddPoint.getChildCount(); i++) {
+            LinearLayout ll = (LinearLayout)layoutAddPoint.getChildAt(i);
+            for(int j = 0; j < ll.getChildCount(); j++){
+                if (view.equals(ll.getChildAt(j))) {
+                    layoutToAddDate = (LinearLayout) ll.getChildAt(j + 1);
+                    break;
+                }
+            }
+        }
+        LinearLayout inflateLayout = (LinearLayout)View.inflate(
+                this, R.layout.add_date, null);
+        layoutToAddDate.addView(inflateLayout);
+        layoutToAddDate.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT));
+        return inflateLayout;
+    }
+
 
     private boolean isNotOriginAndDestinationEmpty(){
         AutoCompleteTextView originInList = _autoCompleteTextViewLinkedList.get(0);
@@ -184,6 +270,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     private void addUserCoordinateToArrayList(){
         _coordinateArrayList = new ArrayList<>();
+        _coordinateList = new ArrayList<>();
         for (AutoCompleteTextView acTextView : _autoCompleteTextViewLinkedList){
             try {
                 if(!acTextView.getText().toString().isEmpty()) {
@@ -191,6 +278,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                     String[] coordinate = new GeoCode().execute(text).get();
                     String placeName = text.split(",")[0];
                     placeName = placeName == null? text : placeName;
+
                     _nameList.add(placeName);
                     _coordinateArrayList.add(coordinate[0]);
                     _coordinateArrayList.add(coordinate[1]);
@@ -222,7 +310,6 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
             case R.id.bike_mode:
                 if (rb.isChecked()) {
                     _transportModeList.add(TravelMode.BIKING.name);
-                    System.out.println(true);
                 }
                 break;
             case R.id.drive_mode:
@@ -243,14 +330,22 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
             default:
                 break;
         }
+    }
 
+    private void mergeDateAndTimeToDateTime(){
+        if (_dateStartJourney == null)
+            _dateStartJourney = _dateFormat.format(new Date());
+        if (_timeStartJourney == null)
+            _timeStartJourney = _timeFormat.format(new Date());
+        _dateTimeStartJourney = _dateStartJourney + " " + _timeStartJourney;
     }
 
     private void moveToMainActivityWithData(){
         Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra("COORDINATE_LIST", _coordinateArrayList);
-        intent.putExtra("TRANSPORT_MODE", _transportModeList);
-        intent.putExtra("NAME_LIST", _nameList);
+        intent.putExtra(COORDINATE, _coordinateArrayList);
+        intent.putExtra(TRANSPORT, _transportModeList);
+        intent.putExtra(NAME, _nameList);
+        intent.putExtra(START_DATETIME, _dateTimeStartJourney);
 
         // Reset name list, otherwise the wrong names will correspond with
         // TODO The coordinates and names should really be stored in the same data structure

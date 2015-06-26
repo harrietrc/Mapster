@@ -26,11 +26,6 @@ public class AutoCompletePlaces {
 
     private String _apiKey;
 
-    public AutoCompletePlaces() {
-        // Use the default API key. May not want to hardcode it like this.
-        this._apiKey = "AIzaSyDGbryAn8AT_UliJQk6OnCQ0b-CMLJhNFw";
-    }
-
     public AutoCompletePlaces(String apiKey) {
         this._apiKey = apiKey;
     }

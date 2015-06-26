@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent" android:layout_height="match_parent" android:orientation="horizontal">
+    <TextView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/date"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight=".70"
+        android:hint="Date"
+        style="@android:style/Widget.Holo.Spinner"
+        android:onClick="showDatePickerDialog"/>
+    <TextView
+        android:id="@+id/time"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight=".30"
+        android:hint="Time"
+        style="@android:style/Widget.Holo.Spinner"
+        android:onClick="showTimePickerDialog"/>
+</LinearLayout>
