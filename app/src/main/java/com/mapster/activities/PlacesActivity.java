@@ -29,6 +29,7 @@ import com.mapster.R;
 import com.mapster.fragment.DatePickerFragment;
 import com.mapster.fragment.TimePickerFragment;
 import com.mapster.geocode.GeoCode;
+import com.mapster.map.models.Coordinate;
 import com.mapster.places.autocomplete.PlacesAutoCompleteAdapter;
 
 import org.joda.time.LocalTime;
@@ -64,6 +65,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     private String _timeStartJourney = _timeFormat.format (new Date());
     private String _dateTimeStartJourney;
     private TextView _timeTextView;
+    private List<Coordinate> _coordinateList;
 
     public enum TravelMode{
         DRIVING("driving"), WALKING("walking"), BIKING("bicycling"), TRANSIT("transit");
@@ -268,6 +270,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     private void addUserCoordinateToArrayList(){
         _coordinateArrayList = new ArrayList<>();
+        _coordinateList = new ArrayList<>();
         for (AutoCompleteTextView acTextView : _autoCompleteTextViewLinkedList){
             try {
                 if(!acTextView.getText().toString().isEmpty()) {
@@ -275,6 +278,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                     String[] coordinate = new GeoCode().execute(text).get();
                     String placeName = text.split(",")[0];
                     placeName = placeName == null? text : placeName;
+
                     _nameList.add(placeName);
                     _coordinateArrayList.add(coordinate[0]);
                     _coordinateArrayList.add(coordinate[1]);
