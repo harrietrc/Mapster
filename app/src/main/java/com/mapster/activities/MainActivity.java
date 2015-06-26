@@ -74,16 +74,11 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     // drop-table and insertion of all the user-defined destinations and chosen suggestions.
     private boolean _itineraryUpdateRequired;
 
-    // Lists from previous activity - should refactor as there is redundancy here
-    private ArrayList<String> _coordinateArrayList;
-    private ArrayList<List<LatLng>> _latLngArrayList;
-    private ArrayList<String> _transportMode;
-
     // Only used to get data from PlacesActivity. Use _userItemsByMarkerId to keep track of UserItems.
     private ArrayList<UserItem> _userItemList;
 
     private GoogleMap _map;
-    private ArrayList<List<String>> _sortedCoordinateArrayList;
+    private ArrayList<List<LatLng>> _sortedCoordinateArrayList;
     private ArrayList<String> _sortedTransportMode;
     private String _startDateTime;
     private CustomDate _customDate;
@@ -130,7 +125,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         initializeGoogleMap();
         getDataFromPlaceActivity();
         sortCoordinateArrayList();
-        convertStringArrayListToLatLngArrayList();
         _customDate = new CustomDate(_startDateTime);
         _userMarkers = new HashMap<>();
 
@@ -199,22 +193,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     private void getDataFromPlaceActivity(){
         Intent i = getIntent();
-        _coordinateArrayList = i.getStringArrayListExtra(PlacesActivity.COORDINATE);
-        _transportMode = i.getStringArrayListExtra(PlacesActivity.TRANSPORT);
         _startDateTime = i.getStringExtra(PlacesActivity.START_DATETIME);
         _userItemList = i.getParcelableArrayListExtra(USER_ITEM_LIST);
-    }
-
-    private void convertStringArrayListToLatLngArrayList(){
-        _latLngArrayList = new ArrayList<>();
-        List<LatLng> helper = null;
-        for( List<String> coordinate : _sortedCoordinateArrayList) {
-            helper = new ArrayList<>();
-            for (int position = 0; position < coordinate.size() - 1; position += 2) {
-                helper.add(new LatLng(Double.parseDouble(coordinate.get(position)), Double.parseDouble(coordinate.get(position + 1))));
-            }
-            _latLngArrayList.add(helper);
-        }
     }
 
     private void sortCoordinateArrayList(){
@@ -222,50 +202,61 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _sortedTransportMode = new ArrayList<>();
         _sortedCoordinateArrayList = new ArrayList<>();
         int posInCoordinateArrayList = 0;
-        List<String> helper = null;
-        for(int i = 0; i <_transportMode.size(); i++){
-            _sortedTransportMode.add(_transportMode.get(i));
-            if (i >= _transportMode.size() - 1) {
+        List<LatLng> helper = null;
+        int i = 0;
+        while( i <_userItemList.size()){
+            if (i >= _userItemList.size() - 1) {
+                System.out.println(i);
+                System.out.println(posInCoordinateArrayList);
+                _sortedTransportMode.add(_userItemList.get(i - 1).getTravelMode());
                 helper = addPointToList(i, posInCoordinateArrayList);
                 _sortedCoordinateArrayList.add(helper);
+                System.out.println(_sortedTransportMode);
+                System.out.println(_sortedCoordinateArrayList);
                 break;
+            } else {
+                _sortedTransportMode.add(_userItemList.get(i).getTravelMode());
             }
-            if(_transportMode.get(i).equals(_transportMode.get(i + 1))) {
-                while (_transportMode.get(i).toString().equals(_transportMode.get(i + 1).toString())) {
+            if(_userItemList.get(i).getTravelMode().equals(_userItemList.get(i + 1).getTravelMode())) {
+                while (_userItemList.get(i).getTravelMode().equals(_userItemList.get(i + 1).getTravelMode())) {
                     i++;
-                    if (i >= _transportMode.size() - 1) {
+                    if (i >= _userItemList.size() - 1) {
                         break;
                     }
                 }
             }
+            i++;
 
+            System.out.println(i);
+            System.out.println(posInCoordinateArrayList);
             helper = addPointToList(i, posInCoordinateArrayList);
-            if (helper.size() > 4 && _sortedTransportMode.get(_sortedTransportMode.size() - 1).equals(PlacesActivity.TravelMode.TRANSIT.name().toLowerCase())){
-                List<String> transitHelper = null;
-                for(int j = 0; j < helper.size(); j += 2){
+            if (helper.size() > 2 && _sortedTransportMode.get(_sortedTransportMode.size() - 1).equals(PlacesActivity.TravelMode.TRANSIT.name().toLowerCase())){
+                List<LatLng> transitHelper = null;
+                for(int j = 0; j < helper.size() - 1; j++){
                     transitHelper = new ArrayList<>();
-
-                    for(int k = j; k < j + 4; k ++){
+                    for(int k = j; k < j + 2; k ++){
                         transitHelper.add(helper.get(k));
                     }
                     _sortedCoordinateArrayList.add(transitHelper);
-                    if (j > 1)
+                    if (j > 0)
                         _sortedTransportMode.add(_sortedTransportMode.get(_sortedTransportMode.size() - 1));
-                    if (j == helper.size() - 4)
-                        break;
                 }
+
+                System.out.println(_sortedTransportMode);
+                System.out.println(_sortedCoordinateArrayList);
             } else {
                 _sortedCoordinateArrayList.add(helper);
             }
-            posInCoordinateArrayList = i + 1;
+            System.out.println(_sortedTransportMode);
+            System.out.println(_sortedCoordinateArrayList);
+            posInCoordinateArrayList = i;
         }
     }
 
-    private List<String> addPointToList(int position, int posInCoordinateArray){
-        List<String> helper = new ArrayList<>();
-        int posCoordinateArrayList = (position + 1) * 2 + 1;// position of the _coordinateArrayList
-        for(int j = posInCoordinateArray * 2; j <= posCoordinateArrayList; j++){
-            helper.add(_coordinateArrayList.get(j));
+    private List<LatLng> addPointToList(int position, int posInCoordinateArray){
+        List<LatLng> helper = new ArrayList<>();
+        for(int j = posInCoordinateArray; j <= position; j++){
+            helper.add(_userItemList.get(j).getLocation());
         }
         return helper;
     }
@@ -370,7 +361,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     private void addMarkers() {
         if (_map != null) {
-            for(List<LatLng> latLng : _latLngArrayList){
+            for(List<LatLng> latLng : _sortedCoordinateArrayList){
                 for (int i=0; i<latLng.size(); i++){
                     LatLng position = latLng.get(i);
                     UserItem item = _userItemList.get(i);
@@ -407,7 +398,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     @Override
     public void onMapReady(GoogleMap googleMap) {
         _map = googleMap;
-        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(_latLngArrayList.get(0).get(0),
+        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(_sortedCoordinateArrayList.get(0).get(0),
                 13));
         addMarkers();
         _map.setOnMarkerClickListener(this);
@@ -468,8 +459,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         protected MapInformation doInBackground(Void... params) {
             MapInformation mapInformation = null;
             JSONObject jObject;
-            for(int i = 0; i < _latLngArrayList.size(); i++) {
-                String url = getMapsApiDirectionsUrl(_latLngArrayList.get(i), _sortedTransportMode.get(i),mapInformation);
+            for(int i = 0; i < _sortedCoordinateArrayList.size(); i++) {
+                String url = getMapsApiDirectionsUrl(_sortedCoordinateArrayList.get(i), _sortedTransportMode.get(i),mapInformation);
                 if (mapInformation != null)
                     _customDate = mapInformation.getDate();
                 String jsonData = readTask(url);

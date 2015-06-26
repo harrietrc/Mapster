@@ -219,7 +219,6 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     public void ok(View view){
         if(isNotOriginAndDestinationEmpty()){
             addUserCoordinateToArrayList();
-            addTransportModeToList();
             mergeDateAndTimeToDateTime();
             moveToMainActivityWithData();
         } else {
@@ -272,8 +271,8 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     }
 
     private void addUserCoordinateToArrayList(){
-        _coordinateArrayList = new ArrayList<>();
         _userItemList = new ArrayList<>();
+        int position = 0;
         for (AutoCompleteTextView acTextView : _autoCompleteTextViewLinkedList){
             try {
                 if(!acTextView.getText().toString().isEmpty()) {
@@ -281,18 +280,25 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                     String[] coordinate = new GeoCode().execute(text).get();
                     String placeName = text.split(",")[0];
                     placeName = placeName == null? text : placeName;
-                    // TODO This is redundant but I haven't gotten around to taking these old lists
-                    // out (see UserItem class). Sorry, will do this later.
-                    _coordinateArrayList.add(coordinate[0]);
-                    _coordinateArrayList.add(coordinate[1]);
 
                     Double lat = Double.parseDouble(coordinate[0]);
                     Double lng = Double.parseDouble(coordinate[1]);
                     LatLng location = new LatLng(lat, lng);
-
+                    String transportMode = null;
+                    if(acTextView.getId() != R.id.autocomplete_destination) {
+                        for (int j = 0; j < _transportModeViewList.get(position).getChildCount(); j++) {
+                            RadioButton rb = (RadioButton) _transportModeViewList.get(position).getChildAt(j);
+                            transportMode = getTranposportMode(rb);
+                            if (transportMode != null){
+                                break;
+                            }
+                        }
+                    }
                     // Create a parcelable representation of the user-defined destination
-                    UserItem item = new UserItem(placeName, location);
+                    UserItem item = new UserItem(placeName, location, transportMode);
                     _userItemList.add(item);
+                    System.out.println(item.getName() + " " + item.getTravelMode());
+                    position++;
                 }
             } catch(InterruptedException e){
                 e.printStackTrace();
@@ -302,44 +308,30 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         }
     }
 
-    private void addTransportModeToList(){
-        _transportModeList = new ArrayList<>();
-        for(int i = 0; i < _transportModeViewList.size(); i++){
-            if(_autoCompleteTextViewLinkedList.get(i).getId() != R.id.autocomplete_destination) {
-                if (!_autoCompleteTextViewLinkedList.get(i + 1).getText().toString().isEmpty()) {
-                    for (int j = 0; j < _transportModeViewList.get(i).getChildCount(); j++) {
-                        RadioButton rb = (RadioButton) _transportModeViewList.get(i).getChildAt(j);
-                        addToTranposportModeList(rb);
-                    }
-                }
-            }
-        }
-    }
-
-    private void addToTranposportModeList(RadioButton rb){
+    private String getTranposportMode(RadioButton rb){
         switch(rb.getId()) {
             case R.id.bike_mode:
                 if (rb.isChecked()) {
-                    _transportModeList.add(TravelMode.BIKING.name);
+                    return TravelMode.BIKING.name;
                 }
-                break;
+                return null;
             case R.id.drive_mode:
                 if (rb.isChecked()) {
-                    _transportModeList.add(TravelMode.DRIVING.name);
+                    return (TravelMode.DRIVING.name);
                 }
-                break;
+                return null;
             case R.id.transit_mode:
                 if (rb.isChecked()) {
-                    _transportModeList.add(TravelMode.TRANSIT.name);
+                    return (TravelMode.TRANSIT.name);
                 }
-                break;
+                return null;
             case R.id.walk_mode:
                 if (rb.isChecked()) {
-                    _transportModeList.add(TravelMode.WALKING.name);
+                    return (TravelMode.WALKING.name);
                 }
-                break;
+                return null;
             default:
-                break;
+                return null;
         }
     }
 
@@ -353,8 +345,6 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     private void moveToMainActivityWithData(){
         Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra(COORDINATE, _coordinateArrayList);
-        intent.putExtra(TRANSPORT, _transportModeList);
         intent.putExtra(NAME, _nameList);
         intent.putExtra(START_DATETIME, _dateTimeStartJourney);
         intent.putParcelableArrayListExtra("USER_ITEM_LIST", _userItemList);

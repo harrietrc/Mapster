@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.mapster.activities.PlacesActivity;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -24,14 +25,16 @@ public class UserItem extends ItineraryItem implements Parcelable {
     private String _name;
     private double _latitude;
     private double _longitude;
+    private String _travelMode;
 
     // Represents any saved suggestions that were suggested from this destination
     private List<SuggestionItem> _suggestionItems;
 
-    public UserItem(String name, LatLng latLng) {
+    public UserItem(String name, LatLng latLng, String travelMode) {
         _name = name;
         _latitude = latLng.latitude;
         _longitude = latLng.longitude;
+        _travelMode = travelMode;
         // Linked list to speed up removals a little
         _suggestionItems = new LinkedList<>();
     }
@@ -42,6 +45,7 @@ public class UserItem extends ItineraryItem implements Parcelable {
         // Order matters, be careful! Must match write order.
         _latitude = source.readDouble();
         _longitude = source.readDouble();
+        _travelMode = source.readString();
         _suggestionItems = new ArrayList<>();
     }
 
@@ -72,12 +76,17 @@ public class UserItem extends ItineraryItem implements Parcelable {
         return 0;
     }
 
+    public String getTravelMode(){
+        return _travelMode;
+    }
+
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         // Remember to write any fields from the superclass if they are added in the future.
         dest.writeString(_name);
         dest.writeDouble(_latitude);
         dest.writeDouble(_longitude);
+        dest.writeString(_travelMode);
     }
 
     public transient static final Parcelable.Creator<UserItem> CREATOR = new Parcelable.Creator<UserItem>() {
