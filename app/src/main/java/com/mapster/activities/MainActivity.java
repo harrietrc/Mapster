@@ -23,18 +23,25 @@ import android.widget.Toast;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
 import com.mapster.connectivities.tasks.ExpediaHotelListTask;
+import com.mapster.connectivities.tasks.FoursquareExploreTask;
 import com.mapster.connectivities.tasks.GooglePlacesTask;
 import com.mapster.connectivities.tasks.ReadTask;
 import com.mapster.date.CustomDate;
 import com.mapster.filters.Filters;
+import com.mapster.itinerary.SuggestionItem;
+import com.mapster.itinerary.UserItem;
+import com.mapster.itinerary.persistence.ItineraryDataSource;
+import com.mapster.itinerary.persistence.UpdateMainFromItineraryTask;
 import com.mapster.json.JSONParser;
 import com.mapster.map.models.MapInformation;
 import com.mapster.map.models.Path;
@@ -53,17 +60,28 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener{
+public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener, OnMapReadyCallback {
     private static final float UNDEFINED_COLOUR = -1;
+    private static final String USER_ITEM_LIST = "USER_ITEM_LIST";
+
+    // Flag that says whether to update the itinerary database (at the moment this is a heavy-handed
+    // drop-table and insertion of all the user-defined destinations and chosen suggestions.
+    private boolean _itineraryUpdateRequired;
+
+    // Lists from previous activity - should refactor as there is redundancy here
     private ArrayList<String> _coordinateArrayList;
     private ArrayList<List<LatLng>> _latLngArrayList;
     private ArrayList<String> _transportMode;
-    private List<String> nameList;
+
+    // Only used to get data from PlacesActivity. Use _userItemsByMarkerId to keep track of UserItems.
+    private ArrayList<UserItem> _userItemList;
+
     private GoogleMap _map;
     private ArrayList<List<String>> _sortedCoordinateArrayList;
     private ArrayList<String> _sortedTransportMode;
@@ -72,8 +90,11 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     // Markers divided into categories (to make enumeration of categories faster)
     private HashMap<String, List<Marker>> _markersByCategory;
+
     // All suggestions, keyed by marker ID
-    private HashMap<String, Suggestion> _suggestionsByMarkerId;
+    private HashMap<String, SuggestionItem> _suggestionItemsByMarkerId;
+    // User items, keyed by marker ID
+    private HashMap<String, UserItem> _userItemsByMarkerId;
 
     // Contains marker ids and a boolean to indicate whether it has been clicked
     private HashMap<String, Boolean> _userMarkers;
@@ -89,12 +110,21 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private String _currentCategory;
     private Integer _priceLevel;
 
+    // Interacts with itinerary database
+    private ItineraryDataSource _itineraryDataSource;
+
     // Controls the state of the filters
-    Filters _filters;
+    private Filters _filters;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        _itineraryDataSource = new ItineraryDataSource(this);
+        _itineraryDataSource.open();
+
+        // If we change activity, save the existing user-defined destinations to the database
+        _itineraryUpdateRequired = true;
 
         setContentView(R.layout.activity_main);
         initializeGoogleMap();
@@ -104,18 +134,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _customDate = new CustomDate(_startDateTime);
         _userMarkers = new HashMap<>();
 
-        ParserTask task = new ParserTask(this);
-        task.execute();
-
-        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(_latLngArrayList.get(0).get(0),
-                13));
-        addMarkers();
-        _map.setOnMarkerClickListener(this);
-        _map.setInfoWindowAdapter(new SuggestionInfoAdapter(getLayoutInflater(),
-                this));
-        _map.setMyLocationEnabled(true);
-        initSuggestionMarkers();
-        _suggestionsByMarkerId = new HashMap<>();
+        _userItemsByMarkerId = new HashMap<>();
+        _suggestionItemsByMarkerId = new HashMap<>();
 
         // Populate the filters drawer/list
         ExpandableListView filters = (ExpandableListView) findViewById(R.id.filter_list);
@@ -142,9 +162,23 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     }
 
-    public Suggestion getSuggestionByMarker(Marker marker) {
+    @Override
+    public void onResume() {
+        if (!_suggestionItemsByMarkerId.isEmpty()) {
+            // Don't want this to run straight after the first onCreate() call
+            UpdateMainFromItineraryTask updateTask = new UpdateMainFromItineraryTask(this);
+            updateTask.execute();
+        }
+        super.onResume();
+    }
+
+    public void setItineraryUpdateRequired() {
+        _itineraryUpdateRequired = true;
+    }
+
+    public SuggestionItem getSuggestionItemByMarker(Marker marker) {
         String id = marker.getId();
-        return _suggestionsByMarkerId.get(id);
+        return  _suggestionItemsByMarkerId.get(id);
     }
 
     /**
@@ -160,15 +194,15 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private void initializeGoogleMap(){
         SupportMapFragment fm = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
-        _map = fm.getMap();
+        fm.getMapAsync(this);
     }
 
     private void getDataFromPlaceActivity(){
         Intent i = getIntent();
         _coordinateArrayList = i.getStringArrayListExtra(PlacesActivity.COORDINATE);
         _transportMode = i.getStringArrayListExtra(PlacesActivity.TRANSPORT);
-        nameList = i.getStringArrayListExtra(PlacesActivity.NAME);
         _startDateTime = i.getStringExtra(PlacesActivity.START_DATETIME);
+        _userItemList = i.getParcelableArrayListExtra(USER_ITEM_LIST);
     }
 
     private void convertStringArrayListToLatLngArrayList(){
@@ -263,7 +297,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         if (isClicked == null) {
             // Marker is not recorded as user-defined, so assume it's a suggestion. Request place
             // detail and show the info window.
-            Suggestion s = _suggestionsByMarkerId.get(id);
+            Suggestion s = _suggestionItemsByMarkerId.get(id).getSuggestion();
 
             if (marker.getSnippet() == null) {
                 // Make requests to the web API's, populating suggestion information. Internet access required.
@@ -278,15 +312,21 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         } else if (!isClicked) {
             // Marker is user-defined and has not been clicked before. Record places and add markers.
             _userMarkers.put(id, true);
+            UserItem item = _userItemsByMarkerId.get(marker.getId());
+
             LatLng loc = marker.getPosition();
 
             // Get suggestions from Google Places. 1st arg: search radius in m. 2nd arg: number of results
-            GooglePlacesTask placesTask = new GooglePlacesTask(this, 3000, 15);
+            GooglePlacesTask placesTask = new GooglePlacesTask(this, 3000, 15, item);
             placesTask.execute(loc);
 
             // Get suggestions from Expedia. Unfortunately this one takes longer than the Google task
-            ExpediaHotelListTask expediaTask = new ExpediaHotelListTask(this, 3000, 15);
+            ExpediaHotelListTask expediaTask = new ExpediaHotelListTask(this, 3000, 15, item);
             expediaTask.execute(loc);
+
+            // Get suggestions from Foursquare
+            FoursquareExploreTask foursquareTask = new FoursquareExploreTask(this, 3000, 15, item);
+            foursquareTask.execute(loc);
 
             // Make the filters button in the action bar visible
             _filterItem.setVisible(true);
@@ -333,9 +373,11 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             for(List<LatLng> latLng : _latLngArrayList){
                 for (int i=0; i<latLng.size(); i++){
                     LatLng position = latLng.get(i);
-                    String name = nameList.get(i);
+                    UserItem item = _userItemList.get(i);
+                    String name = item.getName();
                     Marker m = _map.addMarker(new MarkerOptions().position(position).title(name));
                     _userMarkers.put(m.getId(), false);
+                    _userItemsByMarkerId.put(m.getId(), item);
                 }
             }
         }
@@ -344,19 +386,54 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     /**
      * Adds a marker for a suggestion, updates the suggestion with the new marker, and saves the
      * suggestion.
-     * @param suggestion A suggestion of a destination for the user
+     * @param item A suggestion of a destination for the user
      * @param icon An icon to represent the suggestion on the map
+     * @param title Name of the destination
      */
-    public void addSuggestion(Suggestion suggestion, BitmapDescriptor icon) {
+    public void addSuggestionItem(SuggestionItem item, BitmapDescriptor icon, String title) {
+        Suggestion suggestion = item.getSuggestion();
         Marker marker = drawMarker(suggestion.getLocation(), icon);
+        marker.setTitle(title);
         suggestion.setMarker(marker);
-        _suggestionsByMarkerId.put(marker.getId(), suggestion);
+        _suggestionItemsByMarkerId.put(marker.getId(), item);
         String category = suggestion.getCategory();
         List<Marker> cat = _markersByCategory.get(category);
         cat.add(marker);
 
         // Refilter markers
         setVisibilityByFilters();
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        _map = googleMap;
+        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(_latLngArrayList.get(0).get(0),
+                13));
+        addMarkers();
+        _map.setOnMarkerClickListener(this);
+
+        // SuggestionInfoAdapter listens for and adapts all infowindow-related activity
+        SuggestionInfoAdapter infoAdapter = new SuggestionInfoAdapter(getLayoutInflater(), this);
+        _map.setInfoWindowAdapter(infoAdapter);
+        _map.setOnInfoWindowClickListener(infoAdapter);
+
+        _map.setMyLocationEnabled(true);
+        initSuggestionMarkers();
+
+        ParserTask task = new ParserTask(this);
+        task.execute();
+    }
+
+    public ItineraryDataSource getItineraryDatasource() {
+        return _itineraryDataSource;
+    }
+
+    public Map<String, UserItem> getUserItemsByMarkerId() {
+        return _userItemsByMarkerId;
+    }
+
+    public Map<String, SuggestionItem> getSuggestionItemsByMarkerId() {
+        return _suggestionItemsByMarkerId;
     }
 
     /**
@@ -525,6 +602,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             return true;
         } else if (id == R.id.filter) {
             onFilterButtonClick();
+        } else if (id == R.id.budget_button) {
+            startBudgetActivity();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -548,10 +627,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         List<Marker> markers = _markersByCategory.get(_currentCategory);
 
         if (_currentCategory == null) {
-            setAllMarkersVisible(true);
+            setSuggestionMarkersVisible(true);
         } else {
             // Hide everything else
-            setAllMarkersVisible(false);
+            setSuggestionMarkersVisible(false);
             setMarkerListVisible(true, markers);
         }
     }
@@ -572,10 +651,11 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             if (_currentCategory != null)
                 categorySet = new HashSet<>(markers);
 
-            for (Suggestion s : _suggestionsByMarkerId.values()) {
+            for (SuggestionItem suggestionItem : _suggestionItemsByMarkerId.values()) {
+                Suggestion s = suggestionItem.getSuggestion();
                 Marker m = s.getMarker();
 
-                Integer priceLevel = s.getPriceLevel();
+                Integer priceLevel = s.getParsedPriceLevel();
                 boolean markerIsVisible = m.isVisible();
 
                 // getPriceLevel will return null if there was no price level provided
@@ -589,6 +669,26 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 }
             }
         }
+    }
+
+    public void setSuggestionItemMarker(SuggestionItem item) {
+        Suggestion suggestion = item.getSuggestion();
+        Marker marker = suggestion.getMarker();
+        int iconId = 0;
+        BitmapDescriptor icon;
+        switch (suggestion.getCategory()) {
+            case "dining":
+                iconId = item.isInItinerary() ? R.drawable.restaurant_red : R.drawable.restaurant;
+                break;
+            case "accommodation":
+                iconId = item.isInItinerary() ? R.drawable.lodging_0star_red : R.drawable.lodging_0star;
+                break;
+            case "attractions":
+                iconId = item.isInItinerary() ? R.drawable.flag_export_red : R.drawable.flag_export;
+                break;
+        }
+        icon = BitmapDescriptorFactory.fromResource(iconId);
+        marker.setIcon(icon);
     }
 
     /**
@@ -675,7 +775,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
      */
     public void onClearClick(View v) {
         // Clear the markers
-        setAllMarkersVisible(false);
+        setSuggestionMarkersVisible(false);
 
         // Reset the RadioButtons
         _filters.clearAllFilterRadioButtons();
@@ -693,19 +793,33 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     private void setMarkerListVisible(boolean isVisible, List<Marker> markers) {
-        if (markers != null) {
+        if (markers != null)
             for (Marker m: markers)
                 m.setVisible(isVisible);
-        }
     }
 
-    private void setAllMarkersVisible(boolean isVisible) {
-        Collection all = _markersByCategory.values();
-        for (Object o: all) {
-            ArrayList<Marker> markerList = (ArrayList) o;
-            for (Marker m: markerList)
-                m.setVisible(isVisible);
+    /**
+     * Sets visibility of all the suggestion markers except the ones in the itinerary, which should
+     * always be displayed.
+     * @param isVisible Visibility for the markers
+     */
+    private void setSuggestionMarkersVisible(boolean isVisible) {
+        for (SuggestionItem item: _suggestionItemsByMarkerId.values())
+            if (!item.isInItinerary())
+                item.getSuggestion().getMarker().setVisible(isVisible);
+    }
+
+    private void startBudgetActivity() {
+        // TODO Maybe make the database access a task?
+        if (_itineraryUpdateRequired) {
+            // Update the database if the itinerary has changed
+            Collection<UserItem> userItems = _userItemsByMarkerId.values();
+            _itineraryDataSource.recreateItinerary();
+            _itineraryDataSource.insertMultipleItineraryItems(userItems);
+            _itineraryUpdateRequired = false;
         }
+        Intent intent = new Intent(this, ItineraryActivity.class);
+        startActivity(intent);
     }
     @Override
     public void onBackPressed(){

@@ -53,6 +53,10 @@ public class ExpediaHotelListJsonParser {
                                 rating = (float) hotelJson.getDouble("hotelRating");
                             }
 
+                            String currencyCode = null;
+                            if (hotelJson.has("rateCurrencyCode"))
+                                currencyCode = hotelJson.getString("rateCurrencyCode");
+
                             String locationDescription = null;
                             if (hotelJson.has("locationDescription") && !hotelJson.isNull("locationDescription"))
                                 locationDescription = hotelJson.getString("locationDescription");
@@ -70,7 +74,8 @@ public class ExpediaHotelListJsonParser {
                                 thumbnailUrl = "http://images.travelnow.com" + hotelJson.getString("thumbNailUrl");
 
                             ExpediaHotel hotel = new ExpediaHotel(hotelId, name, address, location,
-                                    rating, lowRate, highRate, locationDescription, thumbnailUrl);
+                                    rating, lowRate, highRate, locationDescription, thumbnailUrl,
+                                    currencyCode);
                             hotels.add(hotel);
                         }
                     }

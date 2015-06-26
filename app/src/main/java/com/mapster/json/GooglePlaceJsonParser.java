@@ -10,7 +10,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Harriet on 3/15/2015.
@@ -25,6 +28,16 @@ public class GooglePlaceJsonParser {
             e.printStackTrace();
         }
         return getPlaces(jsonPlaces);
+    }
+
+    public String getNextPageToken(JSONObject json) {
+        if (json.has("next_page_token") && !json.isNull("next_page_token"))
+            try {
+                return json.getString("next_page_token");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        return null;
     }
 
     private List<GooglePlace> getPlaces(JSONArray jsonPlaces) {
@@ -80,12 +93,13 @@ public class GooglePlaceJsonParser {
             for (int i=0; i < categories.length; i++)
                 trimmedArray[i] = categories[i].replaceAll("\"", "");
             categories = trimmedArray;
+            Set<String> categoriesSet = new HashSet<String>(Arrays.asList(categories));
 
-            place = new GooglePlace(id, name, location, rating, categories, photoRef);
+            place = new GooglePlace(id, name, location, rating, photoRef, categoriesSet);
 
             // This is more often than not null, or else an integer between 0 and 4 (inclusive)
             if (!jsonPlace.isNull("price_level")) {
-                place.parseAndSetPriceLevel(jsonPlace.getString("price_level"));
+                place.setPriceLevel(jsonPlace.getInt("price_level"));
             }
 
         } catch (JSONException e) {

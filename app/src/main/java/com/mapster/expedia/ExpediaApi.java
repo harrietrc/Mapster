@@ -15,7 +15,7 @@ import java.security.NoSuchAlgorithmException;
  * Provides an interface to Expedia (used for retrieving suggestions of and information about hotels)
  * Might want to look at letting the user set the currency code, or get it from the locale
  */
-public class Expedia {
+public class ExpediaApi {
 
     private String _service = "http://api.ean.com/ean-services/rs/hotel/";
     private String _version = "v3/";
@@ -34,7 +34,7 @@ public class Expedia {
     private String _currencyCode;
     private String _radiusUnit;
 
-    public Expedia(Context context) {
+    public ExpediaApi(Context context) {
         _secret = context.getResources().getString(R.string.EXPEDIA_SECRET);
         _apiKey = context.getResources().getString(R.string.EXPEDIA_API_KEY);
         _cid = context.getResources().getString(R.string.EXPEDIA_CID);
@@ -122,7 +122,6 @@ public class Expedia {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.print("EXP RESP: " + response);
         return response;
     }
 }

@@ -25,11 +25,12 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.mapster.R;
 import com.mapster.fragment.DatePickerFragment;
 import com.mapster.fragment.TimePickerFragment;
 import com.mapster.geocode.GeoCode;
-import com.mapster.map.models.Coordinate;
+import com.mapster.itinerary.UserItem;
 import com.mapster.places.autocomplete.PlacesAutoCompleteAdapter;
 
 import org.joda.time.LocalTime;
@@ -54,9 +55,8 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     private PlacesAutoCompleteAdapter _autoCompAdapter;
     private LinkedList<AutoCompleteTextView> _autoCompleteTextViewLinkedList;
-    private ArrayList<String> _coordinateArrayList;
     private List<RadioGroup> _transportModeViewList;
-    private ArrayList<String> _transportModeList;  
+    private ArrayList<String> _transportModeList;
     private ArrayList<String> _nameList;
     private TextView _dateTextView;
     private SimpleDateFormat _dateFormat = new SimpleDateFormat("dd/MM/yyyy");
@@ -65,7 +65,10 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     private String _timeStartJourney = _timeFormat.format (new Date());
     private String _dateTimeStartJourney;
     private TextView _timeTextView;
-    private List<Coordinate> _coordinateList;
+    private ArrayList<String> _coordinateArrayList;
+
+    // List of parcelable user-defined destinations
+    private ArrayList<UserItem> _userItemList;
 
     public enum TravelMode{
         DRIVING("driving"), WALKING("walking"), BIKING("bicycling"), TRANSIT("transit");
@@ -112,7 +115,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         setContentView(R.layout.activity_places);
         addViewsInLayoutToArrayList((LinearLayout) findViewById(R.id.place_activity_layout));
         initializeAutoCompleteTextViewInArrayList();
-        _nameList = new ArrayList<>();
+        _userItemList = new ArrayList<>();
     }
 
     private void addViewsInLayoutToArrayList(LinearLayout llayout){
@@ -270,7 +273,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     private void addUserCoordinateToArrayList(){
         _coordinateArrayList = new ArrayList<>();
-        _coordinateList = new ArrayList<>();
+        _userItemList = new ArrayList<>();
         for (AutoCompleteTextView acTextView : _autoCompleteTextViewLinkedList){
             try {
                 if(!acTextView.getText().toString().isEmpty()) {
@@ -278,10 +281,18 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                     String[] coordinate = new GeoCode().execute(text).get();
                     String placeName = text.split(",")[0];
                     placeName = placeName == null? text : placeName;
-
-                    _nameList.add(placeName);
+                    // TODO This is redundant but I haven't gotten around to taking these old lists
+                    // out (see UserItem class). Sorry, will do this later.
                     _coordinateArrayList.add(coordinate[0]);
                     _coordinateArrayList.add(coordinate[1]);
+
+                    Double lat = Double.parseDouble(coordinate[0]);
+                    Double lng = Double.parseDouble(coordinate[1]);
+                    LatLng location = new LatLng(lat, lng);
+
+                    // Create a parcelable representation of the user-defined destination
+                    UserItem item = new UserItem(placeName, location);
+                    _userItemList.add(item);
                 }
             } catch(InterruptedException e){
                 e.printStackTrace();
@@ -346,10 +357,8 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         intent.putExtra(TRANSPORT, _transportModeList);
         intent.putExtra(NAME, _nameList);
         intent.putExtra(START_DATETIME, _dateTimeStartJourney);
+        intent.putParcelableArrayListExtra("USER_ITEM_LIST", _userItemList);
 
-        // Reset name list, otherwise the wrong names will correspond with
-        // TODO The coordinates and names should really be stored in the same data structure
-        _nameList = new ArrayList<>();
         startActivity(intent);
     }
 }

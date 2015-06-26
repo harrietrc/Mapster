@@ -14,10 +14,10 @@ public class GooglePlaceSuggestion extends Suggestion {
 
     // Save data about the Google Place that this marker represents
     private GooglePlace _place;
+    private String _category;
 
-    public GooglePlaceSuggestion(GooglePlace place, String category) {
-        // TODO Set category from GooglePlace as well
-        _category = category;
+    public GooglePlaceSuggestion(GooglePlace place) {
+        _category = "attractions";
         _isClicked = false;
         _place = place;
     }
@@ -31,6 +31,11 @@ public class GooglePlaceSuggestion extends Suggestion {
         return _place.getRating();
     }
 
+    @Override
+    public String getCategory() {
+        return _category;
+    }
+
     public String getPlaceId() {
         return _place.getId();
     }
@@ -42,6 +47,20 @@ public class GooglePlaceSuggestion extends Suggestion {
     @Override
     public String getThumbnailUrl(Context context) {
         return _place.getThumbnailUrl(context);
+    }
+
+    @Override
+    public Double getCostPerPerson() {
+        /*
+        Google offers no pricing information and attractions are too varied to make a meaningful
+        estimate
+        */
+        return null;
+    }
+
+    @Override
+    public String getCurrencyCode() {
+        return null; // No pricing info = no currency code required
     }
 
     @Override
@@ -63,8 +82,8 @@ public class GooglePlaceSuggestion extends Suggestion {
         return _place.getName();
     }
 
+    @Override
     public Integer getPriceLevel() {
-        // Note that this will return null if there is no price level recorded
         return _place.getPriceLevel();
     }
 }

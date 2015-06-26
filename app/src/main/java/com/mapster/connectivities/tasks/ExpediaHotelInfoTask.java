@@ -29,7 +29,6 @@ public class ExpediaHotelInfoTask extends AsyncTask<ExpediaSuggestion, Void, Exp
         Marker marker = suggestion.getMarker();
         String info = suggestion.getInfoWindowString();
         marker.setSnippet(info);
-        marker.setTitle(suggestion.getName());
         marker.showInfoWindow();
     }
 }
