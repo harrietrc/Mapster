@@ -1,7 +1,6 @@
 package com.mapster.activities;
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Paint;
 import android.os.AsyncTask;
@@ -9,13 +8,11 @@ import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,7 +32,6 @@ import com.mapster.R;
 import com.mapster.connectivities.tasks.ExpediaHotelListTask;
 import com.mapster.connectivities.tasks.FoursquareExploreTask;
 import com.mapster.connectivities.tasks.GooglePlacesTask;
-import com.mapster.connectivities.tasks.ReadTask;
 import com.mapster.date.CustomDate;
 import com.mapster.filters.Filters;
 import com.mapster.itinerary.SuggestionItem;
@@ -49,9 +45,6 @@ import com.mapster.map.models.Routes;
 import com.mapster.suggestions.Suggestion;
 import com.mapster.suggestions.SuggestionInfoAdapter;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Seconds;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -62,9 +55,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener, OnMapReadyCallback {
     private static final float UNDEFINED_COLOUR = -1;
@@ -204,15 +194,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         int posInCoordinateArrayList = 0;
         List<LatLng> helper = null;
         int i = 0;
-        while( i <_userItemList.size()){
-            if (i >= _userItemList.size() - 1) {
-                _sortedTransportMode.add(_userItemList.get(i - 1).getTravelMode());
-                helper = addPointToList(i, posInCoordinateArrayList);
-                _sortedCoordinateArrayList.add(helper);
-                break;
-            } else {
-                _sortedTransportMode.add(_userItemList.get(i).getTravelMode());
-            }
+        System.out.println(_userItemList.size());
+        while( i <_userItemList.size() - 1){
+            _sortedTransportMode.add(_userItemList.get(i).getTravelMode());
             if(_userItemList.get(i).getTravelMode().equals(_userItemList.get(i + 1).getTravelMode())) {
                 while (_userItemList.get(i).getTravelMode().equals(_userItemList.get(i + 1).getTravelMode())) {
                     i++;
@@ -242,6 +226,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     private List<LatLng> addPointToList(int position, int posInCoordinateArray){
+        System.out.println("i " + position + " posInCoordinateArrayList " + posInCoordinateArray);
         List<LatLng> helper = new ArrayList<>();
         for(int j = posInCoordinateArray; j <= position; j++){
             helper.add(_userItemList.get(j).getLocation());
@@ -431,9 +416,11 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private class ParserTask extends
             AsyncTask<Void, Integer, MapInformation> {
         private ProgressDialog _dialog;
-        MainActivity _mainMainActivity;
+        private MainActivity _mainMainActivity;
+        private LinearLayout _linearLayout;
         ParserTask(MainActivity mainActivity){
             _mainMainActivity = mainActivity;
+            _linearLayout = (LinearLayout)findViewById(R.id.instructions);
         }
 
         @Override
@@ -511,8 +498,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
 
         private void drawInstructions(MapInformation mapInformation){
-            LinearLayout ll = (LinearLayout)findViewById(R.id.instructions);
-            addChildToLayout(ll, "Total Duration: " + mapInformation.getTotalDuration().getName() + " Total Distance: " + mapInformation.getTotalDistance().getName(), 18);
+            addChildToLayout("Total Duration: " + mapInformation.getTotalDuration().getName() + " Total Distance: " + mapInformation.getTotalDistance().getName(), 18);
             List<Path> paths = mapInformation.getPaths();
             Path path = null;
             StringBuilder name = null;
@@ -530,12 +516,12 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                     name.append(" at ");
                     name.append(path.getDate().toString());
                 }
-                addChildToLayout(ll, name.toString(), 16);
+                addChildToLayout(name.toString(), 16);
             }
         }
 
-        private void addChildToLayout(LinearLayout ll, String name, int size){
-            ll.addView(createTextView(name, size));
+        private void addChildToLayout(String name, int size){
+            _linearLayout.addView(createTextView(name, size));
         }
     }
 

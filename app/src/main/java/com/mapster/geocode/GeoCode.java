@@ -21,7 +21,6 @@ import java.net.URLEncoder;
 public class GeoCode extends AsyncTask<String, Void, String[]> {
     private static final String GEOCODE_API_BASE = "http://maps.google.com/maps/api/geocode";
     private static final String LOG_TAG = "Mapster";
-//    private static final String API_KEY = "AIzaSyBM7NSP59Z4Lhfk975jtoMR2O1g4BPTos4";
     private static final String OUT_JSON = "/json";
     private HttpURLConnection conn;
 
