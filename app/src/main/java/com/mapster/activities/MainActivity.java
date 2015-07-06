@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -153,7 +152,14 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     @Override
+    protected void onPause() {
+        _itineraryDataSource.close();
+        super.onPause();
+    }
+
+    @Override
     public void onResume() {
+        _itineraryDataSource.open();
         if (!_suggestionItemsByMarkerId.isEmpty()) {
             // Don't want this to run straight after the first onCreate() call
             UpdateMainFromItineraryTask updateTask = new UpdateMainFromItineraryTask(this);
@@ -339,15 +345,23 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     private void addMarkers() {
+        // TODO Temporary fix, I'll need to go over your code properly and suss out what _sortedCoordinateArrayList
+        // is (the 'helper' stuff up in sortCoordinateArrayList().
+        Set<String> names = new HashSet<>();
+
         if (_map != null) {
             for(List<LatLng> latLng : _sortedCoordinateArrayList){
                 for (int i=0; i<latLng.size(); i++){
                     LatLng position = latLng.get(i);
                     UserItem item = _userItemList.get(i);
                     String name = item.getName();
-                    Marker m = _map.addMarker(new MarkerOptions().position(position).title(name));
-                    _userMarkers.put(m.getId(), false);
-                    _userItemsByMarkerId.put(m.getId(), item);
+                    // See other TODO: Prevents duplicates in budget/schedule
+                    if (!names.contains(name)) {
+                        Marker m = _map.addMarker(new MarkerOptions().position(position).title(name));
+                        _userMarkers.put(m.getId(), false);
+                        _userItemsByMarkerId.put(m.getId(), item);
+                        names.add(name);
+                    }
                 }
             }
         }

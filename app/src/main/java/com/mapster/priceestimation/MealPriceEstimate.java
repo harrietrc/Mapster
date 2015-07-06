@@ -16,6 +16,7 @@ public class MealPriceEstimate {
 
     public static final String DEFAULT_COUNTRY_CODE = "NZ";
     public static final double DEFAULT_MEAL_PRICE = 18.0;
+    public static final String DEFAULT_CURRENCY_CODE = "NZD";
 
     private MealPriceDataSource _dataSource;
 
@@ -62,7 +63,7 @@ public class MealPriceEstimate {
     public String findCountryCode(Suggestion suggestion) {
         // Should find the country code from the latitude and longitude (can't rely on the user's
         // marker in the case that this restaurant falls over the border of the country
-        return "NZ"; // TODO Temporary! Use Google Maps API for geolocation
+        return DEFAULT_COUNTRY_CODE; // TODO Temporary! Pass in country from user-defined stop
     }
 
     public double getAverageMealPrice(String countryCode) {

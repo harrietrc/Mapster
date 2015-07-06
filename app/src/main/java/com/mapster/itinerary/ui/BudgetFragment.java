@@ -21,6 +21,7 @@ import com.mapster.activities.ItineraryActivity;
 import com.mapster.itinerary.ItineraryItem;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
+import com.mapster.priceestimation.MealPriceEstimate;
 import com.mapster.suggestions.Suggestion;
 
 import java.util.ArrayList;
@@ -294,6 +295,9 @@ public class BudgetFragment extends Fragment {
                     // Use the entered value as the cost if available - else use the estimate.
                     Double userCost = s.getActualCost();
                     Double suggestionCost = userCost == null? s.getTotalCost() : userCost;
+
+                    if (currencyCode == null)
+                        currencyCode = MealPriceEstimate.DEFAULT_CURRENCY_CODE;
 
                     if (total == null && suggestionCost != null) {
                         _totalsMap.put(currencyCode, suggestionCost);

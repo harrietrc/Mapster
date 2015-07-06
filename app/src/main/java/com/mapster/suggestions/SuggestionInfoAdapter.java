@@ -59,18 +59,18 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
             builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                // Add the suggestion to the list for the UserItem it is associated with
-                UserItem userItem = item.getUserItem();
-                userItem.addSuggestionItem(item);
+                    // Add the suggestion to the list for the UserItem it is associated with
+                    UserItem userItem = item.getUserItem();
+                    userItem.addSuggestionItem(item);
 
-                // Prompt the user to enter a date for the suggestion (currently optional)
-                showDateDialogue(item);
+                    // Prompt the user to enter a date for the suggestion (currently optional)
+                    showDateDialogue(item);
 
-                // Flag this to not issue this prompt next time
-                item.setIsInItinerary(true);
+                    // Flag this to not issue this prompt next time
+                    item.setIsInItinerary(true);
 
-                mainActivity.setSuggestionItemMarker(item);
-                mainActivity.setItineraryUpdateRequired();
+                    mainActivity.setSuggestionItemMarker(item);
+                    mainActivity.setItineraryUpdateRequired();
                 }
             });
             builder.setNegativeButton(R.string.no, null);

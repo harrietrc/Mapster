@@ -65,6 +65,18 @@ public class ItineraryActivity extends FragmentActivity {
     }
 
     @Override
+    protected void onResume() {
+        _itineraryDataSource.open();
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        _itineraryDataSource.close();
+        super.onPause();
+    }
+
+    @Override
     public void onBackPressed() {
         writeItemsToDatabase();
         super.onBackPressed();
