@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -44,10 +45,12 @@ import com.mapster.map.models.Path;
 import com.mapster.map.models.Routes;
 import com.mapster.suggestions.Suggestion;
 import com.mapster.suggestions.SuggestionInfoAdapter;
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -57,7 +60,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener, OnMapReadyCallback {
-    private static final float UNDEFINED_COLOUR = -1;
+    private static final String TAG = "MainActivity";
     private static final String USER_ITEM_LIST = "USER_ITEM_LIST";
 
     // Flag that says whether to update the itinerary database (at the moment this is a heavy-handed
@@ -72,6 +75,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private ArrayList<String> _sortedTransportMode;
     private String _startDateTime;
     private CustomDate _customDate;
+    private SlidingUpPanelLayout _layout;
 
     // Markers divided into categories (to make enumeration of categories faster)
     private HashMap<String, List<Marker>> _markersByCategory;
@@ -112,6 +116,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _itineraryUpdateRequired = true;
 
         setContentView(R.layout.activity_main);
+
+        _layout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
         initializeGoogleMap();
         getDataFromPlaceActivity();
         sortCoordinateArrayList();
@@ -498,7 +504,18 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
 
         private void drawInstructions(MapInformation mapInformation){
-            addChildToLayout("Total Duration: " + mapInformation.getTotalDuration().getName() + " Total Distance: " + mapInformation.getTotalDistance().getName(), 18);
+            CustomDate startDate = new CustomDate(_startDateTime);
+            TextView total = (TextView) findViewById(R.id.total_distance_duration);
+            StringBuilder output = new StringBuilder("Total Duration: ");
+            output.append(CustomDate.convertSecondsToHours(CustomDate.secondsBetween(
+                    mapInformation.getPaths().get(mapInformation.getPaths().size() - 1)
+                            .getDate().getDateTime(), startDate.getDateTime())));
+            output.append("<br/> Total Distance: ");
+            DecimalFormat df = new DecimalFormat("#.#");
+            output.append(df.format(mapInformation.getTotalDistance().getValue()/1000.0) + " km");
+
+            total.setText(Html.fromHtml(output.toString()));
+
             List<Path> paths = mapInformation.getPaths();
             Path path = null;
             StringBuilder name = null;
@@ -553,7 +570,20 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
         // Save the filter button so that its visibility can be toggled
         _filterItem = menu.findItem(R.id.filter);
+        MenuItem item = menu.findItem(R.id.action_toggle);
+        if (_layout != null) {
+            if (_layout.getPanelState() == SlidingUpPanelLayout.PanelState.HIDDEN) {
+                item.setTitle(R.string.action_show);
+            } else {
+                item.setTitle(R.string.action_hide);
+            }
+        }
         return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
@@ -561,18 +591,61 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        } else if (id == R.id.filter) {
-            onFilterButtonClick();
-        } else if (id == R.id.budget_button) {
-            startBudgetActivity();
+
+        switch (item.getItemId()){
+            case R.id.action_toggle: {
+                if (_layout != null) {
+                    if (_layout.getPanelState() != SlidingUpPanelLayout.PanelState.HIDDEN) {
+                        _layout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
+                        item.setTitle(R.string.action_show);
+                    } else {
+                        _layout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+                        item.setTitle(R.string.action_hide);
+                    }
+                }
+                return true;
+            }
+            case R.id.action_anchor: {
+                if (_layout != null) {
+                    if (_layout.getAnchorPoint() == 1.0f) {
+                        _layout.setAnchorPoint(0.7f);
+                        _layout.setPanelState(SlidingUpPanelLayout.PanelState.ANCHORED);
+                        item.setTitle(R.string.action_anchor_disable);
+                    } else {
+                        _layout.setAnchorPoint(1.0f);
+                        _layout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+                        item.setTitle(R.string.action_anchor_enable);
+                    }
+                }
+                return true;
+            }
+
+            case R.id.action_settings:{
+                return true;
+            }
+
+            //noinspection SimplifiableIfStatement
+            case R.id.filter:{
+                onFilterButtonClick();
+                break;
+            }
+
+            case R.id.budget_button:{
+                startBudgetActivity();
+                break;
+            }
         }
         return super.onOptionsItemSelected(item);
     }
-
+    @Override
+    public void onBackPressed() {
+        if (_layout != null &&
+                (_layout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED || _layout.getPanelState() == SlidingUpPanelLayout.PanelState.ANCHORED)) {
+            _layout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        } else {
+            super.onBackPressed();
+        }
+    }
     /**
      * Sets the visibility of markers, taking into account all applicable filters
      * TODO Currently each filter needs to take into account previous ones - change this so it's
@@ -785,10 +858,5 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
         Intent intent = new Intent(this, ItineraryActivity.class);
         startActivity(intent);
-    }
-    @Override
-    public void onBackPressed(){
-        finish();
-        super.onBackPressed();
     }
 }

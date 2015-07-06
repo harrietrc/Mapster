@@ -14,14 +14,12 @@ public class MapInformation{
     private String _origin;
     private String _destination;
     private Distance _totalDistance;
-    private Duration _totalDuration;
     private CustomDate _date;
 
     public MapInformation(CustomDate date){
         _paths = new ArrayList<>();
         _routes = new ArrayList<>();
         _totalDistance = new Distance();
-        _totalDuration = new Duration();
         _date = date;
     }
 
@@ -37,24 +35,12 @@ public class MapInformation{
         _totalDistance = totalDistance;
     }
 
-    public void setTotalDuration(Duration totalDuration){
-        _totalDuration = totalDuration;
-    }
-
     public void setTotalDistanceValue(int totalDistanceValue){
         _totalDistance.setValue(totalDistanceValue);
     }
 
     public void setTotalDistanceString(String totalDistanceString){
         _totalDistance.setName(totalDistanceString);
-    }
-
-    public void setTotalDurationValue(int totalDurationValue){
-        _totalDuration.setValue(totalDurationValue);
-    }
-
-    public void setTotalDurationString(String totalDurationString){
-        _totalDuration.setName(totalDurationString);
     }
 
     public String getOrigin(){
@@ -67,10 +53,6 @@ public class MapInformation{
 
     public Distance getTotalDistance(){
         return _totalDistance;
-    }
-
-    public Duration getTotalDuration(){
-        return _totalDuration;
     }
 
     public List<Path> getPaths() {

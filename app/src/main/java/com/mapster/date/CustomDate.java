@@ -10,6 +10,8 @@ import org.joda.time.format.DateTimeFormatter;
  * Created by tommyngo on 11/06/15.
  */
 public class CustomDate {
+    private static final int CONVERT_TO_DAYS = 86400;
+    private static final int CONVERT_TO_HOURS = 3600;
     private DateTimeFormatter _formatDateTime = DateTimeFormat.forPattern("dd/MM/yyyy HH:mm");;
     private DateTime _date;
     private DateTime _date1970 = new DateTime(1970, 1, 1, 0, 0, DateTimeZone.UTC);
@@ -73,7 +75,31 @@ public class CustomDate {
         return Math.abs(Seconds.secondsBetween(_date.toDateTime(DateTimeZone.UTC), _date1970).getSeconds());
     }
 
-    public int secondsBetween(DateTime d){
-        return Math.abs(Seconds.secondsBetween(d.toDateTime(DateTimeZone.UTC), _date1970).getSeconds());
+    public static int secondsBetween (DateTime dateOne, DateTime dateTwo){
+        return Math.abs(Seconds.secondsBetween(dateOne, dateTwo).getSeconds());
+    }
+
+    public static String convertSecondsToHours(int totalSeconds){
+        if (totalSeconds < 60){
+            return (totalSeconds + " seconds");
+        }
+        float minutes = totalSeconds/60f;
+        if (minutes < 60f){
+            int minute = (totalSeconds % CONVERT_TO_HOURS) / 60;
+            int second = totalSeconds % 60;
+            return (minute + " minutes, " + second + " seconds");
+        }
+        float hours = minutes/60f;
+        if (hours < 24f){
+            int hour = totalSeconds / CONVERT_TO_HOURS;
+            int minute = (totalSeconds % CONVERT_TO_HOURS) / 60;
+            return (hour + " hours, " + minute + " minutes");
+        }
+
+        int days = totalSeconds/CONVERT_TO_DAYS;
+        totalSeconds = totalSeconds - (days * CONVERT_TO_DAYS);
+        int hour = totalSeconds / CONVERT_TO_HOURS;
+        int minute = (totalSeconds % CONVERT_TO_HOURS) / 60;
+        return (days + " days, " + hour + " hours, " + minute + " minutes");
     }
 }

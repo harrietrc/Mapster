@@ -79,7 +79,11 @@ public class BudgetFragment extends Fragment {
 
     private void formatTotalsAsList() {
         _totalsList.clear();
+        System.out.println(_totalsMap);
         for (Map.Entry pair : _totalsMap.entrySet()) {
+            //TODO FIX THIS
+            if (pair.getKey() == null)
+                break;
             String currencySymbol = Currency.getInstance((String) pair.getKey()).getSymbol();
             Double total = (Double) pair.getValue();
             if (total != null) {

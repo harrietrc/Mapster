@@ -62,7 +62,6 @@ public class JSONParser {
                 /** Traversing all legs */
                 for (int j = 0; j < jLegs.length(); j++) {
                     parseTotalDistanceDuration(jLegs.getJSONObject(j), "distance");
-                    parseTotalDistanceDuration(jLegs.getJSONObject(j), "duration");
                     jSteps = ((JSONObject) jLegs.get(j)).getJSONArray("steps");
 
                     /** Traversing all steps */
@@ -260,23 +259,17 @@ public class JSONParser {
     }
 
     private void parseTotalDistanceDuration(JSONObject jsonObject, String name){
-        Distance totalDistance;
-        Duration totalDuration;
+        Distance totalDistance = mapInformation.getTotalDistance();
         try {
-            switch (name) {
-                case "distance":
-                    totalDistance = new Distance(jsonObject.getJSONObject(name).getString("text"),
-                                                 jsonObject.getJSONObject(name).getInt("value"));
-                    mapInformation.setTotalDistance(totalDistance);
-                    break;
-                case "duration":
-                    totalDuration = new Duration(jsonObject.getJSONObject(name).getString("text"),
-                                                 jsonObject.getJSONObject(name).getInt("value"));
-                    mapInformation.setTotalDuration(totalDuration);
-                    break;
-                default:
-                    break;
+
+            if (totalDistance == null)
+                totalDistance = new Distance(jsonObject.getJSONObject(name).getString("text"),
+                                             jsonObject.getJSONObject(name).getInt("value"));
+            else {
+                totalDistance.setValue(totalDistance.getValue() + jsonObject.getJSONObject(name).getInt("value"));
+                totalDistance.setName("");
             }
+            mapInformation.setTotalDistance(totalDistance);
         } catch (JSONException e) {
             e.printStackTrace();
         }
