@@ -48,11 +48,6 @@ public class JSONParser {
             if (!status.equals("OK")){
                 return null;
             }
-            StringBuilder string = new StringBuilder();
-            System.out.println(mapInformation);
-            string.append("Start Date: <b>" + mapInformation.getDate().toString() + "</b>");
-            Path originalDate = new Path (new Distance("", 0), new Instruction(string.toString()), new Duration("", 0), mapInformation.getDate(), "");
-            mapInformation.addPath(originalDate);
             jRoutes = jObject.getJSONArray("routes");
             /** Traversing all routes */
             for (int i = 0; i < jRoutes.length(); i++) {
@@ -61,7 +56,7 @@ public class JSONParser {
 
                 /** Traversing all legs */
                 for (int j = 0; j < jLegs.length(); j++) {
-                    parseTotalDistanceDuration(jLegs.getJSONObject(j), "distance");
+                    parseTotalDistance(jLegs.getJSONObject(j), "distance");
                     jSteps = ((JSONObject) jLegs.get(j)).getJSONArray("steps");
 
                     /** Traversing all steps */
@@ -258,7 +253,7 @@ public class JSONParser {
         }
     }
 
-    private void parseTotalDistanceDuration(JSONObject jsonObject, String name){
+    private void parseTotalDistance(JSONObject jsonObject, String name){
         Distance totalDistance = mapInformation.getTotalDistance();
         try {
 

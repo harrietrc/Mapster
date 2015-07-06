@@ -527,6 +527,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             output.append("<br/> Total Distance: ");
             DecimalFormat df = new DecimalFormat("#.#");
             output.append(df.format(mapInformation.getTotalDistance().getValue()/1000.0) + " km");
+            output.append("<br/> Start Date: <b>" + startDate.toString() + "<b>");
 
             total.setText(Html.fromHtml(output.toString()));
 
@@ -544,7 +545,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                     name.append(path.getDistance().getName());
                     name.append(", ");
                     name.append(path.getDuration().getName());
-                    name.append(" at ");
+                    name.append("<br/>Arrival Time: ");
                     name.append(path.getDate().toString());
                 }
                 addChildToLayout(name.toString(), 16);
