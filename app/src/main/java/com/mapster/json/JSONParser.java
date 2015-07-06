@@ -121,6 +121,19 @@ public class JSONParser {
 
                                 transit.append("Number of stops: " + "<b>" + transitJSON
                                         .getString("num_stops") + "</b>");
+                                transit.append("<br/>");
+
+                                if (!line.isNull("agencies")){
+                                    JSONArray agencies = line.getJSONArray("agencies");
+                                    for (int m =0; m < agencies.length(); m ++){
+                                        JSONObject info = agencies.getJSONObject(m);
+                                        transit.append("Agency: " + info.getString("name"));
+                                        transit.append("<br/>");
+                                        transit.append("Phone: " + info.getString("phone"));
+                                        transit.append("<br/>");
+                                        transit.append("URL: " + info.get("url"));
+                                    }
+                                }
                                 Path pathJourney = null;
                                 if (transitDate == null)
                                     pathJourney = new Path(new Distance("", 0),
@@ -131,10 +144,22 @@ public class JSONParser {
                                 mapInformation.addPath(pathJourney);
                             }
                             assignInformationToMapInformation(jSteps.getJSONObject(k));
-
                             routes = new Routes(getPath(jSteps, k), getColorToRoute(jSteps.getJSONObject(k)));
                             mapInformation.addRoutes(routes);
-
+                        }
+                    }
+                    JSONObject route = jRoutes.getJSONObject(i);
+                    if (!route.isNull("warnings")){
+                        JSONArray warnings = route.getJSONArray("warnings");
+                        if (warnings.length() > 0) {
+                            StringBuilder warningString = new StringBuilder();
+                            warningString.append("<b>WARNING(S): <b/>");
+                            for (int l = 0; l < warnings.length(); l++) {
+                                warningString.append("<br/>" + warnings.getString(i));
+                            }
+                            Path p = new Path(new Distance("", 0),
+                                    new Instruction(warningString.toString()), new Duration("", 0), null);
+                            mapInformation.addPath(p);
                         }
                     }
                 }
