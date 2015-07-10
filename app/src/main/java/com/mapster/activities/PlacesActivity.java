@@ -273,6 +273,10 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                 if(!acTextView.getText().toString().isEmpty()) {
                     String text = acTextView.getText().toString();
                     String[] coordinate = new GeoCode().execute(text).get();
+                    if (coordinate == null){
+                        _userItemList = null;
+                        return;
+                    }
                     String placeName = text.split(",")[0];
                     placeName = placeName == null? text : placeName;
 
@@ -339,10 +343,17 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     }
 
     private void moveToMainActivityWithData(){
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra(START_DATETIME, _dateTimeStartJourney);
-        intent.putParcelableArrayListExtra("USER_ITEM_LIST", _userItemList);
+        if (_userItemList != null) {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra(START_DATETIME, _dateTimeStartJourney);
+            intent.putParcelableArrayListExtra("USER_ITEM_LIST", _userItemList);
+            startActivity(intent);
+        } else {
+            createToast("One of the addresses or addresses you passed is non-exist. Please select from the suggested list", Toast.LENGTH_LONG);
+        }
+    }
 
-        startActivity(intent);
+    protected void createToast(String name, int duration){
+        Toast.makeText(this, name, duration).show();
     }
 }

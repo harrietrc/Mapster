@@ -1,6 +1,7 @@
 package com.mapster.map.models;
 
 import com.mapster.date.CustomDate;
+import com.mapster.json.StatusCode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,12 +16,17 @@ public class MapInformation{
     private String _destination;
     private Distance _totalDistance;
     private CustomDate _date;
+    private StatusCode _status;
 
     public MapInformation(CustomDate date){
         _paths = new ArrayList<>();
         _routes = new ArrayList<>();
         _totalDistance = new Distance();
         _date = date;
+    }
+
+    public void setStatus(StatusCode code){
+        _status = code;
     }
 
     public void setOrigin(String origin){
@@ -57,6 +63,10 @@ public class MapInformation{
 
     public List<Path> getPaths() {
         return _paths;
+    }
+
+    public StatusCode getStatus(){
+        return _status;
     }
 
     public void setPaths(List<Path> paths) {

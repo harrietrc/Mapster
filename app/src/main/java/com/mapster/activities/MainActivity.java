@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -39,6 +40,7 @@ import com.mapster.itinerary.UserItem;
 import com.mapster.itinerary.persistence.ItineraryDataSource;
 import com.mapster.itinerary.persistence.UpdateMainFromItineraryTask;
 import com.mapster.json.JSONParser;
+import com.mapster.json.StatusCode;
 import com.mapster.map.models.MapInformation;
 import com.mapster.map.models.Path;
 import com.mapster.map.models.Routes;
@@ -148,7 +150,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             public void onDrawerStateChanged(int newState) {}
         };
         _drawerLayout.setDrawerListener(drawerListener);
-
     }
 
     @Override
@@ -161,6 +162,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     public void onResume() {
         _itineraryDataSource.open();
         if (!_suggestionItemsByMarkerId.isEmpty()) {
+            Log.d(TAG, "onResume");
             // Don't want this to run straight after the first onCreate() call
             UpdateMainFromItineraryTask updateTask = new UpdateMainFromItineraryTask(this);
             updateTask.execute();
@@ -486,8 +488,24 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         protected void onPostExecute(MapInformation mapInformation) {
 
             _dialog.dismiss();
-            if(mapInformation == null){
-                createToast("Routes not found", Toast.LENGTH_SHORT);
+            if(mapInformation.getStatus().equals(StatusCode.NOT_FOUND)){
+                createToast("At least one of the locations specified in the request's origin, " +
+                        "destination, or stop points could not be geocoded.", Toast.LENGTH_SHORT);
+                return;
+            } else if (mapInformation.getStatus().equals(StatusCode.ZERO_RESULTS)){
+                createToast("No route could be found", Toast.LENGTH_SHORT);
+                return;
+            } else if (mapInformation.getStatus().equals(StatusCode.INVALID_REQUEST)){
+                createToast("Please select one of the suggested locations in previous screen", Toast.LENGTH_SHORT);
+                return;
+            } else if (mapInformation.getStatus().equals(StatusCode.OVER_QUERY_LIMIT)){
+                createToast("Please contact developers for a new API key", Toast.LENGTH_SHORT);
+                return;
+            } else if (mapInformation.getStatus().equals(StatusCode.REQUEST_DENIED)){
+                createToast("The service denied use of the directions service by your application.", Toast.LENGTH_SHORT);
+                return;
+            } else if (mapInformation.getStatus().equals(StatusCode.UNKNOWN_ERROR)){
+                createToast("A directions request could not be processed due to a server error. The request may succeed if you try again.", Toast.LENGTH_SHORT);
                 return;
             }
 
@@ -521,6 +539,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             CustomDate startDate = new CustomDate(_startDateTime);
             TextView total = (TextView) findViewById(R.id.total_distance_duration);
             StringBuilder output = new StringBuilder("Total Duration: ");
+            Log.d(TAG, "MapInfor: " + mapInformation.getPaths().size());
             output.append(CustomDate.convertSecondsToHours(CustomDate.secondsBetween(
                     mapInformation.getPaths().get(mapInformation.getPaths().size() - 1)
                             .getDate().getDateTime(), startDate.getDateTime())));

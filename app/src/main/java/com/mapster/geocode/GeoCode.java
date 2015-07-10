@@ -3,6 +3,8 @@ package com.mapster.geocode;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.mapster.json.StatusCode;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,6 +39,7 @@ public class GeoCode extends AsyncTask<String, Void, String[]> {
             StringBuilder sb = formURLString(address);
             try {
                 url = new URL(sb.toString());
+                System.out.println(url.toString());
                 conn = (HttpURLConnection) url.openConnection();
                 in = new InputStreamReader(conn.getInputStream());
             } catch (MalformedURLException e){
@@ -85,6 +88,10 @@ public class GeoCode extends AsyncTask<String, Void, String[]> {
         try {
             // Create a JSON object hierarchy from the results
             JSONObject jsonObj = new JSONObject(jsonResults.toString());
+            if (!StatusCode.valueOf(jsonObj.getString("status")).equals(StatusCode.OK)){
+                Log.d("GEOCODE", "not ok");
+                return null;
+            }
             JSONArray jsonArray = jsonObj.getJSONArray("results");
             for (int i = 0; i < jsonArray.length(); i++) {
                 coordinate[0] = jsonArray.getJSONObject(i).getJSONObject("geometry").getJSONObject("location").getString("lat");
