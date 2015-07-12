@@ -3,15 +3,32 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/add_points">
-    <TextView
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/origin"
-        android:text="Stop Point"
-        android:textSize="8pt"
-        android:textColor="#287AA9"
-        android:layout_marginLeft="5dp"
-        android:paddingTop="5dp"/>
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="80"
+            android:id="@+id/origin"
+            android:text="Stop Point"
+            android:textSize="8pt"
+            android:textColor="#287AA9"
+            android:layout_marginLeft="5dp"
+            android:paddingTop="5dp"/>
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="20"
+            android:layout_height="wrap_content"
+            android:onClick="removeStopPoint"
+            android:clickable="true"
+            android:text="Remove"
+            android:textSize="8pt"
+            android:layout_marginRight="5dp"
+            android:paddingTop="5dp"
+            />
+    </LinearLayout>
     <AutoCompleteTextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

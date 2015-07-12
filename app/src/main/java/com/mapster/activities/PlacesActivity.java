@@ -141,8 +141,6 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
             public void onFocusChange(View v, boolean hasFocus) {
             if (hasFocus == false) {  // lost focus
                 acTextView.setSelection(0,0);
-            }else{
-                acTextView.setText("");
             }
             }
         });
@@ -351,6 +349,17 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         } else {
             createToast("One of the addresses or addresses you passed is non-exist. Please select from the suggested list", Toast.LENGTH_LONG);
         }
+    }
+
+    public void removeStopPoint(View view){
+        LinearLayout ll = ((LinearLayout)view.getParent().getParent());
+        LinearLayout llParent = (LinearLayout)ll.getParent();
+        for (int i = 0; i < llParent.getChildCount(); i++){
+            if (ll == llParent.getChildAt(i)){
+                _autoCompleteTextViewLinkedList.remove(i + 1);
+            }
+        }
+        llParent.removeView(ll);
     }
 
     protected void createToast(String name, int duration){
