@@ -3,6 +3,7 @@ package com.mapster.activities;
 import android.app.DatePickerDialog;
 import android.app.DialogFragment;
 import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -24,12 +25,12 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.model.LatLng;
 import com.mapster.R;
 import com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoCompleteTextView;
 import com.mapster.fragment.DatePickerFragment;
 import com.mapster.fragment.TimePickerFragment;
 import com.mapster.geocode.GeoCode;
+import com.mapster.interfaces.MyListener;
 import com.mapster.itinerary.UserItem;
 import com.mapster.places.autocomplete.PlacesAutoCompleteAdapter;
 
@@ -42,11 +43,10 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import static junit.framework.Assert.assertTrue;
 
-public class PlacesActivity extends ActionBarActivity implements OnItemClickListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
+public class PlacesActivity extends ActionBarActivity implements OnItemClickListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener, MyListener {
 
     public static final String START_DATETIME = "START_DATETIME";
 
@@ -64,8 +64,21 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     // List of parcelable user-defined destinations
     private ArrayList<UserItem> _userItemList;
 
+    @Override
+    public void callback(ArrayList<UserItem> userItems) {
+        if (userItems != null){
+            _userItemList = userItems;
+            System.out.println(_userItemList.get(1));
+            mergeDateAndTimeToDateTime();
+            moveToMainActivityWithData();
+        } else {
+            Toast.makeText(this,"Origin and Destination fields must not be blank",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
     public enum TravelMode{
-        DRIVING("driving"), WALKING("walking"), BIKING("bicycling"), TRANSIT("transit");
+        DRIVING("driving"), WALKING("walking"), BICYCLING("bicycling"), TRANSIT("transit");
         private final String name;
         private TravelMode(String name){
             this.name = name;
@@ -209,13 +222,8 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     }
 
     public void ok(View view){
-        if(isNotOriginAndDestinationEmpty()){
+        if(isNotOriginAndDestinationEmpty()) {
             addUserCoordinateToArrayList();
-            mergeDateAndTimeToDateTime();
-            moveToMainActivityWithData();
-        } else {
-            Toast.makeText(this,"Origin and Destination fields must not be blank",
-                           Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -263,73 +271,9 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     }
 
     private void addUserCoordinateToArrayList(){
-        _userItemList = new ArrayList<>();
-        int position = 0;
-        for (ClearableAutoCompleteTextView acTextView : _autoCompleteTextViewLinkedList){
-            try {
-                if(!acTextView.getText().toString().isEmpty()) {
-                    String text = acTextView.getText().toString();
-                    String[] coordinate = new GeoCode().execute(text).get();
-                    if (coordinate == null){
-                        _userItemList = null;
-                        return;
-                    }
-                    String placeName = text.split(",")[0];
-                    placeName = placeName == null? text : placeName;
-
-                    Double lat = Double.parseDouble(coordinate[0]);
-                    Double lng = Double.parseDouble(coordinate[1]);
-                    LatLng location = new LatLng(lat, lng);
-                    String transportMode = null;
-                    if(acTextView.getId() != R.id.autocomplete_destination) {
-                        for (int j = 0; j < _transportModeViewList.get(position).getChildCount(); j++) {
-                            RadioButton rb = (RadioButton) _transportModeViewList.get(position).getChildAt(j);
-                            transportMode = getTranposportMode(rb);
-                            if (transportMode != null){
-                                break;
-                            }
-                        }
-                    }
-                    // Create a parcelable representation of the user-defined destination
-                    UserItem item = new UserItem(placeName, location, transportMode);
-                    _userItemList.add(item);
-                    System.out.println(item.getName() + " " + item.getTravelMode());
-                    position++;
-                }
-            } catch(InterruptedException e){
-                e.printStackTrace();
-            } catch(ExecutionException e){
-                e.printStackTrace();
-            }
-        }
+        new GeoCode(_autoCompleteTextViewLinkedList, _transportModeViewList, this).execute();
     }
 
-    private String getTranposportMode(RadioButton rb){
-        switch(rb.getId()) {
-            case R.id.bike_mode:
-                if (rb.isChecked()) {
-                    return TravelMode.BIKING.name;
-                }
-                return null;
-            case R.id.drive_mode:
-                if (rb.isChecked()) {
-                    return (TravelMode.DRIVING.name);
-                }
-                return null;
-            case R.id.transit_mode:
-                if (rb.isChecked()) {
-                    return (TravelMode.TRANSIT.name);
-                }
-                return null;
-            case R.id.walk_mode:
-                if (rb.isChecked()) {
-                    return (TravelMode.WALKING.name);
-                }
-                return null;
-            default:
-                return null;
-        }
-    }
 
     private void mergeDateAndTimeToDateTime(){
         if (_dateStartJourney == null)

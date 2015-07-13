@@ -352,13 +352,20 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         Set<String> names = new HashSet<>();
 
         if (_map != null) {
+            int pos = 0;
+            System.out.println(_sortedCoordinateArrayList);
             for(List<LatLng> latLng : _sortedCoordinateArrayList){
                 for (int i=0; i<latLng.size(); i++){
                     LatLng position = latLng.get(i);
-                    UserItem item = _userItemList.get(i);
-                    String name = item.getName();
+                    UserItem item = null;
+                    String name = null;
+                    if (pos == 0 || i != 0) {
+                        item = _userItemList.get(pos);
+                        name = item.getName();
+                        pos++;
+                    }
                     // See other TODO: Prevents duplicates in budget/schedule
-                    if (!names.contains(name)) {
+                    if (name != null && !names.contains(name)) {
                         Marker m = _map.addMarker(new MarkerOptions().position(position).title(name));
                         _userMarkers.put(m.getId(), false);
                         _userItemsByMarkerId.put(m.getId(), item);
@@ -461,7 +468,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 if (mapInformation != null)
                     _customDate = mapInformation.getDate();
                 String jsonData = readTask(url);
-
                 try {
                     jObject = new JSONObject(jsonData);
                     JSONParser parser = new JSONParser(_customDate);

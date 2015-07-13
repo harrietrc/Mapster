@@ -1,8 +1,16 @@
 package com.mapster.geocode;
 
+import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.mapster.R;
+import com.mapster.activities.PlacesActivity;
+import com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoCompleteTextView;
+import com.mapster.itinerary.UserItem;
 import com.mapster.json.StatusCode;
 
 import org.json.JSONArray;
@@ -16,19 +24,32 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by tommyngo on 20/03/15.
  */
-public class GeoCode extends AsyncTask<String, Void, String[]> {
+public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
     private static final String GEOCODE_API_BASE = "http://maps.google.com/maps/api/geocode";
     private static final String LOG_TAG = "Mapster";
     private static final String OUT_JSON = "/json";
     private HttpURLConnection conn;
+    private LinkedList<ClearableAutoCompleteTextView> _autoCompleteTextViewLinkedList;
+    private List<RadioGroup> _transportModeViewList;
+    private PlacesActivity _activity;
+    private ProgressDialog _dialog;
 
-    protected String[] doInBackground(String ...strings) {
-        return convertAddressToLatLng(strings[0]);
+    public GeoCode(LinkedList<ClearableAutoCompleteTextView> autoCompleteTextViewLinkedList,
+                   List<RadioGroup> transportModeViewList, PlacesActivity activity){
+        _autoCompleteTextViewLinkedList = autoCompleteTextViewLinkedList;
+        _transportModeViewList = transportModeViewList;
+        _activity = activity;
     }
+
+
 
     private String[] convertAddressToLatLng(String address){
         StringBuilder jsonResults;
@@ -102,4 +123,84 @@ public class GeoCode extends AsyncTask<String, Void, String[]> {
         }
         return coordinate;
     }
+
+    @Override
+    public ArrayList<UserItem> doInBackground(Void... input) {
+        ArrayList<UserItem> userItemList = new ArrayList<>();;
+        int position = 0;
+        for (ClearableAutoCompleteTextView acTextView : _autoCompleteTextViewLinkedList){
+            if(!acTextView.getText().toString().isEmpty()) {
+                String text = acTextView.getText().toString();
+                String[] coordinate = convertAddressToLatLng(text);
+                if (coordinate == null){
+                    System.out.println(coordinate);
+                    userItemList = null;
+                    return userItemList;
+                }
+                String placeName = text.split(",")[0];
+                placeName = placeName == null? text : placeName;
+
+                Double lat = Double.parseDouble(coordinate[0]);
+                Double lng = Double.parseDouble(coordinate[1]);
+                LatLng location = new LatLng(lat, lng);
+                String transportMode = null;
+                if(acTextView.getId() != R.id.autocomplete_destination) {
+                    for (int j = 0; j < _transportModeViewList.get(position).getChildCount(); j++) {
+                        RadioButton rb = (RadioButton) _transportModeViewList.get(position).getChildAt(j);
+                        transportMode = getTranposportMode(rb);
+                        if (transportMode != null){
+                            break;
+                        }
+                    }
+                }
+                // Create a parcelable representation of the user-defined destination
+                UserItem item = new UserItem(placeName, location, transportMode);
+                userItemList.add(item);
+                System.out.println(item.getName() + " " + item.getTravelMode());
+                position++;
+            }
+        }
+        return userItemList;
+    }
+
+    @Override
+    public void onPostExecute(ArrayList<UserItem> userItems){
+        _activity.callback(userItems);
+        _dialog.dismiss();
+    }
+
+    @Override
+    public void onPreExecute(){
+        _dialog = new ProgressDialog(_activity);
+        _dialog.setMessage("Please wait...");
+        _dialog.show();
+    }
+
+    private String getTranposportMode(RadioButton rb){
+        switch(rb.getId()) {
+            case R.id.bike_mode:
+                if (rb.isChecked()) {
+                    return PlacesActivity.TravelMode.BICYCLING.name().toLowerCase();
+                }
+                return null;
+            case R.id.drive_mode:
+                if (rb.isChecked()) {
+                    return (PlacesActivity.TravelMode.DRIVING.name()).toLowerCase();
+                }
+                return null;
+            case R.id.transit_mode:
+                if (rb.isChecked()) {
+                    return (PlacesActivity.TravelMode.TRANSIT.name()).toLowerCase();
+                }
+                return null;
+            case R.id.walk_mode:
+                if (rb.isChecked()) {
+                    return PlacesActivity.TravelMode.WALKING.name().toLowerCase();
+                }
+                return null;
+            default:
+                return null;
+        }
+    }
+
 }
