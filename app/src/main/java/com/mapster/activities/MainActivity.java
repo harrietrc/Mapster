@@ -642,7 +642,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             case R.id.action_anchor: {
                 if (_layout != null) {
                     if (_layout.getAnchorPoint() == 1.0f) {
-                        _layout.setAnchorPoint(0.7f);
+                        _layout.setAnchorPoint(0.6f);
                         _layout.setPanelState(SlidingUpPanelLayout.PanelState.ANCHORED);
                         item.setTitle(R.string.action_anchor_disable);
                     } else {
