@@ -19,7 +19,7 @@
             android:textSize="8pt"
             android:textColor="#287AA9"/>
 
-        <AutoCompleteTextView
+        <com.mapster.clearableautocompletetextview.ClearableAutoCompleteTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/autocomplete_origin"
@@ -28,7 +28,8 @@
             android:singleLine="true"
             android:textSize="7pt"
             android:hint="Start Place"
-            android:paddingLeft="5pt"/>
+            android:paddingLeft="5pt"
+            android:drawableRight="@drawable/abc_ic_clear_holo_light"/>
         <RadioGroup
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -90,7 +91,7 @@
             android:text="Destination"
             android:textSize="8pt"
             android:textColor="#287AA9"/>
-        <AutoCompleteTextView
+        <com.mapster.clearableautocompletetextview.ClearableAutoCompleteTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/autocomplete_destination"

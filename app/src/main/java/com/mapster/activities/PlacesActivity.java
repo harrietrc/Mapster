@@ -28,6 +28,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.mapster.R;
+import com.mapster.clearableautocompletetextview.ClearableAutoCompleteTextView;
 import com.mapster.fragment.DatePickerFragment;
 import com.mapster.fragment.TimePickerFragment;
 import com.mapster.geocode.GeoCode;
@@ -52,7 +53,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     public static final String START_DATETIME = "START_DATETIME";
 
     private PlacesAutoCompleteAdapter _autoCompAdapter;
-    private LinkedList<AutoCompleteTextView> _autoCompleteTextViewLinkedList;
+    private LinkedList<ClearableAutoCompleteTextView> _autoCompleteTextViewLinkedList;
     private List<RadioGroup> _transportModeViewList;
     private TextView _dateTextView;
     private SimpleDateFormat _dateFormat = new SimpleDateFormat("dd/MM/yyyy");
@@ -115,8 +116,8 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     private void addViewsInLayoutToArrayList(LinearLayout llayout){
         for (int i = 0; i < llayout.getChildCount(); i++) {
-            if (llayout.getChildAt(i) instanceof AutoCompleteTextView) {
-                _autoCompleteTextViewLinkedList.add((AutoCompleteTextView) llayout.getChildAt(i));
+            if (llayout.getChildAt(i) instanceof ClearableAutoCompleteTextView) {
+                _autoCompleteTextViewLinkedList.add((ClearableAutoCompleteTextView) llayout.getChildAt(i));
             } else if(llayout.getChildAt(i) instanceof RadioGroup) {
                 _transportModeViewList.add((RadioGroup) llayout.getChildAt(i));
             }
@@ -124,18 +125,18 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     }
 
     private void initializeAutoCompleteTextViewInArrayList(){
-        for (AutoCompleteTextView acTextView : _autoCompleteTextViewLinkedList){
+        for (ClearableAutoCompleteTextView acTextView : _autoCompleteTextViewLinkedList){
             initializeAutoCompleteTextViews(acTextView);
         }
     }
 
-    private void initializeAutoCompleteTextViews(AutoCompleteTextView autoCompleteTextView) {
+    private void initializeAutoCompleteTextViews(ClearableAutoCompleteTextView autoCompleteTextView) {
         autoCompleteTextView.setAdapter(_autoCompAdapter);
         autoCompleteTextView.setOnItemClickListener(this);
         displayTextFromStart(autoCompleteTextView);
     }
 
-    private void displayTextFromStart(final AutoCompleteTextView acTextView){
+    private void displayTextFromStart(final ClearableAutoCompleteTextView acTextView){
         acTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -162,8 +163,8 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                 final int positionOfAutoCompleteTextView = 1;
                 final int positionOfRadioGroupView = 2;
                 LinearLayout linearLayout = addStopPoints();
-                addAutoCompleteTextViewToLinkedList((AutoCompleteTextView) linearLayout.getChildAt(positionOfAutoCompleteTextView));
-                initializeAutoCompleteTextViews((AutoCompleteTextView)linearLayout.getChildAt(positionOfAutoCompleteTextView));
+                addAutoCompleteTextViewToLinkedList((ClearableAutoCompleteTextView) linearLayout.getChildAt(positionOfAutoCompleteTextView));
+                initializeAutoCompleteTextViews((ClearableAutoCompleteTextView)linearLayout.getChildAt(positionOfAutoCompleteTextView));
                 addRadioGroupToList((RadioGroup)linearLayout.getChildAt(positionOfRadioGroupView));
                 return true;
             default:
@@ -181,7 +182,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         return inflateLayout;
     }
 
-    private void addAutoCompleteTextViewToLinkedList(AutoCompleteTextView autoCompleteTextView){
+    private void addAutoCompleteTextViewToLinkedList(ClearableAutoCompleteTextView autoCompleteTextView){
         _autoCompleteTextViewLinkedList.add(_autoCompleteTextViewLinkedList.size() - 1, autoCompleteTextView);
     }
 
@@ -204,7 +205,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     }
 
     public void clearAll(View view){
-        for (AutoCompleteTextView acTextView : _autoCompleteTextViewLinkedList){
+        for (ClearableAutoCompleteTextView acTextView : _autoCompleteTextViewLinkedList){
             acTextView.setText("");
         }
     }
@@ -248,12 +249,12 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
 
     private boolean isNotOriginAndDestinationEmpty(){
-        AutoCompleteTextView originInList = _autoCompleteTextViewLinkedList.get(0);
-        AutoCompleteTextView destinationInList = _autoCompleteTextViewLinkedList.get(_autoCompleteTextViewLinkedList.size() - 1);
-        AutoCompleteTextView originInLayout =
-                (AutoCompleteTextView) findViewById(R.id.autocomplete_origin);
-        AutoCompleteTextView destinationInLayout =
-                (AutoCompleteTextView) findViewById(R.id.autocomplete_destination);
+        ClearableAutoCompleteTextView originInList = _autoCompleteTextViewLinkedList.get(0);
+        ClearableAutoCompleteTextView destinationInList = _autoCompleteTextViewLinkedList.get(_autoCompleteTextViewLinkedList.size() - 1);
+        ClearableAutoCompleteTextView originInLayout =
+                (ClearableAutoCompleteTextView) findViewById(R.id.autocomplete_origin);
+        ClearableAutoCompleteTextView destinationInLayout =
+                (ClearableAutoCompleteTextView) findViewById(R.id.autocomplete_destination);
         assertTrue(originInLayout.equals(originInList) && destinationInLayout.equals(destinationInList));
         if(originInList.getText().toString().isEmpty()
                 || destinationInLayout.getText().toString().isEmpty()){
@@ -266,7 +267,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     private void addUserCoordinateToArrayList(){
         _userItemList = new ArrayList<>();
         int position = 0;
-        for (AutoCompleteTextView acTextView : _autoCompleteTextViewLinkedList){
+        for (ClearableAutoCompleteTextView acTextView : _autoCompleteTextViewLinkedList){
             try {
                 if(!acTextView.getText().toString().isEmpty()) {
                     String text = acTextView.getText().toString();
