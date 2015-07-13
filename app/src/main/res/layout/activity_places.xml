@@ -19,7 +19,7 @@
             android:textSize="8pt"
             android:textColor="#287AA9"/>
 
-        <com.mapster.clearableautocompletetextview.ClearableAutoCompleteTextView
+        <com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoCompleteTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/autocomplete_origin"
@@ -91,7 +91,7 @@
             android:text="Destination"
             android:textSize="8pt"
             android:textColor="#287AA9"/>
-        <com.mapster.clearableautocompletetextview.ClearableAutoCompleteTextView
+        <com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoCompleteTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/autocomplete_destination"

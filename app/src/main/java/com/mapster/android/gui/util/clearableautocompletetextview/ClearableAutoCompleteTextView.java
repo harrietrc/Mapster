@@ -1,4 +1,4 @@
-package com.mapster.clearableautocompletetextview;
+package com.mapster.android.gui.util.clearableautocompletetextview;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
