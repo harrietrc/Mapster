@@ -59,7 +59,8 @@
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:paddingBottom="5dp">
             <TextView
                 android:id="@+id/date"
                 android:layout_width="0dp"
@@ -100,7 +101,8 @@
             android:singleLine="true"
             android:textSize="7pt"
             android:hint="Your Destination"
-            android:paddingLeft="5pt" />
+            android:paddingLeft="5pt"
+            android:paddingTop="5dp"/>
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="match_parent"

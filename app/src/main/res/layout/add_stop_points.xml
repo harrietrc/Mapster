@@ -2,13 +2,15 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/add_points">
+    android:id="@+id/add_points"
+    android:paddingBottom="5dp"
+    android:paddingTop="5dp">>
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:paddingTop="5dp"
-        android:paddingBottom="10dp">
+        android:paddingBottom="5dp">
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -25,7 +27,7 @@
             android:onClick="removeStopPoint"
             android:clickable="true"
             android:text="Remove"
-            android:textSize="8pt"
+            android:textSize="7pt"
             android:layout_marginRight="5dp"
             />
     </LinearLayout>
@@ -73,13 +75,14 @@
         android:onClick="addDate"
         android:clickable="true"
         android:paddingTop="10dp"
-        android:layout_marginBottom="10dp"
         android:layout_marginLeft="5dp"
-        android:textSize="7pt"/>
+        android:textSize="7pt"
+        android:paddingBottom="5dp"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:id="@+id/add_date">
+        android:id="@+id/add_date"
+        android:paddingBottom="5dp">
     </LinearLayout>
 </LinearLayout>

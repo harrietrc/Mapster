@@ -49,6 +49,13 @@ public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
         _activity = activity;
     }
 
+    public enum TravelMode{
+        DRIVING("driving"), WALKING("walking"), BICYCLING("bicycling"), TRANSIT("transit");
+        private final String name;
+        private TravelMode(String name){
+            this.name = name;
+        }
+    }
 
 
     private String[] convertAddressToLatLng(String address){
@@ -133,7 +140,6 @@ public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
                 String text = acTextView.getText().toString();
                 String[] coordinate = convertAddressToLatLng(text);
                 if (coordinate == null){
-                    System.out.println(coordinate);
                     userItemList = null;
                     return userItemList;
                 }
@@ -180,22 +186,22 @@ public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
         switch(rb.getId()) {
             case R.id.bike_mode:
                 if (rb.isChecked()) {
-                    return PlacesActivity.TravelMode.BICYCLING.name().toLowerCase();
+                    return TravelMode.BICYCLING.name;
                 }
                 return null;
             case R.id.drive_mode:
                 if (rb.isChecked()) {
-                    return (PlacesActivity.TravelMode.DRIVING.name()).toLowerCase();
+                    return TravelMode.DRIVING.name;
                 }
                 return null;
             case R.id.transit_mode:
                 if (rb.isChecked()) {
-                    return (PlacesActivity.TravelMode.TRANSIT.name()).toLowerCase();
+                    return (TravelMode.TRANSIT.name);
                 }
                 return null;
             case R.id.walk_mode:
                 if (rb.isChecked()) {
-                    return PlacesActivity.TravelMode.WALKING.name().toLowerCase();
+                    return TravelMode.WALKING.name;
                 }
                 return null;
             default:
