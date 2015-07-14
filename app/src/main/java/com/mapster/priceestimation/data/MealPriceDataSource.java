@@ -41,9 +41,9 @@ public class MealPriceDataSource {
             // TODO Should populate from file in MealPriceDataSource.onCreate(), not here
 
             // Add others beneath this (use numbeo.com to find the average price of a meal)
-            // The first argument is the country's ISO code, the second is its currency code, and
-            // the third is its average meal price in the local currency. Currency codes should be
-            // ISO 4217 format.
+            // The first argument is the country's ISO 3166 code, the second is its currency code,
+            // and the third is its average meal price in the local currency. Currency codes should
+            // be ISO 4217 format.
             createCountry("NZ", "NZD", 18.0);
             createCity("Wellington", 19.0, "NZ");
             createCountry("US", "USD", 10.0);
