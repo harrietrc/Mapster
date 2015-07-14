@@ -60,4 +60,10 @@
     <string name="cost">Cost</string>
     <string name="edit">Edit</string>
 
+    <!-- Suggestion options dialogue -->
+    <string name="go_to_website">Website</string>
+    <string name="call_phone">Call</string>
+    <string name="add_to_itinerary">Add to itinerary</string>
+    <string name="back">Back</string>
+
 </resources>

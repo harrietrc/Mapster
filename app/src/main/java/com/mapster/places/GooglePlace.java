@@ -21,7 +21,7 @@ public class GooglePlace {
     private Float _rating;
     private String _photoReference;
 
-    // Save the details of a place, if they are retrieved.
+    // Save the details of a place, if they are retrieved. TODO necessary?
     private GooglePlaceDetail _detail;
 
     private Integer _priceLevel; // Rates the expense of the place, with 0 being free and 4 very expensive
@@ -45,6 +45,14 @@ public class GooglePlace {
 
     public LatLng getLatLng() {
         return new LatLng(_latitude, _longitude);
+    }
+
+    public String getWebsite() {
+        return _detail.getWebsite();
+    }
+
+    public String getPhoneNumber() {
+        return _detail.getPhoneNumber();
     }
 
     /**

@@ -32,6 +32,16 @@ public class ExpediaSuggestion extends Suggestion {
     }
 
     @Override
+    public String getWebsite() {
+        return null; // TODO can we get a website? Most probably
+    }
+
+    @Override
+    public String getPhoneNumber() {
+        return null; // TODO Same as above
+    }
+
+    @Override
     public void requestSuggestionInfo(Context context) {
         ExpediaHotelInfoTask task = new ExpediaHotelInfoTask(context);
         task.execute(this);

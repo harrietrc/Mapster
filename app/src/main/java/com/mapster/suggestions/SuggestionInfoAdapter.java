@@ -3,10 +3,14 @@ package com.mapster.suggestions;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -40,25 +44,63 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
     }
 
     /**
-     * Called when the info window of a marker (displays the image, contact details, address, etc.
-     * of a suggestion) is clicked. Should only act on interactions with suggestion infowindows.
+     * Inflates and customises the dialogue with options for this suggestion (call, go to website,
+     * add to itinerary)
      * @param marker
      */
     @Override
     public void onInfoWindowClick(Marker marker) {
         final MainActivity mainActivity = (MainActivity) _activity;
 
+        // Inflate the dialogue and get references to each button
+        LinearLayout l = new LinearLayout(_activity);
+        LinearLayout content = (LinearLayout) _inflater.inflate(R.layout.suggestion_options_dialogue, l);
+        Button callButton = (Button) content.findViewById(R.id.call_button);
+        Button websiteButton = (Button) content.findViewById(R.id.website_button);
+        Button itineraryButton = (Button) content.findViewById(R.id.itinerary_button);
+
         final SuggestionItem item = mainActivity.getSuggestionItemByMarker(marker);
+        Suggestion s = item.getSuggestion();
 
-        if (item != null && !item.isInItinerary()) {
-            // Marker is a suggestion marker so we should process the event
-            AlertDialog.Builder builder = new AlertDialog.Builder(_activity);
-            String name = item.getSuggestion().getName();
-            builder.setMessage("Add " + name + " to itinerary?");
-
-            builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+        // Website button - visible if the suggestion is associated with a website
+        final String website = s.getWebsite(); // Need empty string check?
+        if (website != null) {
+            websiteButton.setVisibility(View.VISIBLE);
+            websiteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(DialogInterface dialog, int which) {
+                public void onClick(View view) {
+                    Intent webIntent = new Intent(Intent.ACTION_VIEW);
+                    webIntent.setData(Uri.parse(website)); // Assume it starts with http://
+                    _activity.startActivity(webIntent);
+                }
+            });
+        } else {
+            websiteButton.setVisibility(View.GONE);
+        }
+
+        // Call button - open the phone app with the phone number, if available
+        final String phone = s.getPhoneNumber();
+        if (phone != null) {
+            callButton.setVisibility(View.VISIBLE);
+            callButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    // Dials the phone number (doesn't call it)
+                    Intent phoneIntent = new Intent(Intent.ACTION_DIAL);
+                    phoneIntent.setData(Uri.parse("tel:" + phone));
+                    _activity.startActivity(phoneIntent);
+                }
+            });
+        } else {
+            callButton.setVisibility(View.GONE);
+        }
+
+        // Add to itinerary button - show if the item isn't already in the itinerary
+        if (!item.isInItinerary()) {
+            itineraryButton.setVisibility(View.VISIBLE);
+            itineraryButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
                     // Add the suggestion to the list for the UserItem it is associated with
                     UserItem userItem = item.getUserItem();
                     userItem.addSuggestionItem(item);
@@ -73,11 +115,18 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
                     mainActivity.setItineraryUpdateRequired();
                 }
             });
-            builder.setNegativeButton(R.string.no, null);
-
-            AlertDialog dialog = builder.create();
-            dialog.show();
+            // Will need to change if the addition to the itinerary is cancelable
+            itineraryButton.setVisibility(View.GONE);
+        } else {
+            // TODO change to 'Remove from itinerary'
+            itineraryButton.setVisibility(View.GONE);
         }
+
+        // Layout is contained in a dialogue - set it up here
+        AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+        builder.setView(content).setCancelable(false).setPositiveButton(R.string.back, null);
+        AlertDialog options = builder.create();
+        options.show();
     }
 
     /**

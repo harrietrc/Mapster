@@ -64,6 +64,16 @@ public class GooglePlaceSuggestion extends Suggestion {
     }
 
     @Override
+    public String getWebsite() {
+        return _place.getWebsite();
+    }
+
+    @Override
+    public String getPhoneNumber() {
+        return _place.getPhoneNumber();
+    }
+
+    @Override
     public void requestSuggestionInfo(Context context) {
         GooglePlaceDetailTask task = new GooglePlaceDetailTask(context);
         task.execute(this);

@@ -38,6 +38,16 @@ public class FoursquareSuggestion extends Suggestion {
     }
 
     @Override
+    public String getWebsite() {
+        return _venue.getWebsite();
+    }
+
+    @Override
+    public String getPhoneNumber() {
+        return _venue.getPhoneNumber();
+    }
+
+    @Override
     public void requestSuggestionInfo(Context context) {
         // Not necessary at the moment (don't need more detailed information)
     }

@@ -63,6 +63,14 @@ public class FoursquareVenue {
         return new LatLng(_latitude, _longitude);
     }
 
+    public String getWebsite() {
+        return _website;
+    }
+
+    public String getPhoneNumber() {
+        return _phoneNumber;
+    }
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         if (_address != null)
