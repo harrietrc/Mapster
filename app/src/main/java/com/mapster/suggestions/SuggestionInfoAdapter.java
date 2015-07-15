@@ -37,6 +37,7 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
     // set, and the image returned by Picasso displayed.
     private ImageView _currentInfoWindowImage;
     private Activity _activity; // Not great TODO Separate Marker state into a class
+    private AlertDialog _optionsDialogue; // Used to set visibility from button listener
 
     public SuggestionInfoAdapter(LayoutInflater inflater, Activity activity) {
         _inflater = inflater;
@@ -57,7 +58,10 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
         LinearLayout content = (LinearLayout) _inflater.inflate(R.layout.suggestion_options_dialogue, l);
         Button callButton = (Button) content.findViewById(R.id.call_button);
         Button websiteButton = (Button) content.findViewById(R.id.website_button);
-        Button itineraryButton = (Button) content.findViewById(R.id.itinerary_button);
+        final Button itineraryButton = (Button) content.findViewById(R.id.itinerary_button);
+
+        // Just a simple way to keep track of whether any buttons are visible
+        int numButtons = 3; // The maximum number of buttons displayed
 
         final SuggestionItem item = mainActivity.getSuggestionItemByMarker(marker);
         Suggestion s = item.getSuggestion();
@@ -76,6 +80,7 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
             });
         } else {
             websiteButton.setVisibility(View.GONE);
+            numButtons--;
         }
 
         // Call button - open the phone app with the phone number, if available
@@ -93,11 +98,13 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
             });
         } else {
             callButton.setVisibility(View.GONE);
+            numButtons--;
         }
 
         // Add to itinerary button - show if the item isn't already in the itinerary
         if (!item.isInItinerary()) {
             itineraryButton.setVisibility(View.VISIBLE);
+            final int finalNumButtons = numButtons;
             itineraryButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -113,20 +120,28 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
 
                     mainActivity.setSuggestionItemMarker(item);
                     mainActivity.setItineraryUpdateRequired();
+
+                    // Will need to change if the addition to the itinerary is cancelable
+                    itineraryButton.setVisibility(View.GONE);
+
+                    // Hide the dialogue if this was the only button
+                    if (finalNumButtons == 1 && _optionsDialogue != null)
+                        _optionsDialogue.hide();
                 }
             });
-            // Will need to change if the addition to the itinerary is cancelable
-            itineraryButton.setVisibility(View.GONE);
         } else {
             // TODO change to 'Remove from itinerary'
             itineraryButton.setVisibility(View.GONE);
+            numButtons--;
         }
 
         // Layout is contained in a dialogue - set it up here
-        AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
-        builder.setView(content).setCancelable(false).setPositiveButton(R.string.back, null);
-        AlertDialog options = builder.create();
-        options.show();
+        if (numButtons > 0) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+            builder.setView(content).setCancelable(false).setPositiveButton(R.string.back, null);
+            _optionsDialogue = builder.create();
+            _optionsDialogue.show();
+        }
     }
 
     /**

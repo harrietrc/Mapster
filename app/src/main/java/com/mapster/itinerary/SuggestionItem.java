@@ -23,6 +23,7 @@ public class SuggestionItem extends ItineraryItem {
     private transient UserItem _userItem;
 
     public SuggestionItem(Suggestion suggestion, UserItem userItem) {
+        _isInItinerary = false;
         _suggestion = suggestion;
         _userItem = userItem;
         _multiplier = 1;
