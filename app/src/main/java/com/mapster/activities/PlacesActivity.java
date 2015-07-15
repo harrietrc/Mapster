@@ -68,7 +68,6 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     public void callback(ArrayList<UserItem> userItems) {
         if (userItems != null){
             _userItemList = userItems;
-            System.out.println(_userItemList.get(1));
             mergeDateAndTimeToDateTime();
             moveToMainActivityWithData();
         } else {
@@ -77,13 +76,6 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         }
     }
 
-    public enum TravelMode{
-        DRIVING("driving"), WALKING("walking"), BICYCLING("bicycling"), TRANSIT("transit");
-        private final String name;
-        private TravelMode(String name){
-            this.name = name;
-        }
-    }
 
     public void showDatePickerDialog(View v) {
         _dateTextView = (TextView)v;

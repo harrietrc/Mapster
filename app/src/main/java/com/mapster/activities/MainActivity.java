@@ -35,6 +35,7 @@ import com.mapster.connectivities.tasks.FoursquareExploreTask;
 import com.mapster.connectivities.tasks.GooglePlacesTask;
 import com.mapster.date.CustomDate;
 import com.mapster.filters.Filters;
+import com.mapster.geocode.GeoCode;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
 import com.mapster.itinerary.persistence.ItineraryDataSource;
@@ -208,7 +209,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         int posInCoordinateArrayList = 0;
         List<LatLng> helper = null;
         int i = 0;
-        System.out.println(_userItemList.size());
         while( i <_userItemList.size() - 1){
             _sortedTransportMode.add(_userItemList.get(i).getTravelMode());
             if(_userItemList.get(i).getTravelMode().equals(_userItemList.get(i + 1).getTravelMode())) {
@@ -221,7 +221,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             }
             i++;
             helper = addPointToList(i, posInCoordinateArrayList);
-            if (helper.size() > 2 && _sortedTransportMode.get(_sortedTransportMode.size() - 1).equals(PlacesActivity.TravelMode.TRANSIT.name().toLowerCase())){
+            if (helper.size() > 2 && _sortedTransportMode.get(_sortedTransportMode.size() - 1).equals(GeoCode.TravelMode.TRANSIT.name().toLowerCase())){
                 List<LatLng> transitHelper = null;
                 for(int j = 0; j < helper.size() - 1; j++){
                     transitHelper = new ArrayList<>();
@@ -240,7 +240,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     private List<LatLng> addPointToList(int position, int posInCoordinateArray){
-        System.out.println("i " + position + " posInCoordinateArrayList " + posInCoordinateArray);
         List<LatLng> helper = new ArrayList<>();
         for(int j = posInCoordinateArray; j <= position; j++){
             helper.add(_userItemList.get(j).getLocation());
@@ -353,7 +352,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
         if (_map != null) {
             int pos = 0;
-            System.out.println(_sortedCoordinateArrayList);
             for(List<LatLng> latLng : _sortedCoordinateArrayList){
                 for (int i=0; i<latLng.size(); i++){
                     LatLng position = latLng.get(i);
@@ -531,10 +529,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 }
                 polyLineOptions.addAll(points);
                 polyLineOptions.width(10f);
-//                polyLineOptions.color(Color.BLUE);
-//                Log.d("ROUTES", String.valueOf(i));
-//                Log.d("COLOR", String.valueOf(route.getColor()));
-//                Log.d("ROUTES", route.getRoutePoints().toString());
                 polyLineOptions.color(route.getColor());
                 _map.addPolyline(polyLineOptions);
             }
