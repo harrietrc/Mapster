@@ -53,9 +53,14 @@ public class FoursquareSuggestion extends Suggestion {
     }
 
     @Override
+    public String getCurrencySymbol() {
+        return _priceEstimator.getCurrencySymbol(_venue.getCountryCode());
+    }
+
+    @Override
     public String getInfoWindowString() {
         String info = _venue.toString();
-        info += String.format("\n~$%.2f per person", getCostPerPerson());
+        info += String.format("\n~%s%.2f per person", getCurrencySymbol(), getCostPerPerson());
         return info;
     }
 
