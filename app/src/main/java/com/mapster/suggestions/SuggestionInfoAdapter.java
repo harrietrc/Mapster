@@ -2,6 +2,7 @@ package com.mapster.suggestions;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
@@ -14,8 +15,10 @@ import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.mapster.R;
 import com.mapster.activities.MainActivity;
@@ -24,6 +27,8 @@ import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
+
+import java.util.Locale;
 
 /**
  * Created by Harriet on 5/24/2015.
@@ -52,18 +57,23 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
     @Override
     public void onInfoWindowClick(Marker marker) {
         final MainActivity mainActivity = (MainActivity) _activity;
+        final SuggestionItem item = mainActivity.getSuggestionItemByMarker(marker);
+
+        // Ignore all this if the marker is user-defined
+        if (item == null)
+            return;
 
         // Inflate the dialogue and get references to each button
         LinearLayout l = new LinearLayout(_activity);
         LinearLayout content = (LinearLayout) _inflater.inflate(R.layout.suggestion_options_dialogue, l);
         Button callButton = (Button) content.findViewById(R.id.call_button);
         Button websiteButton = (Button) content.findViewById(R.id.website_button);
+        Button directionsButton = (Button) content.findViewById(R.id.directions_button);
         final Button itineraryButton = (Button) content.findViewById(R.id.itinerary_button);
 
         // Just a simple way to keep track of whether any buttons are visible
         int numButtons = 3; // The maximum number of buttons displayed
 
-        final SuggestionItem item = mainActivity.getSuggestionItemByMarker(marker);
         Suggestion s = item.getSuggestion();
 
         // Website button - visible if the suggestion is associated with a website
@@ -100,6 +110,14 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
             callButton.setVisibility(View.GONE);
             numButtons--;
         }
+
+        // Directions buttons - tries to open the map app or browser with directions to this place
+        directionsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openDirectionsIntent(item);
+            }
+        });
 
         // Add to itinerary button - show if the item isn't already in the itinerary
         if (!item.isInItinerary()) {
@@ -138,8 +156,37 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
             AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
             builder.setView(content).setCancelable(false).setPositiveButton(R.string.back, null);
             _optionsDialogue = builder.create();
+            _optionsDialogue.setCanceledOnTouchOutside(true);
             _optionsDialogue.show();
         }
+    }
+
+    /**
+     * Opens Android/Google Maps app (or the browser if the that app is not installed) with
+     * directions from the current location to the address of the provided itinerary item.
+     * @param item An itinerary item to navigate to
+     */
+    public void openDirectionsIntent(SuggestionItem item) {
+        LatLng ll = item.getSuggestion().getLocation();
+        String uri = String.format(Locale.ENGLISH, "http://maps.google.com/maps?daddr=%f,%f (%s)",
+                ll.latitude, ll.longitude, item.getName());
+        Intent mapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+        mapIntent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
+
+        try {
+            // Try to start the Android maps app
+            _activity.startActivity(mapIntent);
+        } catch (ActivityNotFoundException e1) {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+            try {
+                // If it's not installed, try using a browser instead
+                _activity.startActivity(browserIntent);
+            } catch (ActivityNotFoundException e2) {
+                // No browser or maps app - alert the user
+                Toast.makeText(_activity, "No suitable application installed", Toast.LENGTH_LONG).show();
+            }
+        }
+
     }
 
     /**

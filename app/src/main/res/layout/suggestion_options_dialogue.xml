@@ -16,6 +16,11 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:id="@+id/directions_button"
+        android:text="@string/directions"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:id="@+id/itinerary_button"
         android:text="@string/add_to_itinerary"/>
 </LinearLayout>
