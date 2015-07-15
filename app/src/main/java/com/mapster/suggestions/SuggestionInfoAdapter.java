@@ -104,7 +104,6 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
         // Add to itinerary button - show if the item isn't already in the itinerary
         if (!item.isInItinerary()) {
             itineraryButton.setVisibility(View.VISIBLE);
-            final int finalNumButtons = numButtons;
             itineraryButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -124,9 +123,8 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
                     // Will need to change if the addition to the itinerary is cancelable
                     itineraryButton.setVisibility(View.GONE);
 
-                    // Hide the dialogue if this was the only button
-                    if (finalNumButtons == 1 && _optionsDialogue != null)
-                        _optionsDialogue.hide();
+                    // Hide the dialogue
+                    _optionsDialogue.hide();
                 }
             });
         } else {

@@ -20,16 +20,11 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-
 /**
  * Created by Harriet on 6/20/2015.
  */
 public class ScheduleFragment extends Fragment {
 
-    private List<ItineraryItem> _sortedItems;
     private LinearLayout _layout;
     private LayoutInflater _inflater;
     private DateTimeFormatter _timeFormatter; // Prints only the time (no month or day)
@@ -44,9 +39,6 @@ public class ScheduleFragment extends Fragment {
         _dateFormatter = DateTimeFormat.mediumDate(); // TODO Fiddle with this
         _timeFormatter = DateTimeFormat.shortTime();
 
-        // Construct a list of all the itinerary items, ordered by date
-        refreshDataFromDatabase();
-
         // Set up the main table view for this fragment
         View v = _inflater.inflate(R.layout.schedule_fragment, container, false);
         _layout = (LinearLayout) v.findViewById(R.id.schedule_layout);
@@ -55,21 +47,13 @@ public class ScheduleFragment extends Fragment {
         return v;
     }
 
-    private void refreshDataFromDatabase() {
-        List<ItineraryItem> items = ((ItineraryActivity) getActivity()).getItems();
-        _sortedItems = new LinkedList<>();
-        // Add the user-defined items
-        _sortedItems.addAll(items);
-        // Add the suggestion items (children of user-defined items)
-        for (ItineraryItem item: items)
-            if (item instanceof UserItem)
-                _sortedItems.addAll(((UserItem) item).getSuggestionItems());
-        Collections.sort(_sortedItems); // Sort by date/time
-    }
-
     private void createRowsFromItems() {
         DateTime currentTime = new DateTime();
-        for (ItineraryItem item: _sortedItems) {
+
+        // Itinerary state is maintained in the activity
+        ItineraryActivity a = (ItineraryActivity) getActivity();
+
+        for (ItineraryItem item: a.getItems()) {
             DateTime itemTime = item.getTime();
             // Add a row with just the date, if this item has a different date to the previous one
             if (currentTime != null)

@@ -7,11 +7,15 @@ import android.support.v4.view.ViewPager;
 import com.astuetz.PagerSlidingTabStrip;
 import com.mapster.R;
 import com.mapster.itinerary.ItineraryItem;
+import com.mapster.itinerary.SuggestionItem;
+import com.mapster.itinerary.UserItem;
 import com.mapster.itinerary.persistence.ItineraryDataSource;
 import com.mapster.itinerary.ui.BudgetFragment;
 import com.mapster.itinerary.ui.BudgetPagerAdapter;
 import com.mapster.itinerary.ui.ScheduleFragment;
 
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -21,19 +25,11 @@ public class ItineraryActivity extends FragmentActivity {
 
     // Data about the itinerary
     private ItineraryDataSource _itineraryDataSource;
-    private List<ItineraryItem> _items;
+    private List<ItineraryItem> _items; // Itinerary items (ordered by date in onCreate())
 
     // Two fragments: schedule and budget
     ScheduleFragment _scheduleFragment;
     BudgetFragment _budgetFragment;
-
-    public List<ItineraryItem> getItems() {
-        return _items;
-    }
-
-    public ItineraryDataSource getDataSource() {
-        return _itineraryDataSource;
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +39,9 @@ public class ItineraryActivity extends FragmentActivity {
         _items = getItemsFromDatabase();
         // Note that for whatever reason, SuggestionItem._userItem is set to null when deserialised
         // - possibly because it was a bidirectional relationship? Will look into it. TODO!
+
+        // Construct a list of all the itinerary items, ordered by date
+        refreshDataFromDatabase();
 
         // Set layout
         setContentView(R.layout.activity_budget);
@@ -62,6 +61,35 @@ public class ItineraryActivity extends FragmentActivity {
 
         // Required: call through to the superclass method
         super.onCreate(savedInstanceState);
+    }
+
+    /**
+     * @return The time-sorted itinerary items list (shared between fragments)
+     */
+    public List<ItineraryItem> getItems() {
+        return _items;
+    }
+
+    /**
+     * Refreshes the data from the database, sorting by date and updating the list of items in the
+     * itinerary
+     */
+    private void refreshDataFromDatabase() {
+        List sortedItems = new LinkedList<>();
+        // Add the user-defined items
+        sortedItems.addAll(_items);
+        // Add the suggestion items (children of user-defined items)
+        for (ItineraryItem item: _items)
+            if (item instanceof UserItem) {
+                UserItem u = (UserItem) item;
+                for (SuggestionItem s : u.getSuggestionItems()) {
+                    // TODO Hack until I figure out why userItems aren't deserialised
+                    s.setUserItem(u);
+                    sortedItems.add(s);
+                }
+            }
+        Collections.sort(sortedItems); // Sort by date/time
+        _items = sortedItems;
     }
 
     @Override

@@ -69,15 +69,6 @@ public class BudgetFragment extends Fragment {
         return v;
     }
 
-    // Not sure whether onResume() is called after the Activity's onResume(), so I replaced it with this
-    public void resetTable() {
-        // Clear the table and recreate the rows - heavy handed and could be replaced with that flag?
-        if (_layout != null) {
-            _layout.removeAllViews();
-            createRowsFromItems();
-        }
-    }
-
     private void formatTotalsAsList() {
         _totalsList.clear();
         System.out.println(_totalsMap);
@@ -95,7 +86,6 @@ public class BudgetFragment extends Fragment {
     }
 
     private void createRowsFromItems() {
-        // TODO Shift itinerary data out of activity to a datasource class?
         List<ItineraryItem> items = ((ItineraryActivity) getActivity()).getItems();
 
         for (ItineraryItem item: items) {
@@ -103,13 +93,9 @@ public class BudgetFragment extends Fragment {
                 // 'Parent' user-defined destination that the suggestions were retrieved for
                 UserItem u = (UserItem) item;
                 createUserDestinationRow(u);
-
-                // 'Child' suggestions that the user added to the itinerary for their destination
-                for (SuggestionItem s: u.getSuggestionItems()) {
-                    // TODO Hack until I figure out why _userItem isn't getting deserialised
-                    s.setUserItem(u);
-                    createSuggestionRow(s);
-                }
+            } else if (item instanceof  SuggestionItem) {
+                SuggestionItem s = (SuggestionItem) item;
+                createSuggestionRow(s);
             }
         }
         // Update the list of totals
