@@ -221,15 +221,33 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             }
             i++;
             helper = addPointToList(i, posInCoordinateArrayList);
-            if (helper.size() > 2 && _sortedTransportMode.get(_sortedTransportMode.size() - 1).equals(GeoCode.TravelMode.TRANSIT.name().toLowerCase())){
+            if (helper.size() > 2 && _sortedTransportMode.get(_sortedTransportMode.size() - 1).equals(GeoCode.TravelMode.TRANSIT.name().toLowerCase())) {
                 List<LatLng> transitHelper = null;
-                for(int j = 0; j < helper.size() - 1; j++){
+                for (int j = 0; j < helper.size() - 1; j++) {
                     transitHelper = new ArrayList<>();
-                    for(int k = j; k < j + 2; k ++){
+                    for (int k = j; k < j + 2; k++) {
                         transitHelper.add(helper.get(k));
                     }
                     _sortedCoordinateArrayList.add(transitHelper);
                     if (j > 0)
+                        _sortedTransportMode.add(_sortedTransportMode.get(_sortedTransportMode.size() - 1));
+                }
+            } else if (helper.size() > 8) {
+                int position = 1;
+                System.out.println(helper.size());
+                for (int j = 8; j < helper.size(); j = j + 8){
+                    _sortedCoordinateArrayList.add(helper.subList(position - 1, j));
+                    System.out.println(helper.subList(position, j));
+                    System.out.println(position - 1);
+                    System.out.println(j);
+                    position = j ;
+                    if (j + 8 >= helper.size() && j != helper.size()){
+                        _sortedCoordinateArrayList.add(helper.subList(position - 1, helper.size()));
+                        System.out.println(helper.subList(position, helper.size() - 1));
+                        System.out.println(position - 1);
+                        System.out.println(helper.size());
+                    }
+                    if (j > 7)
                         _sortedTransportMode.add(_sortedTransportMode.get(_sortedTransportMode.size() - 1));
                 }
             } else {
