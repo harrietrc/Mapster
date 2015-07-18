@@ -75,9 +75,11 @@ public class UpdateMainFromItineraryTask extends AsyncTask<Void, Void, Collectio
                 for (SuggestionItem s : userItem.getSuggestionItems()) {
                     Long id = s.getId();
                     SuggestionItem old = (SuggestionItem) allItems.get(id);
-                    s.setSuggestion(old.getSuggestion());
-                    allItems.put(id, s);
-                    updatedSuggestionIds.add(id);
+                    if (old != null) {
+                        s.setSuggestion(old.getSuggestion());
+                        allItems.put(id, s);
+                        updatedSuggestionIds.add(id);
+                    }
                 }
                 allItems.put(item.getId(), item);
             }
@@ -111,10 +113,14 @@ public class UpdateMainFromItineraryTask extends AsyncTask<Void, Void, Collectio
             SuggestionItem oldSuggestion = (SuggestionItem) oldItems.get(item.getId());
             if (oldSuggestion == null)
                 oldSuggestion = item;
-            long oldUserItemId = oldSuggestion.getUserItem().getId();
-            item.setUserItem((UserItem) allItems.get(oldUserItemId));
 
-            suggestionItemsByMarkerId.put((String) pair.getKey(), item);
+            UserItem u = oldSuggestion.getUserItem();
+
+            if (u != null) {
+                long oldUserItemId = u.getId();
+                item.setUserItem((UserItem) allItems.get(oldUserItemId));
+                suggestionItemsByMarkerId.put((String) pair.getKey(), item);
+            }
         }
 
         return removedItems;
