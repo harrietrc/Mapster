@@ -76,12 +76,12 @@ public class ItineraryActivity extends FragmentActivity {
      */
     private void refreshDataFromDatabase() {
         List sortedItems = new LinkedList<>();
-        // Add the user-defined items
-        sortedItems.addAll(_items);
-        // Add the suggestion items (children of user-defined items)
+
+        // Reconstruct the itinerary (children of user-defined items)
         for (ItineraryItem item: _items)
             if (item instanceof UserItem) {
                 UserItem u = (UserItem) item;
+                sortedItems.add(u);
                 for (SuggestionItem s : u.getSuggestionItems()) {
                     // TODO Hack until I figure out why userItems aren't deserialised
                     s.setUserItem(u);

@@ -9,9 +9,8 @@
         android:paddingLeft="10dp"
         android:paddingBottom="3dp"
         android:paddingTop="3dp"
-        android:textColor="@android:color/white"
-        android:textAllCaps="true"
-        android:textSize="15sp"
         android:ellipsize="end"
-        android:id="@+id/date"/>
+        android:id="@+id/date"
+        android:textSize="8pt"
+        android:textColor="#287AA9"/>
 </LinearLayout>
