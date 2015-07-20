@@ -44,7 +44,7 @@ public class ItineraryActivity extends FragmentActivity {
         refreshDataFromDatabase();
 
         // Set layout
-        setContentView(R.layout.activity_budget);
+        setContentView(R.layout.activity_itinerary);
 
         // Sliding tabs
         BudgetPagerAdapter adapter = new BudgetPagerAdapter(getSupportFragmentManager());

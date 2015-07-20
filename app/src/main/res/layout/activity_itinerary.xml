@@ -9,7 +9,9 @@
         android:id="@+id/tabs"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary" />
+        android:background="#fff"
+        android:textColorPrimary="#287AA9"/>
+    <!-- See https://android-arsenal.com/details/1/1100 for a bunch of useful custom attributes -->
     <android.support.v4.view.ViewPager
         android:id="@+id/pager"
         android:layout_width="match_parent"
