@@ -35,7 +35,7 @@
             />
     </LinearLayout>
     <com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoCompleteTextView
-        app:customTypefaceAutoComplete="font/ColabThi.otf"
+        app:customTypefaceAutoComplete="font/ColabReg.otf"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:lines="1"
@@ -48,28 +48,33 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingTop="5dp">
+        android:paddingTop="5dp"
+        android:layout_gravity="center_horizontal">
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Drive"
             android:id="@+id/drive_mode"
-            android:checked="true"/>
+            android:checked="true"
+            />
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Walk"
-            android:id="@+id/walk_mode"/>
+            android:id="@+id/walk_mode"
+            android:layout_marginLeft="5dp"/>
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Bike"
-            android:id="@+id/bike_mode"/>
+            android:id="@+id/bike_mode"
+            android:layout_marginLeft="5dp"/>
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Transit"
-            android:id="@+id/transit_mode"/>
+            android:id="@+id/transit_mode"
+            android:layout_marginLeft="5dp"/>
     </RadioGroup>
     <com.mapster.android.gui.util.customfonttextview.TypefaceTextView
         app:customTypeface="font/ColabThi.otf"

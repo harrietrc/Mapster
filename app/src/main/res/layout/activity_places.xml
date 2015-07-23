@@ -23,7 +23,7 @@
             />
 
         <com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoCompleteTextView
-            app:customTypefaceAutoComplete="font/ColabThi.otf"
+            app:customTypefaceAutoComplete="font/ColabReg.otf"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/autocomplete_origin"
@@ -37,28 +37,34 @@
         <RadioGroup
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:paddingTop="5dp"
+            android:layout_gravity="center_horizontal">
             <RadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Drive"
                 android:id="@+id/drive_mode"
-                android:checked="true"/>
+                android:checked="true"
+                />
             <RadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Walk"
-                android:id="@+id/walk_mode"/>
+                android:id="@+id/walk_mode"
+                android:layout_marginLeft="5dp"/>
             <RadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Bike"
-                android:id="@+id/bike_mode"/>
+                android:id="@+id/bike_mode"
+                android:layout_marginLeft="5dp"/>
             <RadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Transit"
-                android:id="@+id/transit_mode"/>
+                android:id="@+id/transit_mode"
+                android:layout_marginLeft="5dp"/>
         </RadioGroup>
         <LinearLayout
             android:layout_width="fill_parent"
@@ -66,7 +72,7 @@
             android:orientation="horizontal"
             android:paddingBottom="5dp">
             <com.mapster.android.gui.util.customfonttextview.TypefaceTextView
-                app:customTypeface="font/ColabThi.otf"
+                app:customTypeface="font/ColabReg.otf"
                 android:id="@+id/date"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -75,7 +81,7 @@
                 style="@android:style/Widget.Holo.Spinner"
                 android:onClick="showDatePickerDialog"/>
             <com.mapster.android.gui.util.customfonttextview.TypefaceTextView
-                app:customTypeface="font/ColabThi.otf"
+                app:customTypeface="font/ColabReg.otf"
                 android:id="@+id/time"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -100,7 +106,7 @@
             android:textSize="15pt"
             android:textColor="#287AA9"/>
         <com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoCompleteTextView
-            app:customTypefaceAutoComplete="font/ColabThi.otf"
+            app:customTypefaceAutoComplete="font/ColabReg.otf"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/autocomplete_destination"
@@ -116,6 +122,7 @@
             android:layout_height="match_parent"
             android:orientation="horizontal"
             android:layout_marginTop="20dp">
+
             <Button
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"

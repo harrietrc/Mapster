@@ -552,6 +552,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         private void drawInstructions(MapInformation mapInformation){
             CustomDate startDate = new CustomDate(_startDateTime);
             TextView total = (TextView) findViewById(R.id.total_distance_duration);
+            addFontToTextView(total);
             StringBuilder output = new StringBuilder("Total Duration: ");
             Log.d(TAG, "MapInfor: " + mapInformation.getPaths().size());
             output.append(CustomDate.convertSecondsToHours(CustomDate.secondsBetween(
@@ -591,7 +592,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     public void addFontToTextView(TextView view){
-        Typeface font = Typeface.createFromAsset(getAssets(), "font/ColabThi.otf");
+        Typeface font = Typeface.createFromAsset(getAssets(), "font/ColabReg.otf");
         view.setTypeface(font);
     }
 

@@ -158,7 +158,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         }
     }
     public void addFontToRadioButton(RadioButton view){
-        Typeface font = Typeface.createFromAsset(getAssets(), "font/ColabThi.otf");
+        Typeface font = Typeface.createFromAsset(getAssets(), "font/ColabReg.otf");
         view.setTypeface(font);
     }
 
@@ -229,6 +229,24 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     public void ok(View view){
         if(isNotOriginAndDestinationEmpty()) {
             addUserCoordinateToArrayList();
+        } else {
+            createToast("Origin and destination cannot be empty.", Toast.LENGTH_SHORT);
+        }
+    }
+
+    private boolean isNotOriginAndDestinationEmpty(){
+        ClearableAutoCompleteTextView originInList = _autoCompleteTextViewLinkedList.get(0);
+        ClearableAutoCompleteTextView destinationInList = _autoCompleteTextViewLinkedList.get(_autoCompleteTextViewLinkedList.size() - 1);
+        ClearableAutoCompleteTextView originInLayout =
+                (ClearableAutoCompleteTextView) findViewById(R.id.autocomplete_origin);
+        ClearableAutoCompleteTextView destinationInLayout =
+                (ClearableAutoCompleteTextView) findViewById(R.id.autocomplete_destination);
+        assertTrue(originInLayout.equals(originInList) && destinationInLayout.equals(destinationInList));
+        if(originInList.getText().toString().isEmpty()
+                || destinationInLayout.getText().toString().isEmpty()){
+            return false;
+        } else {
+            return true;
         }
     }
 
@@ -256,23 +274,6 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         layoutToAddDate.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT));
         return inflateLayout;
-    }
-
-
-    private boolean isNotOriginAndDestinationEmpty(){
-        ClearableAutoCompleteTextView originInList = _autoCompleteTextViewLinkedList.get(0);
-        ClearableAutoCompleteTextView destinationInList = _autoCompleteTextViewLinkedList.get(_autoCompleteTextViewLinkedList.size() - 1);
-        ClearableAutoCompleteTextView originInLayout =
-                (ClearableAutoCompleteTextView) findViewById(R.id.autocomplete_origin);
-        ClearableAutoCompleteTextView destinationInLayout =
-                (ClearableAutoCompleteTextView) findViewById(R.id.autocomplete_destination);
-        assertTrue(originInLayout.equals(originInList) && destinationInLayout.equals(destinationInList));
-        if(originInList.getText().toString().isEmpty()
-                || destinationInLayout.getText().toString().isEmpty()){
-            return false;
-        } else {
-            return true;
-        }
     }
 
     private void addUserCoordinateToArrayList(){

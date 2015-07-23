@@ -1,8 +1,10 @@
 package com.mapster.activities;
 
+import android.app.ActionBar;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBarActivity;
 
 import com.astuetz.PagerSlidingTabStrip;
 import com.mapster.R;
@@ -22,7 +24,7 @@ public class ItineraryActivity extends FragmentActivity {
     // Data about the itinerary
     private ItineraryDataSource _itineraryDataSource;
     private List<ItineraryItem> _items;
-
+    private android.support.v7.app.ActionBar mActionBar;
     // Two fragments: schedule and budget
     ScheduleFragment _scheduleFragment;
     BudgetFragment _budgetFragment;
@@ -59,7 +61,6 @@ public class ItineraryActivity extends FragmentActivity {
         // Grab references to the two fragments
         _scheduleFragment = (ScheduleFragment) adapter.instantiateItem(pager, 0);
         _budgetFragment = (BudgetFragment) adapter.instantiateItem(pager, 1);
-
         // Required: call through to the superclass method
         super.onCreate(savedInstanceState);
     }
