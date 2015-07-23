@@ -3,10 +3,10 @@ package com.mapster.activities;
 import android.app.DatePickerDialog;
 import android.app.DialogFragment;
 import android.app.FragmentTransaction;
-import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
@@ -30,7 +30,7 @@ import com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoC
 import com.mapster.fragment.DatePickerFragment;
 import com.mapster.fragment.TimePickerFragment;
 import com.mapster.geocode.GeoCode;
-import com.mapster.interfaces.MyListener;
+import com.mapster.interfaces.GeoCodeListener;
 import com.mapster.itinerary.UserItem;
 import com.mapster.places.autocomplete.PlacesAutoCompleteAdapter;
 
@@ -46,7 +46,7 @@ import java.util.List;
 
 import static junit.framework.Assert.assertTrue;
 
-public class PlacesActivity extends ActionBarActivity implements OnItemClickListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener, MyListener {
+public class PlacesActivity extends ActionBarActivity implements OnItemClickListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener, GeoCodeListener {
 
     public static final String START_DATETIME = "START_DATETIME";
 
@@ -114,6 +114,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         setContentView(R.layout.activity_places);
         addViewsInLayoutToArrayList((LinearLayout) findViewById(R.id.place_activity_layout));
         initializeAutoCompleteTextViewInArrayList();
+        initializeRadioButton(_transportModeViewList.get(0));
         _userItemList = new ArrayList<>();
     }
 
@@ -150,6 +151,17 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         });
     }
 
+    private void initializeRadioButton(RadioGroup radioGroup){
+        for(int i = 0; i < radioGroup.getChildCount(); i++){
+            RadioButton rb = (RadioButton) radioGroup.getChildAt(i);
+            addFontToRadioButton(rb);
+        }
+    }
+    public void addFontToRadioButton(RadioButton view){
+        Typeface font = Typeface.createFromAsset(getAssets(), "font/ColabThi.otf");
+        view.setTypeface(font);
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -169,6 +181,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                 addAutoCompleteTextViewToLinkedList((ClearableAutoCompleteTextView) linearLayout.getChildAt(positionOfAutoCompleteTextView));
                 initializeAutoCompleteTextViews((ClearableAutoCompleteTextView)linearLayout.getChildAt(positionOfAutoCompleteTextView));
                 addRadioGroupToList((RadioGroup)linearLayout.getChildAt(positionOfRadioGroupView));
+                initializeRadioButton((RadioGroup)linearLayout.getChildAt(positionOfRadioGroupView));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

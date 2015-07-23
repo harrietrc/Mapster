@@ -3,11 +3,13 @@ package com.mapster.activities;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,6 +32,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
+import com.mapster.android.gui.util.customfonttextview.TypefaceTextView;
 import com.mapster.connectivities.tasks.ExpediaHotelListTask;
 import com.mapster.connectivities.tasks.FoursquareExploreTask;
 import com.mapster.connectivities.tasks.GooglePlacesTask;
@@ -234,20 +237,13 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 }
             } else if (helper.size() > 8) {
                 int position = 1;
-                System.out.println(helper.size());
                 for (int j = 8; j < helper.size(); j = j + 8){
                     _sortedCoordinateArrayList.add(helper.subList(position - 1, j));
-                    System.out.println(helper.subList(position, j));
-                    System.out.println(position - 1);
-                    System.out.println(j);
                     position = j ;
                     if (j + 8 >= helper.size() && j != helper.size()){
                         _sortedCoordinateArrayList.add(helper.subList(position - 1, helper.size()));
-                        System.out.println(helper.subList(position, helper.size() - 1));
-                        System.out.println(position - 1);
-                        System.out.println(helper.size());
                     }
-                    if (j > 7)
+                    if (j > 8)
                         _sortedTransportMode.add(_sortedTransportMode.get(_sortedTransportMode.size() - 1));
                 }
             } else {
@@ -594,8 +590,14 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
     }
 
+    public void addFontToTextView(TextView view){
+        Typeface font = Typeface.createFromAsset(getAssets(), "font/ColabThi.otf");
+        view.setTypeface(font);
+    }
+
     protected TextView createTextView(String name, int size){
         TextView valueTV = new TextView(this);
+        addFontToTextView(valueTV);
         valueTV.setText(Html.fromHtml(name));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT
                 ,LinearLayout.LayoutParams.WRAP_CONTENT);

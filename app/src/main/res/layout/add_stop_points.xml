@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/add_points"
@@ -8,39 +9,41 @@
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingTop="5dp"
-        android:paddingBottom="5dp">
-        <TextView
+        android:orientation="horizontal">
+        <com.mapster.android.gui.util.customfonttextview.TypefaceTextView
+            app:customTypeface="font/ColabThi.otf"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="80"
+            android:layout_weight="75"
             android:id="@+id/origin"
             android:text="Stop Point"
-            android:textSize="8pt"
+            android:textSize="13pt"
             android:textColor="#287AA9"
             android:layout_marginLeft="5dp"/>
-        <TextView
+        <com.mapster.android.gui.util.customfonttextview.TypefaceTextView
+            app:customTypeface="font/ColabThi.otf"
             android:layout_width="0dp"
-            android:layout_weight="20"
+            android:layout_weight="25"
             android:layout_height="wrap_content"
             android:onClick="removeStopPoint"
             android:clickable="true"
             android:text="Remove"
-            android:textSize="7pt"
-            android:layout_marginRight="5dp"
+            android:textSize="10pt"
+            android:paddingTop="10dp"
+            android:paddingRight="5dp"
+            android:textAlignment="center"
             />
     </LinearLayout>
     <com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoCompleteTextView
+        app:customTypefaceAutoComplete="font/ColabThi.otf"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:lines="1"
         android:maxLines="1"
         android:singleLine="true"
-        android:textSize="7pt"
+        android:textSize="8pt"
         android:hint="Stop Point"
-        android:paddingLeft="10dp"
-        android:paddingTop="5dp"/>
+        android:paddingLeft="10dp"/>
     <RadioGroup
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -68,7 +71,8 @@
             android:text="Transit"
             android:id="@+id/transit_mode"/>
     </RadioGroup>
-    <TextView
+    <com.mapster.android.gui.util.customfonttextview.TypefaceTextView
+        app:customTypeface="font/ColabThi.otf"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Add departure date to travel to next location"

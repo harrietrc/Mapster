@@ -1,4 +1,5 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     xmlns:tools="http://schemas.android.com/tools"
@@ -11,22 +12,25 @@
         android:orientation="vertical"
         android:id="@+id/place_activity_layout"
         >
-        <TextView
+        <com.mapster.android.gui.util.customfonttextview.TypefaceTextView
+            app:customTypeface="font/ColabThi.otf"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/origin"
             android:text="Origin"
-            android:textSize="8pt"
-            android:textColor="#287AA9"/>
+            android:textSize="15pt"
+            android:textColor="#287AA9"
+            />
 
         <com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoCompleteTextView
+            app:customTypefaceAutoComplete="font/ColabThi.otf"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/autocomplete_origin"
             android:lines="1"
             android:maxLines="1"
             android:singleLine="true"
-            android:textSize="7pt"
+            android:textSize="8pt"
             android:hint="Start Place"
             android:paddingLeft="5pt"
             android:drawableRight="@drawable/abc_ic_clear_holo_light"/>
@@ -61,7 +65,8 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:paddingBottom="5dp">
-            <TextView
+            <com.mapster.android.gui.util.customfonttextview.TypefaceTextView
+                app:customTypeface="font/ColabThi.otf"
                 android:id="@+id/date"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -69,7 +74,8 @@
                 android:hint = "Start Date"
                 style="@android:style/Widget.Holo.Spinner"
                 android:onClick="showDatePickerDialog"/>
-            <TextView
+            <com.mapster.android.gui.util.customfonttextview.TypefaceTextView
+                app:customTypeface="font/ColabThi.otf"
                 android:id="@+id/time"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -85,21 +91,23 @@
             android:id="@+id/add_stop_points">
 
         </LinearLayout>
-        <TextView
+        <com.mapster.android.gui.util.customfonttextview.TypefaceTextView
+            app:customTypeface="font/ColabThi.otf"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/destination"
             android:text="Destination"
-            android:textSize="8pt"
+            android:textSize="15pt"
             android:textColor="#287AA9"/>
         <com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoCompleteTextView
+            app:customTypefaceAutoComplete="font/ColabThi.otf"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/autocomplete_destination"
             android:lines="1"
             android:maxLines="1"
             android:singleLine="true"
-            android:textSize="7pt"
+            android:textSize="8pt"
             android:hint="Your Destination"
             android:paddingLeft="5pt"
             android:paddingTop="5dp"/>
