@@ -18,11 +18,30 @@ public class MapInformation{
     private CustomDate _date;
     private StatusCode _status;
 
+    // List of dates/times for all waypoints
+    private List<CustomDate> _dates;
+
     public MapInformation(CustomDate date){
         _paths = new ArrayList<>();
         _routes = new ArrayList<>();
         _totalDistance = new Distance();
         _date = date;
+
+        // TODO Don't need both _dates and _dates, but just getting this working first
+        _dates = new ArrayList<>();
+        _dates.add(new CustomDate(date.getDateTime())); // Constructor call to break reference to _date obj
+    }
+
+    public CustomDate getStartDate() {
+        return _dates.get(0);
+    }
+
+    public List<CustomDate> getDates() {
+        return _dates;
+    }
+
+    public void addDate(CustomDate date) {
+        _dates.add(date);
     }
 
     public void setStatus(StatusCode code){

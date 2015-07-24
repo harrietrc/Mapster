@@ -23,6 +23,14 @@ public class CustomDate {
         _date = this._formatDateTime.parseDateTime(dateTime);
     }
 
+    /**
+     * Added this constructor to make the data easy to copy to a new object (i.e. so that the CustomDate
+     * could be copied by calling getDateTime(), then instantiating a new one using this and the return value)
+     */
+    public CustomDate(DateTime dateTime) {
+        _date = dateTime;
+    }
+
     public CustomDate(String dateTime){
         _date = _formatDateTime.parseDateTime(dateTime);
     }

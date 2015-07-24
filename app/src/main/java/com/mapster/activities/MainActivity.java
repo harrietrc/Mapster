@@ -362,7 +362,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                         name = item.getName();
                         pos++;
                     }
+
                     // See other TODO: Prevents duplicates in budget/schedule
+                    // TODO This is dodgy - fix.
                     if (name != null && !names.contains(name)) {
                         Marker m = _map.addMarker(new MarkerOptions().position(position).title(name));
                         _userMarkers.put(m.getId(), false);
@@ -400,7 +402,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _map = googleMap;
         _map.moveCamera(CameraUpdateFactory.newLatLngZoom(_sortedCoordinateArrayList.get(0).get(0),
                 13));
-        addMarkers();
         _map.setOnMarkerClickListener(this);
 
         // SuggestionInfoAdapter listens for and adapts all infowindow-related activity
@@ -474,6 +475,19 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                     e.printStackTrace();
                 }
             }
+
+            // Save the dates/times for each waypoint to the corresponding itinerary items
+            if (mapInformation != null && mapInformation.getDates() != null) {
+                List<CustomDate> waypointDates = mapInformation.getDates();
+                if (_userItemList.size() == waypointDates.size()) {
+                    // The dates saved in the MapInformation are expected to correspond with the user-defined waypoints
+                    for (int i=0; i<waypointDates.size(); i++)
+                        _userItemList.get(i).setDateTime(waypointDates.get(i).getDateTime());
+                } else {
+                    throw new AssertionError("Expected the number of dates to be the same as the number of waypoints");
+                }
+            }
+
             return mapInformation;
         }
 
@@ -533,6 +547,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 _map.addPolyline(polyLineOptions);
             }
             drawInstructions(mapInformation);
+
+            // Moved here because UserItems should be updated with dates/times
+            addMarkers();
         }
 
         private void drawInstructions(MapInformation mapInformation){
