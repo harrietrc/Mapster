@@ -71,12 +71,16 @@ public class ExpediaApi {
      * @throws NoSuchAlgorithmException Thrown by MessageDigest.getInstance() (MD5 hash)
      */
     private String getSignature() throws NoSuchAlgorithmException {
-        // Generate the MD5 hash
-        MessageDigest md = MessageDigest.getInstance("MD5");
         long timeInSeconds = (System.currentTimeMillis() / 1000);
-        String input = _apiKey + _secret + timeInSeconds;
-        md.update(input.getBytes());
-        String sig = String.format("%032x", new BigInteger(1, md.digest()));
+        String plaintext = _apiKey + _secret + timeInSeconds;
+        MessageDigest m = MessageDigest.getInstance("MD5");
+        m.reset();
+        m.update(plaintext.getBytes());
+        byte[] digest = m.digest();
+        BigInteger bigInt = new BigInteger(1,digest);
+        String sig = bigInt.toString(16);
+        while(sig.length() < 32 )
+            sig = "0"+ sig;
         return sig;
     }
 
@@ -109,7 +113,6 @@ public class ExpediaApi {
 //        + "&numberOfResults=" + numberOfResults;
         // TODO Number of results only applies when a period of stay is provided (may be used later)
 
-        System.out.print("URL: " + url);
         // Make the request and return the response as a string
         return downloadUrl(url);
     }
