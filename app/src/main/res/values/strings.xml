@@ -15,8 +15,6 @@
     <!-- email: mapsterfolife@gmail.com password: mymapster (if you want to add APIs)  -->
     <!--<string name="API_KEY">AIzaSyAh-GF9VWptgEAzMjr7drnNMCRHOHM0Lps</string>-->
 
-    <string name="title_activity_places">Places</string>
-
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="cancel">Cancel</string>

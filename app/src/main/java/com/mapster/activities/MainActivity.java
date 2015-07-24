@@ -3,11 +3,13 @@ package com.mapster.activities;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,6 +32,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
+import com.mapster.android.gui.util.customfonttextview.TypefaceTextView;
 import com.mapster.connectivities.tasks.ExpediaHotelListTask;
 import com.mapster.connectivities.tasks.FoursquareExploreTask;
 import com.mapster.connectivities.tasks.GooglePlacesTask;
@@ -221,15 +224,26 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             }
             i++;
             helper = addPointToList(i, posInCoordinateArrayList);
-            if (helper.size() > 2 && _sortedTransportMode.get(_sortedTransportMode.size() - 1).equals(GeoCode.TravelMode.TRANSIT.name().toLowerCase())){
+            if (helper.size() > 2 && _sortedTransportMode.get(_sortedTransportMode.size() - 1).equals(GeoCode.TravelMode.TRANSIT.name().toLowerCase())) {
                 List<LatLng> transitHelper = null;
-                for(int j = 0; j < helper.size() - 1; j++){
+                for (int j = 0; j < helper.size() - 1; j++) {
                     transitHelper = new ArrayList<>();
-                    for(int k = j; k < j + 2; k ++){
+                    for (int k = j; k < j + 2; k++) {
                         transitHelper.add(helper.get(k));
                     }
                     _sortedCoordinateArrayList.add(transitHelper);
                     if (j > 0)
+                        _sortedTransportMode.add(_sortedTransportMode.get(_sortedTransportMode.size() - 1));
+                }
+            } else if (helper.size() > 8) {
+                int position = 1;
+                for (int j = 8; j < helper.size(); j = j + 8){
+                    _sortedCoordinateArrayList.add(helper.subList(position - 1, j));
+                    position = j ;
+                    if (j + 8 >= helper.size() && j != helper.size()){
+                        _sortedCoordinateArrayList.add(helper.subList(position - 1, helper.size()));
+                    }
+                    if (j > 8)
                         _sortedTransportMode.add(_sortedTransportMode.get(_sortedTransportMode.size() - 1));
                 }
             } else {
@@ -555,6 +569,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         private void drawInstructions(MapInformation mapInformation){
             CustomDate startDate = new CustomDate(_startDateTime);
             TextView total = (TextView) findViewById(R.id.total_distance_duration);
+            addFontToTextView(total);
             StringBuilder output = new StringBuilder("Total Duration: ");
             Log.d(TAG, "MapInfor: " + mapInformation.getPaths().size());
             output.append(CustomDate.convertSecondsToHours(CustomDate.secondsBetween(
@@ -593,8 +608,14 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
     }
 
+    public void addFontToTextView(TextView view){
+        Typeface font = Typeface.createFromAsset(getAssets(), "font/ColabReg.otf");
+        view.setTypeface(font);
+    }
+
     protected TextView createTextView(String name, int size){
         TextView valueTV = new TextView(this);
+        addFontToTextView(valueTV);
         valueTV.setText(Html.fromHtml(name));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT
                 ,LinearLayout.LayoutParams.WRAP_CONTENT);

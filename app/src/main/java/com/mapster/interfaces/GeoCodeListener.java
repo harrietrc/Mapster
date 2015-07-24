@@ -7,6 +7,6 @@ import java.util.ArrayList;
 /**
  * Created by tommyngo on 13/07/15.
  */
-public interface MyListener {
+public interface GeoCodeListener {
     public void callback(ArrayList<UserItem> userItems);
 }
