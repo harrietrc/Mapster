@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Created by Harriet on 6/16/2015.
  */
-public class ItineraryActivity extends FragmentActivity {
+public class ItineraryActivity extends ActionBarActivity {
 
     // Data about the itinerary
     private ItineraryDataSource _itineraryDataSource;
@@ -50,7 +50,9 @@ public class ItineraryActivity extends FragmentActivity {
         // Note that for whatever reason, SuggestionItem._userItem is set to null when deserialised
         // - possibly because it was a bidirectional relationship? Will look into it. TODO!
 
+        System.out.println("WHY THE FUCK DONT YOU SHOW UP 1");
         // Set layout
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_budget);
 
 //        // Sliding tabs
@@ -66,8 +68,6 @@ public class ItineraryActivity extends FragmentActivity {
 //        _scheduleFragment = (ScheduleFragment) adapter.instantiateItem(pager, 0);
 //        _budgetFragment = (BudgetFragment) adapter.instantiateItem(pager, 1);
         // Required: call through to the superclass method
-        super.onCreate(savedInstanceState);
-
         if (savedInstanceState == null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             SlidingTabsBasicFragment fragment = new SlidingTabsBasicFragment();
@@ -96,6 +96,7 @@ public class ItineraryActivity extends FragmentActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
+        System.out.println("WHY THE FUCK DONT YOU SHOW UP");
         inflater.inflate(R.menu.menu_itinerary, menu);
         return true;
     }
