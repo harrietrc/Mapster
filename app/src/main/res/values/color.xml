@@ -2,4 +2,132 @@
 <resources>
     <color name="actionbar_background">#3FA9CF</color>
     <color name="button_pressed">#276981</color>
+    <item name="colourPrimary" type="color"></item>
+    <item name="colourPrimaryDark" type="color"></item>
+
+    <item name="white" type="color">#FFFFFFFF</item>
+    <item name="black" type="color">#FF000000</item>
+
+    <item name="red_50" type="color">#FFEBEE</item>
+    <item name="red_100" type="color">#FFCDD2</item>
+    <item name="red_200" type="color">#EF9A9A</item>
+    <item name="red_300" type="color">#E57373</item>
+    <item name="red_400" type="color">#EF5350</item>
+    <item name="red_500" type="color">#F44336</item>
+    <item name="red_600" type="color">#E53935</item>
+    <item name="red_700" type="color">#D32F2F</item>
+    <item name="red_800" type="color">#C62828</item>
+    <item name="red_900" type="color">#B71C1C</item>
+
+    <item name="pink_50" type="color">#FCE4EC</item>
+    <item name="pink_100" type="color">#F8BBD0</item>
+    <item name="pink_200" type="color">#F48FB1</item>
+    <item name="pink_300" type="color">#F06292</item>
+    <item name="pink_400" type="color">#EC407A</item>
+    <item name="pink_500" type="color">#E91E63</item>
+    <item name="pink_600" type="color">#D81B60</item>
+    <item name="pink_700" type="color">#C2185B</item>
+    <item name="pink_800" type="color">#AD1457</item>
+    <item name="pink_900" type="color">#880E4F</item>
+
+    <item name="darkpurple_50" type="color">#EDE7F6</item>
+    <item name="darkpurple_100" type="color">#D1C4E9</item>
+    <item name="darkpurple_200" type="color">#B39DDB</item>
+    <item name="darkpurple_300" type="color">#9575CD</item>
+    <item name="darkpurple_400" type="color">#7E57C2</item>
+    <item name="darkpurple_500" type="color">#673AB7</item>
+    <item name="darkpurple_600" type="color">#5E35B1</item>
+    <item name="darkpurple_700" type="color">#512DA8</item>
+    <item name="darkpurple_800" type="color">#4527A0</item>
+    <item name="darkpurple_900" type="color">#311B92</item>
+
+    <item name="indigo_50" type="color">#E8EAF6</item>
+    <item name="indigo_100" type="color">#C5CAE9</item>
+    <item name="indigo_200" type="color">#9FA8DA</item>
+    <item name="indigo_300" type="color">#7986CB</item>
+    <item name="indigo_400" type="color">#5C6BC0</item>
+    <item name="indigo_500" type="color">#3F51B5</item>
+    <item name="indigo_600" type="color">#3949AB</item>
+    <item name="indigo_700" type="color">#303F9F</item>
+    <item name="indigo_800" type="color">#283593</item>
+    <item name="indigo_900" type="color">#1A237E</item>
+
+    <item name="blue_50" type="color">#E3F2FD</item>
+    <item name="blue_100" type="color">#BBDEFB</item>
+    <item name="blue_200" type="color">#90CAF9</item>
+    <item name="blue_300" type="color">#64B5F6</item>
+    <item name="blue_400" type="color">#42A5F5</item>
+    <item name="blue_500" type="color">#2196F3</item>
+    <item name="blue_600" type="color">#1E88E5</item>
+    <item name="blue_700" type="color">#1976D2</item>
+    <item name="blue_800" type="color">#1565C0</item>
+    <item name="blue_900" type="color">#0D47A1</item>
+
+    <item name="lightblue_50" type="color">#E1F5FE</item>
+    <item name="lightblue_100" type="color">#B3E5FC</item>
+    <item name="lightblue_200" type="color">#81D4FA</item>
+    <item name="lightblue_300" type="color">#4FC3F7</item>
+    <item name="lightblue_400" type="color">#29B6F6</item>
+    <item name="lightblue_500" type="color">#03A9F4</item>
+    <item name="lightblue_600" type="color">#039BE5</item>
+    <item name="lightblue_700" type="color">#0288D1</item>
+    <item name="lightblue_800" type="color">#0277BD</item>
+    <item name="lightblue_900" type="color">#01579B</item>
+
+    <item name="green_50" type="color">#E8F5E9</item>
+    <item name="green_100" type="color">#C8E6C9</item>
+    <item name="green_200" type="color">#A5D6A7</item>
+    <item name="green_300" type="color">#81C784</item>
+    <item name="green_400" type="color">#66BB6A</item>
+    <item name="green_500" type="color">#4CAF50</item>
+    <item name="green_600" type="color">#43A047</item>
+    <item name="green_700" type="color">#388E3C</item>
+    <item name="green_800" type="color">#2E7D32</item>
+    <item name="green_900" type="color">#1B5E20</item>
+
+    <item name="lightgreen_50" type="color">#F1F8E9</item>
+    <item name="lightgreen_100" type="color">#DCEDC8</item>
+    <item name="lightgreen_200" type="color">#C5E1A5</item>
+    <item name="lightgreen_300" type="color">#AED581</item>
+    <item name="lightgreen_400" type="color">#9CCC65</item>
+    <item name="lightgreen_500" type="color">#8BC34A</item>
+    <item name="lightgreen_600" type="color">#7CB342</item>
+    <item name="lightgreen_700" type="color">#689F38</item>
+    <item name="lightgreen_800" type="color">#558B2F</item>
+    <item name="lightgreen_900" type="color">#33691E</item>
+
+    <item name="orange_50" type="color">#FFF3E0</item>
+    <item name="orange_100" type="color">#FFE0B2</item>
+    <item name="orange_200" type="color">#FFCC80</item>
+    <item name="orange_300" type="color">#FFB74D</item>
+    <item name="orange_400" type="color">#FFA726</item>
+    <item name="orange_500" type="color">#FF9800</item>
+    <item name="orange_600" type="color">#FB8C00</item>
+    <item name="orange_700" type="color">#F57C00</item>
+    <item name="orange_800" type="color">#EF6C00</item>
+    <item name="orange_900" type="color">#E65100</item>
+
+
+    <item name="brown_50" type="color">#EFEBE9</item>
+    <item name="brown_100" type="color">#D7CCC8</item>
+    <item name="brown_200" type="color">#BCAAA4</item>
+    <item name="brown_300" type="color">#A1887F</item>
+    <item name="brown_400" type="color">#8D6E63</item>
+    <item name="brown_500" type="color">#795548</item>
+    <item name="brown_600" type="color">#6D4C41</item>
+    <item name="brown_700" type="color">#5D4037</item>
+    <item name="brown_800" type="color">#4E342E</item>
+    <item name="brown_900" type="color">#3E2723</item>
+
+    <item name="grey_50" type="color">#FAFAFA</item>
+    <item name="grey_100" type="color">#F5F5F5</item>
+    <item name="grey_200" type="color">#EEEEEE</item>
+    <item name="grey_300" type="color">#E0E0E0</item>
+    <item name="grey_400" type="color">#BDBDBD</item>
+    <item name="grey_500" type="color">#9E9E9E</item>
+    <item name="grey_600" type="color">#757575</item>
+    <item name="grey_700" type="color">#616161</item>
+    <item name="grey_800" type="color">#424242</item>
+    <item name="grey_900" type="color">#212121</item>
+
 </resources>

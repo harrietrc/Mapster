@@ -50,7 +50,6 @@ public class ItineraryActivity extends ActionBarActivity {
         // Note that for whatever reason, SuggestionItem._userItem is set to null when deserialised
         // - possibly because it was a bidirectional relationship? Will look into it. TODO!
 
-        System.out.println("WHY THE FUCK DONT YOU SHOW UP 1");
         // Set layout
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_budget);
@@ -96,7 +95,6 @@ public class ItineraryActivity extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
-        System.out.println("WHY THE FUCK DONT YOU SHOW UP");
         inflater.inflate(R.menu.menu_itinerary, menu);
         return true;
     }

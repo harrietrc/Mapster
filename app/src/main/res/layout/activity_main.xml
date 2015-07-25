@@ -37,7 +37,7 @@
                 android:gravity="center_vertical"
                 android:layout_marginLeft="10dp"
                 android:layout_marginRight="10dp"
-                android:textSize="8pt"/>
+                android:textSize="20sp"/>
             <ScrollView
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent">
@@ -46,10 +46,10 @@
                     android:layout_width="fill_parent"
                     android:layout_height="fill_parent"
                     android:orientation="vertical"
-                    android:layout_marginLeft="5pt"
-                    android:layout_marginRight="5pt"
-                    android:layout_marginTop="5pt"
-                    android:paddingBottom="10pt">
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_marginTop="5dp"
+                    android:paddingBottom="10dp">
                 </LinearLayout>
             </ScrollView>
 
