@@ -166,7 +166,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     public void onResume() {
         _itineraryDataSource.open();
         if (!_suggestionItemsByMarkerId.isEmpty()) {
-            Log.d(TAG, "onResume");
             // Don't want this to run straight after the first onCreate() call
             UpdateMainFromItineraryTask updateTask = new UpdateMainFromItineraryTask(this);
             updateTask.execute();
@@ -477,8 +476,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             JSONObject jObject;
             for(int i = 0; i < _sortedCoordinateArrayList.size(); i++) {
                 String url = getMapsApiDirectionsUrl(_sortedCoordinateArrayList.get(i), _sortedTransportMode.get(i),mapInformation);
-                if (mapInformation != null)
+                if (mapInformation != null) {
                     _customDate = mapInformation.getDate();
+                    System.out.println(mapInformation.getDate().toString());
+                }
                 String jsonData = readTask(url);
                 try {
                     jObject = new JSONObject(jsonData);
@@ -554,7 +555,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             TextView total = (TextView) findViewById(R.id.total_distance_duration);
             addFontToTextView(total);
             StringBuilder output = new StringBuilder("Total Duration: ");
-            Log.d(TAG, "MapInfor: " + mapInformation.getPaths().size());
             output.append(CustomDate.convertSecondsToHours(CustomDate.secondsBetween(
                     mapInformation.getPaths().get(mapInformation.getPaths().size() - 1)
                             .getDate().getDateTime(), startDate.getDateTime())));

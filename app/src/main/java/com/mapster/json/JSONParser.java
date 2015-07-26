@@ -31,9 +31,11 @@ public class JSONParser {
         }
     }
     private MapInformation mapInformation;
+
     public JSONParser (CustomDate date){
         mapInformation = new MapInformation(date);
     }
+
     public MapInformation parse(JSONObject jObject, MapInformation map) {
         if (map != null)
             this.mapInformation = map;
@@ -55,11 +57,11 @@ public class JSONParser {
             for (int i = 0; i < jRoutes.length(); i++) {
                 jLegs = ((JSONObject) jRoutes.get(i)).getJSONArray("legs");
                 List<HashMap<String, String>> path = new ArrayList<HashMap<String, String>>();
-
                 /** Traversing all legs */
                 for (int j = 0; j < jLegs.length(); j++) {
                     parseTotalDistance(jLegs.getJSONObject(j), "distance");
                     jSteps = ((JSONObject) jLegs.get(j)).getJSONArray("steps");
+                    mapInformation.addTimeReachEachLocation(new Duration("", jLegs.getJSONObject(i).getJSONObject("duration").getInt("value")));
 
                     /** Traversing all steps */
                     for (int k = 0; k < jSteps.length(); k++) {

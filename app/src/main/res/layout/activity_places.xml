@@ -30,7 +30,7 @@
             android:lines="1"
             android:maxLines="1"
             android:singleLine="true"
-            android:textSize="17sp"
+            android:textSize="15sp"
             android:hint="Start Place"
             android:paddingLeft="5dp"
             android:drawableRight="@drawable/abc_ic_clear_holo_light"/>
@@ -70,7 +70,7 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingBottom="5dp">
+            android:paddingBottom="10dp">
             <com.mapster.android.gui.util.customfonttextview.TypefaceTextView
                 app:customTypeface="font/ColabReg.otf"
                 android:id="@+id/date"
@@ -113,7 +113,7 @@
             android:lines="1"
             android:maxLines="1"
             android:singleLine="true"
-            android:textSize="17sp"
+            android:textSize="15sp"
             android:hint="Your Destination"
             android:paddingLeft="5dp"
             android:paddingTop="5dp"/>
@@ -145,7 +145,6 @@
                 android:textSize="15sp"
                 android:onClick="clearAll"
                 android:background="@drawable/button_selector"
-
                 />
         </LinearLayout>
     </LinearLayout>

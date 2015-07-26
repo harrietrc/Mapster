@@ -1,5 +1,7 @@
 package com.mapster.map.models;
 
+import android.util.Log;
+
 import com.mapster.date.CustomDate;
 import com.mapster.json.StatusCode;
 
@@ -17,12 +19,16 @@ public class MapInformation{
     private Distance _totalDistance;
     private CustomDate _date;
     private StatusCode _status;
+    private List<CustomDate> _timeReachEachLocation;
+    private CustomDate _dateToCalculate;
 
     public MapInformation(CustomDate date){
         _paths = new ArrayList<>();
         _routes = new ArrayList<>();
+        _timeReachEachLocation = new ArrayList<>();
         _totalDistance = new Distance();
         _date = date;
+        _dateToCalculate = date;
     }
 
     public void setStatus(StatusCode code){
@@ -76,8 +82,10 @@ public class MapInformation{
     public void addPath(Path path){
         if(path.getDate() == null) {
             CustomDate date = new CustomDate(_date.toString());
+            Log.d("MapInfo", date.toString());
             _date.addSeconds(path.getDuration().getValue());
             date.addSeconds(path.getDuration().getValue());
+            Log.d("MapInfo", date.toString());
             path.setDate(date);
         } else {
             _date = path.getDate();
@@ -101,5 +109,15 @@ public class MapInformation{
 
     public CustomDate getDate() { return _date; };
 
+    public void addTimeReachEachLocation(Duration d){
+        System.out.println(_dateToCalculate.toString());
+        _dateToCalculate.addSeconds(d.getValue());
+        CustomDate date = new CustomDate(_dateToCalculate.toString());
+        System.out.println(date.toString());
+        _timeReachEachLocation.add(date);
+    }
 
+    public List<CustomDate> getTimeReachEachLocation(){
+        return _timeReachEachLocation;
+    }
 }

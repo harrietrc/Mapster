@@ -16,7 +16,7 @@ import com.mapster.R;
 import com.mapster.itinerary.ItineraryItem;
 import com.mapster.itinerary.persistence.ItineraryDataSource;
 import com.mapster.itinerary.ui.BudgetFragment;
-import com.mapster.itinerary.ui.BudgetPagerAdapter;
+//import com.mapster.itinerary.ui.BudgetPagerAdapter;
 import com.mapster.itinerary.ui.ScheduleFragment;
 
 import java.util.List;
