@@ -1,4 +1,4 @@
-package com.mapster.connectivities.tasks;
+package com.mapster.api.expedia;
 
 import android.content.Context;
 import android.os.AsyncTask;

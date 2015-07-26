@@ -1,4 +1,4 @@
-package com.mapster.connectivities.tasks;
+package com.mapster.api.expedia;
 
 import android.app.Activity;
 import android.os.AsyncTask;
@@ -8,8 +8,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.mapster.R;
 import com.mapster.activities.MainActivity;
-import com.mapster.expedia.ExpediaApi;
-import com.mapster.expedia.ExpediaHotel;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
 import com.mapster.json.ExpediaHotelListJsonParser;
@@ -45,12 +43,12 @@ public class ExpediaHotelListTask extends AsyncTask<LatLng, Void, List<ExpediaHo
 
     @Override
     protected List<ExpediaHotel> doInBackground(LatLng... locations) {
-        ExpediaApi exp = new ExpediaApi(_activity);
+        Expedia exp = new Expedia(_activity);
         List<ExpediaHotel> hotels = null;
         ExpediaHotelListJsonParser parser = new ExpediaHotelListJsonParser();
 
         // Make a request to the Expedia API in order to retrieve hotel info
-        String response = exp.hotelListRequest(locations[0], _radius, _numberOfResults);
+        String response = exp.hotelListRequest(locations[0], _radius);
 
         // Parse the response to JSON, then retrieve a list of hotels
         try {

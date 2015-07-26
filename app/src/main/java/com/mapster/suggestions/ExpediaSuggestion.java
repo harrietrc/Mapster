@@ -3,8 +3,8 @@ package com.mapster.suggestions;
 import android.content.Context;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.mapster.connectivities.tasks.ExpediaHotelInfoTask;
-import com.mapster.expedia.ExpediaHotel;
+import com.mapster.api.expedia.ExpediaHotel;
+import com.mapster.api.expedia.ExpediaHotelInfoTask;
 
 /**
  * Created by Harriet on 5/25/2015.

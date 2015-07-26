@@ -3,7 +3,7 @@ package com.mapster.suggestions;
 import android.content.Context;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.mapster.foursquare.FoursquareVenue;
+import com.mapster.api.foursquare.FoursquareVenue;
 import com.mapster.priceestimation.MealPriceEstimate;
 
 /**

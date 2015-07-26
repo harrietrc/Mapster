@@ -1,4 +1,4 @@
-package com.mapster.foursquare;
+package com.mapster.api.foursquare;
 
 import com.google.android.gms.maps.model.LatLng;
 

@@ -1,11 +1,9 @@
-package com.mapster.connectivities.tasks;
+package com.mapster.api.googleplaces;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.google.android.gms.maps.model.Marker;
-import com.mapster.R;
 import com.mapster.json.GooglePlaceDetailJsonParser;
 import com.mapster.places.GooglePlaceDetail;
 import com.mapster.suggestions.GooglePlaceSuggestion;
@@ -19,30 +17,23 @@ import org.json.JSONObject;
  */
 public class GooglePlaceDetailTask extends AsyncTask<GooglePlaceSuggestion, Void, GooglePlaceSuggestion> {
 
-    private Context _context;
+    private GooglePlaces _api;
 
     public GooglePlaceDetailTask(Context context) {
-        _context = context;
+        _api = new GooglePlaces(context);
     }
 
     @Override
     protected GooglePlaceSuggestion doInBackground(GooglePlaceSuggestion... suggestions) {
-        GooglePlaceDetailJsonParser detailJsonParser = new GooglePlaceDetailJsonParser();
         GooglePlaceSuggestion suggestion = suggestions[0];
-
         String placeId = suggestion.getPlaceId();
-        String url = buildDetailUrl(placeId);
-        String response = null;
 
-        try {
-            com.mapster.connectivities.HttpConnection http = new com.mapster.connectivities.HttpConnection();
-            response = http.readUrl(url);
-        } catch (Exception e) {
-            Log.d("Background Task", e.toString());
-        }
+        // Make a request to the Google Places API
+        String response = _api.placeDetailRequest(placeId);
 
+        // Parse the response, extracting details about the place
+        GooglePlaceDetailJsonParser detailJsonParser = new GooglePlaceDetailJsonParser();
         GooglePlaceDetail detail = null;
-
         try {
             JSONObject jsonResponse = new JSONObject(response);
             detail = detailJsonParser.parse(jsonResponse);
@@ -65,13 +56,5 @@ public class GooglePlaceDetailTask extends AsyncTask<GooglePlaceSuggestion, Void
         String info = suggestion.getInfoWindowString();
         marker.setSnippet(info);
         marker.showInfoWindow(); // Might run into some timing issues here
-    }
-
-    public String buildDetailUrl(String placeId) {
-        StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place/details/json?");
-        sb.append("key=" + _context.getResources().getString(R.string.API_KEY));
-        sb.append("&placeid=" + placeId);
-        String url = sb.toString();
-        return url;
     }
 }

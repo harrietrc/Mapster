@@ -1,4 +1,4 @@
-package com.mapster.expedia;
+package com.mapster.api.expedia;
 
 import com.google.android.gms.maps.model.LatLng;
 

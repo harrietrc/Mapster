@@ -3,7 +3,7 @@ package com.mapster.suggestions;
 import android.content.Context;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.mapster.connectivities.tasks.GooglePlaceDetailTask;
+import com.mapster.api.googleplaces.GooglePlaceDetailTask;
 import com.mapster.places.GooglePlace;
 import com.mapster.places.GooglePlaceDetail;
 
