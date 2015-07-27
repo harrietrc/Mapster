@@ -44,7 +44,7 @@ public class FoursquareExploreTask extends AsyncTask<LatLng, Void, List<Foursqua
     @Override
     protected List<FoursquareVenue> doInBackground(LatLng... locations) {
         // Make a request to Foursquare to get a list of restaurants (only explores 'food' currently)
-        String response = _api.exploreNearbyVenuesRequest(locations[0], _radius, _numberOfResults);
+        String response = _api.exploreNearbyVenuesRequest(locations[0], _radius, _numberOfResults).getResponse();
 
         // Parse the response into a list of restaurants
         List<FoursquareVenue> restaurants = new ArrayList<>();

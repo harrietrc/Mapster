@@ -51,7 +51,7 @@ public class GooglePlacesTask extends AsyncTask<LatLng, Void, List<GooglePlace>>
     @Override
     protected List<GooglePlace> doInBackground(LatLng... locs) {
         // Make a request for a list of places near the location passed in
-        String response = _api.placeListRequest(locs[0], _searchRadius);
+        String response = _api.placeListRequest(locs[0], _searchRadius).getResponse();
 
         // Parse JSON response into GooglePlaces
         GooglePlaceJsonParser placeJsonParser = new GooglePlaceJsonParser();

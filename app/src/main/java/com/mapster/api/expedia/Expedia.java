@@ -5,6 +5,7 @@ import android.content.Context;
 import com.google.android.gms.maps.model.LatLng;
 import com.mapster.R;
 import com.mapster.api.Api;
+import com.mapster.api.ApiRequest;
 import com.mapster.webutils.Md5Hash;
 
 import java.security.NoSuchAlgorithmException;
@@ -35,7 +36,7 @@ public class Expedia extends Api {
         }
     }
 
-    public String hotelListRequest(LatLng location, int radius) {
+    public ApiRequest hotelListRequest(LatLng location, int radius) {
         String sig = _signatureHasher.calculateExpediaSignature(_apiKey, _secretKey);
         ExpediaRequest request = new ExpediaRequest(_cid, _apiKey, sig, location, radius);
         return getRequest(request);

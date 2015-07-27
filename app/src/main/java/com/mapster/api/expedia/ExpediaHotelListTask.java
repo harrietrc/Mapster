@@ -48,7 +48,7 @@ public class ExpediaHotelListTask extends AsyncTask<LatLng, Void, List<ExpediaHo
         ExpediaHotelListJsonParser parser = new ExpediaHotelListJsonParser();
 
         // Make a request to the Expedia API in order to retrieve hotel info
-        String response = exp.hotelListRequest(locations[0], _radius);
+        String response = exp.hotelListRequest(locations[0], _radius).getResponse();
 
         // Parse the response to JSON, then retrieve a list of hotels
         try {

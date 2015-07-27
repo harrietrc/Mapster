@@ -10,10 +10,29 @@ import java.util.Map;
  */
 public abstract class ApiRequest {
 
-    public String constructUrl() {
-        String baseUrl = constructBaseUrl();
-        String queryString = generateQueryString();
-        return baseUrl + queryString;
+    private String _url;
+    private String _response;
+
+    public void setResponse(String response) {
+        _response = response;
+    }
+
+    public String getUrl() {
+        if (_url == null) {
+            String baseUrl = constructBaseUrl();
+            String queryString = generateQueryString();
+            _url = baseUrl + queryString;
+        }
+        return _url;
+    }
+
+    // TODO Add checks for error response code (500s, etc.)
+    public String getResponse() {
+        if (_response == null) {
+            throw new InvalidResponseException("No response saved. Has a request been made?");
+        } else {
+            return _response;
+        }
     }
 
     protected abstract String constructBaseUrl();

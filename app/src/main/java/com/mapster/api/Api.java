@@ -12,17 +12,17 @@ public abstract class Api {
     /**
      * Makes a GET request to a given API and returns the response as a string.
      */
-    public String getRequest(ApiRequest request) {
-        String url = request.constructUrl();
+    protected ApiRequest getRequest(ApiRequest request) {
+        String url = request.getUrl();
 
         HttpConnection conn = new HttpConnection();
-        String response = null;
         try {
-            response = conn.readUrl(url);
+            String response = conn.readUrl(url);
+            request.setResponse(response);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return response;
+        return request;
     }
 
 }

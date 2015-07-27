@@ -5,6 +5,7 @@ import android.content.Context;
 import com.google.android.gms.maps.model.LatLng;
 import com.mapster.R;
 import com.mapster.api.Api;
+import com.mapster.api.ApiRequest;
 
 
 /**
@@ -20,7 +21,7 @@ public class Foursquare extends Api {
         _secretKey = context.getString(R.string.FOURSQUARE_CLIENT_SECRET);
     }
 
-    public String exploreNearbyVenuesRequest(LatLng location, int radius, int resultsLimit) {
+    public ApiRequest exploreNearbyVenuesRequest(LatLng location, int radius, int resultsLimit) {
         FoursquareRequest request = new FoursquareRequest(_clientId, _secretKey, location, radius, resultsLimit);
         return getRequest(request);
     }

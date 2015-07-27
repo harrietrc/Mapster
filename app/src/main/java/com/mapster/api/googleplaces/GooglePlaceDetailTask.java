@@ -29,7 +29,7 @@ public class GooglePlaceDetailTask extends AsyncTask<GooglePlaceSuggestion, Void
         String placeId = suggestion.getPlaceId();
 
         // Make a request to the Google Places API
-        String response = _api.placeDetailRequest(placeId);
+        String response = _api.placeDetailRequest(placeId).getResponse();
 
         // Parse the response, extracting details about the place
         GooglePlaceDetailJsonParser detailJsonParser = new GooglePlaceDetailJsonParser();

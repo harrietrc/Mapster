@@ -10,6 +10,7 @@ android {
         targetSdkVersion 21
         versionCode 1
         versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
@@ -39,6 +40,13 @@ dependencies {
     compile 'org.apache.commons:commons-lang3:3.4' // Only used to escape &amp; etc. in ExpediaHotel
     compile 'joda-time:joda-time:2.8.1'
     compile 'com.readystatesoftware.sqliteasset:sqliteassethelper:+' // Used to ship with a meal price database
+
+    // more unit testing
+    compile 'com.android.support:support-annotations:21.0.3'
+//    androidTestCompile 'junit:junit:4.11'
+    androidTestCompile('com.android.support.test:testing-support-lib:0.1') {
+        exclude group: 'junit'  // junit:junit-dep conflicts with junit:unit
+    }
 
     // Unit testing dependencies
     androidTestCompile 'junit:junit:4.12'
