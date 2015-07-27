@@ -15,9 +15,7 @@ import com.astuetz.PagerSlidingTabStrip;
 import com.mapster.R;
 import com.mapster.itinerary.ItineraryItem;
 import com.mapster.itinerary.persistence.ItineraryDataSource;
-import com.mapster.itinerary.ui.BudgetFragment;
-//import com.mapster.itinerary.ui.BudgetPagerAdapter;
-import com.mapster.itinerary.ui.ScheduleFragment;
+
 
 import java.util.List;
 
@@ -29,9 +27,6 @@ public class ItineraryActivity extends ActionBarActivity {
     // Data about the itinerary
     private ItineraryDataSource _itineraryDataSource;
     private List<ItineraryItem> _items;
-    // Two fragments: schedule and budget
-    ScheduleFragment _scheduleFragment;
-    BudgetFragment _budgetFragment;
 
     public List<ItineraryItem> getItems() {
         return _items;
@@ -54,19 +49,6 @@ public class ItineraryActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_budget);
 
-//        // Sliding tabs
-//        BudgetPagerAdapter adapter = new BudgetPagerAdapter(getSupportFragmentManager());
-//        ViewPager pager = (ViewPager) findViewById(R.id.pager);
-//        pager.setAdapter(adapter);
-//
-//        // Bind the tabs to the adapter
-//        PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
-//        tabs.setViewPager(pager);
-//
-//        // Grab references to the two fragments
-//        _scheduleFragment = (ScheduleFragment) adapter.instantiateItem(pager, 0);
-//        _budgetFragment = (BudgetFragment) adapter.instantiateItem(pager, 1);
-        // Required: call through to the superclass method
         if (savedInstanceState == null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             SlidingTabsBasicFragment fragment = new SlidingTabsBasicFragment();

@@ -27,8 +27,8 @@ public class MapInformation{
         _routes = new ArrayList<>();
         _timeReachEachLocation = new ArrayList<>();
         _totalDistance = new Distance();
-        _date = date;
-        _dateToCalculate = date;
+        _date = new CustomDate(date.toString());
+        _dateToCalculate = new CustomDate(date.toString());
     }
 
     public void setStatus(StatusCode code){
@@ -82,10 +82,8 @@ public class MapInformation{
     public void addPath(Path path){
         if(path.getDate() == null) {
             CustomDate date = new CustomDate(_date.toString());
-            Log.d("MapInfo", date.toString());
             _date.addSeconds(path.getDuration().getValue());
             date.addSeconds(path.getDuration().getValue());
-            Log.d("MapInfo", date.toString());
             path.setDate(date);
         } else {
             _date = path.getDate();
