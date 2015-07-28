@@ -1,5 +1,7 @@
 package com.mapster.map.models;
 
+import android.util.Log;
+
 import com.mapster.date.CustomDate;
 import com.mapster.json.StatusCode;
 
@@ -17,12 +19,16 @@ public class MapInformation{
     private Distance _totalDistance;
     private CustomDate _date;
     private StatusCode _status;
+    private List<CustomDate> _timeReachEachLocation;
+    private CustomDate _dateToCalculate;
 
     public MapInformation(CustomDate date){
         _paths = new ArrayList<>();
         _routes = new ArrayList<>();
+        _timeReachEachLocation = new ArrayList<>();
         _totalDistance = new Distance();
-        _date = date;
+        _date = new CustomDate(date.toString());
+        _dateToCalculate = new CustomDate(date.toString());
     }
 
     public void setStatus(StatusCode code){
@@ -101,5 +107,15 @@ public class MapInformation{
 
     public CustomDate getDate() { return _date; };
 
+    public void addTimeReachEachLocation(CustomDate d){
+        _timeReachEachLocation.add(d);
+    }
 
+    public List<CustomDate> getTimeReachEachLocation(){
+        return _timeReachEachLocation;
+    }
+
+    public void setTimeReachEachLocation(List<CustomDate> list){
+        _timeReachEachLocation = list;
+    }
 }

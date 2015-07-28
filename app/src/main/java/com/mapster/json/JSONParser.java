@@ -17,6 +17,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -31,9 +32,11 @@ public class JSONParser {
         }
     }
     private MapInformation mapInformation;
+
     public JSONParser (CustomDate date){
         mapInformation = new MapInformation(date);
     }
+
     public MapInformation parse(JSONObject jObject, MapInformation map) {
         if (map != null)
             this.mapInformation = map;
@@ -55,11 +58,11 @@ public class JSONParser {
             for (int i = 0; i < jRoutes.length(); i++) {
                 jLegs = ((JSONObject) jRoutes.get(i)).getJSONArray("legs");
                 List<HashMap<String, String>> path = new ArrayList<HashMap<String, String>>();
-
                 /** Traversing all legs */
                 for (int j = 0; j < jLegs.length(); j++) {
                     parseTotalDistance(jLegs.getJSONObject(j), "distance");
                     jSteps = ((JSONObject) jLegs.get(j)).getJSONArray("steps");
+                    boolean isGetDuration = false;
 
                     /** Traversing all steps */
                     for (int k = 0; k < jSteps.length(); k++) {
@@ -150,6 +153,9 @@ public class JSONParser {
                             mapInformation.addRoutes(routes);
                         }
                     }
+                    if (mapInformation.getTimeReachEachLocation().size() == 0 )
+                        mapInformation.addTimeReachEachLocation(mapInformation.getPaths().get(0).getDate());
+                    mapInformation.addTimeReachEachLocation(mapInformation.getPaths().get(mapInformation.getPaths().size() - 1).getDate());
                 }
 
                 JSONObject route = jRoutes.getJSONObject(i);
@@ -166,8 +172,25 @@ public class JSONParser {
                         mapInformation.addPath(p);
                     }
                 }
+//                if (!route.isNull("waypoint_order")){
+//                    JSONArray order = route.getJSONArray("waypoint_order");
+//                    List<CustomDate> customDate = new ArrayList<>();
+//                    customDate.add(mapInformation.getTimeReachEachLocation().get(0));
+//                    if (order.length() > 1) {
+//                        for (int customDatePos = 1; customDatePos < mapInformation.getTimeReachEachLocation().size(); customDatePos++) {
+//                            for (int order_position = 0; order_position < order.length(); order_position++) {
+//                                if(order.getInt(order_position) == customDatePos - 1){
+//                                    customDate.add(mapInformation.getTimeReachEachLocation().get(order_position + 1));
+//                                    break;
+//                                }
+//                            }
+//                        }
+//                        customDate.add(mapInformation.getTimeReachEachLocation().get(mapInformation.getTimeReachEachLocation().size() - 1));
+//                        mapInformation.setTimeReachEachLocation(customDate);
+//                    }
+//                }
             }
-
+            System.out.println(mapInformation.getTimeReachEachLocation());
         } catch (JSONException e) {
             e.printStackTrace();
         } catch (Exception e) {

@@ -4,19 +4,22 @@
     android:id="@+id/budget_fragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/indigo_50">
 
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/budget_layout">
+        android:id="@+id/budget_layout"
+        android:background="@color/indigo_50">
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:paddingBottom="1dp"
             android:paddingTop="1dp"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:background="@color/indigo_50">
             <TextView
                 android:paddingRight="2dp"
                 android:paddingLeft="2dp"
@@ -71,7 +74,8 @@
         <ListView
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
-            android:id="@+id/budget_totals_list">
+            android:id="@+id/budget_totals_list"
+            android:background="@color/indigo_50">
             <!-- List will contain totals for each currency/country -->
         </ListView>
     </LinearLayout>

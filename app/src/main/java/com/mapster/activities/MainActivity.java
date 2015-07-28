@@ -166,7 +166,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     public void onResume() {
         _itineraryDataSource.open();
         if (!_suggestionItemsByMarkerId.isEmpty()) {
-            Log.d(TAG, "onResume");
             // Don't want this to run straight after the first onCreate() call
             UpdateMainFromItineraryTask updateTask = new UpdateMainFromItineraryTask(this);
             updateTask.execute();
@@ -203,6 +202,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         Intent i = getIntent();
         _startDateTime = i.getStringExtra(PlacesActivity.START_DATETIME);
         _userItemList = i.getParcelableArrayListExtra(USER_ITEM_LIST);
+        for (UserItem u : _userItemList){
+            System.out.println(u.getName().toString());
+            System.out.println(u.getLocation().toString());
+        }
     }
 
     private void sortCoordinateArrayList(){
@@ -340,7 +343,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         url.append("?origin=" + originCoordinate.latitude + "," + originCoordinate.longitude);
         StringBuilder waypoints = new StringBuilder("");
         if(size > 2){
-            waypoints.append("&waypoints=optimize:true");
+            waypoints.append("&waypoints=optimize:false");
             for(int position = 1; position < size - 1; position ++){
                 LatLng coordinate = latLngArrayList.get(position);
                 waypoints.append("|" + coordinate.latitude + "," + coordinate.longitude);
@@ -477,8 +480,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             JSONObject jObject;
             for(int i = 0; i < _sortedCoordinateArrayList.size(); i++) {
                 String url = getMapsApiDirectionsUrl(_sortedCoordinateArrayList.get(i), _sortedTransportMode.get(i),mapInformation);
-                if (mapInformation != null)
+                if (mapInformation != null) {
                     _customDate = mapInformation.getDate();
+                    System.out.println(mapInformation.getDate().toString());
+                }
                 String jsonData = readTask(url);
                 try {
                     jObject = new JSONObject(jsonData);
@@ -554,7 +559,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             TextView total = (TextView) findViewById(R.id.total_distance_duration);
             addFontToTextView(total);
             StringBuilder output = new StringBuilder("Total Duration: ");
-            Log.d(TAG, "MapInfor: " + mapInformation.getPaths().size());
             output.append(CustomDate.convertSecondsToHours(CustomDate.secondsBetween(
                     mapInformation.getPaths().get(mapInformation.getPaths().size() - 1)
                             .getDate().getDateTime(), startDate.getDateTime())));

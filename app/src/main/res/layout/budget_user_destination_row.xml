@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="horizontal"
-          android:background="@android:color/black"
+          android:background="@color/indigo_500"
           android:layout_width="match_parent"
           android:layout_height="wrap_content">
     <!-- Overly simple, but likely to get more complex later. -->

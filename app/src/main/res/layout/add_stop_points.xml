@@ -4,8 +4,7 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/add_points"
-    android:paddingBottom="5dp"
-    android:paddingTop="5dp">>
+    android:paddingBottom="10dp">
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -17,8 +16,8 @@
             android:layout_weight="75"
             android:id="@+id/origin"
             android:text="Stop Point"
-            android:textSize="13pt"
-            android:textColor="#287AA9"
+            android:textSize="30sp"
+            android:textColor="@color/indigo_500"
             android:layout_marginLeft="5dp"/>
         <com.mapster.android.gui.util.customfonttextview.TypefaceTextView
             app:customTypeface="font/ColabThi.otf"
@@ -28,7 +27,7 @@
             android:onClick="removeStopPoint"
             android:clickable="true"
             android:text="Remove"
-            android:textSize="10pt"
+            android:textSize="20sp"
             android:paddingTop="10dp"
             android:paddingRight="5dp"
             android:textAlignment="center"
@@ -41,7 +40,7 @@
         android:lines="1"
         android:maxLines="1"
         android:singleLine="true"
-        android:textSize="8pt"
+        android:textSize="17sp"
         android:hint="Stop Point"
         android:paddingLeft="10dp"/>
     <RadioGroup
@@ -76,22 +75,4 @@
             android:id="@+id/transit_mode"
             android:layout_marginLeft="5dp"/>
     </RadioGroup>
-    <com.mapster.android.gui.util.customfonttextview.TypefaceTextView
-        app:customTypeface="font/ColabThi.otf"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Add departure date to travel to next location"
-        android:onClick="addDate"
-        android:clickable="true"
-        android:paddingTop="10dp"
-        android:layout_marginLeft="5dp"
-        android:textSize="7pt"
-        android:paddingBottom="5dp"/>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:id="@+id/add_date"
-        android:paddingBottom="5dp">
-    </LinearLayout>
 </LinearLayout>

@@ -9,7 +9,7 @@
         android:paddingLeft="10dp"
         android:paddingBottom="3dp"
         android:paddingTop="3dp"
-        android:textColor="@android:color/white"
+        android:textColor="@android:color/black"
         android:textAllCaps="true"
         android:textSize="15sp"
         android:ellipsize="end"
