@@ -5,7 +5,6 @@
         android:title="Add Stop"
         app:showAsAction="withText|ifRoom"
         android:icon= "@drawable/map_marker_green"/>
-
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" app:showAsAction="never" />
 </menu>

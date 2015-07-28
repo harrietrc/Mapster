@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,6 +19,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.DatePicker;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -25,6 +27,11 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.github.amlcurran.showcaseview.ApiUtils;
+import com.github.amlcurran.showcaseview.ShowcaseView;
+import com.github.amlcurran.showcaseview.targets.ActionViewTarget;
+import com.github.amlcurran.showcaseview.targets.Target;
+import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.mapster.R;
 import com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoCompleteTextView;
 import com.mapster.fragment.DatePickerFragment;
@@ -44,12 +51,14 @@ import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
 
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 
-public class PlacesActivity extends ActionBarActivity implements OnItemClickListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener, GeoCodeListener {
+public class PlacesActivity extends ActionBarActivity implements OnItemClickListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener, GeoCodeListener, View.OnClickListener {
 
     public static final String START_DATETIME = "START_DATETIME";
 
+    private int counter = 0;
     private PlacesAutoCompleteAdapter _autoCompAdapter;
     private LinkedList<ClearableAutoCompleteTextView> _autoCompleteTextViewLinkedList;
     private List<RadioGroup> _transportModeViewList;
@@ -60,7 +69,8 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     private String _timeStartJourney = _timeFormat.format (new Date());
     private String _dateTimeStartJourney;
     private TextView _timeTextView;
-
+    private ShowcaseView _showcaseView;
+    private final ApiUtils apiUtils = new ApiUtils();
     // List of parcelable user-defined destinations
     private ArrayList<UserItem> _userItemList;
 
@@ -116,6 +126,49 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         initializeAutoCompleteTextViewInArrayList();
         initializeRadioButton(_transportModeViewList.get(0));
         _userItemList = new ArrayList<>();
+        _showcaseView = new ShowcaseView.Builder(this)
+                .setTarget(new ViewTarget(findViewById(R.id.add_stop_points_fake)))
+                .setOnClickListener(this)
+                .setContentText("Click the icon to add more stop points between origin and destination")
+                .build();
+        _showcaseView.setButtonText(getString(R.string.cancel));
+    }
+
+
+    private void setAlpha(float alpha, View... views) {
+        if (apiUtils.isCompatWithHoneycomb()) {
+            for (View view : views) {
+                view.setAlpha(alpha);
+            }
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (counter) {
+            case 0:
+                _showcaseView.setShowcase(new ViewTarget(findViewById(R.id.destination)), true);
+                _showcaseView.setContentText("Where do you want to end up?");
+                break;
+
+            case 1:
+                _showcaseView.setShowcase(new ViewTarget(findViewById(R.id.ok)), true);
+                break;
+
+            case 2:
+                _showcaseView.setTarget(Target.NONE);
+                _showcaseView.setContentTitle("Check it out");
+                _showcaseView.setContentText("You don't always need a target to showcase");
+                _showcaseView.setButtonText(getString(R.string.cancel));
+                setAlpha(0.4f, findViewById(R.id.add_stop_points_fake), findViewById(R.id.destination), findViewById(R.id.ok));
+                break;
+
+            case 3:
+                _showcaseView.hide();
+                setAlpha(1.0f, findViewById(R.id.add_stop_points_fake), findViewById(R.id.destination), findViewById(R.id.ok));
+                break;
+        }
+        counter++;
     }
 
     private void addViewsInLayoutToArrayList(LinearLayout llayout){
