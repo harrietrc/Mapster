@@ -38,7 +38,7 @@ dependencies {
     compile 'com.google.code.gson:gson:2.3.1'
     compile 'org.apache.commons:commons-lang3:3.4' // Only used to escape &amp; etc. in ExpediaHotel
     compile 'joda-time:joda-time:2.8.1'
-
+    compile 'com.github.amlcurran.showcaseview:library:5.0.0'
     repositories {
         mavenCentral()
     }
