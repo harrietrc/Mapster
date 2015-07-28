@@ -107,15 +107,15 @@ public class MapInformation{
 
     public CustomDate getDate() { return _date; };
 
-    public void addTimeReachEachLocation(Duration d){
-        System.out.println(_dateToCalculate.toString());
-        _dateToCalculate.addSeconds(d.getValue());
-        CustomDate date = new CustomDate(_dateToCalculate.toString());
-        System.out.println(date.toString());
-        _timeReachEachLocation.add(date);
+    public void addTimeReachEachLocation(CustomDate d){
+        _timeReachEachLocation.add(d);
     }
 
     public List<CustomDate> getTimeReachEachLocation(){
         return _timeReachEachLocation;
+    }
+
+    public void setTimeReachEachLocation(List<CustomDate> list){
+        _timeReachEachLocation = list;
     }
 }

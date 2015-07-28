@@ -202,6 +202,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         Intent i = getIntent();
         _startDateTime = i.getStringExtra(PlacesActivity.START_DATETIME);
         _userItemList = i.getParcelableArrayListExtra(USER_ITEM_LIST);
+        for (UserItem u : _userItemList){
+            System.out.println(u.getName().toString());
+            System.out.println(u.getLocation().toString());
+        }
     }
 
     private void sortCoordinateArrayList(){
@@ -339,7 +343,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         url.append("?origin=" + originCoordinate.latitude + "," + originCoordinate.longitude);
         StringBuilder waypoints = new StringBuilder("");
         if(size > 2){
-            waypoints.append("&waypoints=optimize:true");
+            waypoints.append("&waypoints=optimize:false");
             for(int position = 1; position < size - 1; position ++){
                 LatLng coordinate = latLngArrayList.get(position);
                 waypoints.append("|" + coordinate.latitude + "," + coordinate.longitude);
