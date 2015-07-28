@@ -24,8 +24,8 @@
                 android:layout_weight="50"
                 android:id="@+id/origin"
                 android:text="Origin"
-                android:textSize="15pt"
-                android:textColor="#287AA9"
+                android:textSize="35sp"
+                android:textColor="@color/indigo_500"
                 android:paddingTop="@dimen/activity_vertical_margin"
                 />
             <TextView
@@ -35,6 +35,7 @@
                 android:layout_weight="30"
                 android:id="@+id/add_stop_points_fake"/>
         </LinearLayout>
+
         <com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoCompleteTextView
             app:customTypefaceAutoComplete="font/ColabReg.otf"
             android:layout_width="match_parent"
@@ -43,9 +44,9 @@
             android:lines="1"
             android:maxLines="1"
             android:singleLine="true"
-            android:textSize="8pt"
+            android:textSize="15sp"
             android:hint="Start Place"
-            android:paddingLeft="5pt"
+            android:paddingLeft="5dp"
             android:drawableRight="@drawable/abc_ic_clear_holo_light"/>
         <RadioGroup
             android:layout_width="wrap_content"
@@ -83,7 +84,7 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingBottom="5dp">
+            android:paddingBottom="10dp">
             <com.mapster.android.gui.util.customfonttextview.TypefaceTextView
                 app:customTypeface="font/ColabReg.otf"
                 android:id="@+id/date"
@@ -116,8 +117,8 @@
             android:layout_height="wrap_content"
             android:id="@+id/destination"
             android:text="Destination"
-            android:textSize="15pt"
-            android:textColor="#287AA9"/>
+            android:textSize="35sp"
+            android:textColor="@color/indigo_500"/>
         <com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoCompleteTextView
             app:customTypefaceAutoComplete="font/ColabReg.otf"
             android:layout_width="match_parent"
@@ -126,9 +127,9 @@
             android:lines="1"
             android:maxLines="1"
             android:singleLine="true"
-            android:textSize="8pt"
+            android:textSize="15sp"
             android:hint="Your Destination"
-            android:paddingLeft="5pt"
+            android:paddingLeft="5dp"
             android:paddingTop="5dp"/>
         <LinearLayout
             android:layout_width="fill_parent"
@@ -138,20 +139,27 @@
 
             <Button
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginRight="5dp"
                 android:text="OK"
                 android:id="@+id/ok"
                 android:layout_weight=".50"
+                android:textColor="@color/indigo_50"
+                android:textSize="15sp"
                 android:onClick="ok"
-                style="@android:style/Widget.Button"/>
+                android:background="@drawable/button_selector"/>
             <Button
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginLeft="5dp"
                 android:text="Clear All"
                 android:id="@+id/clear"
                 android:layout_weight=".50"
+                android:textColor="@color/indigo_50"
+                android:textSize="15sp"
                 android:onClick="clearAll"
-                style="@android:style/Widget.Button"/>
+                android:background="@drawable/button_selector"
+                />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

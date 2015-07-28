@@ -171,8 +171,8 @@ public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
 
     @Override
     public void onPostExecute(ArrayList<UserItem> userItems){
-        _activity.callback(userItems);
         _dialog.dismiss();
+        _activity.callback(userItems);
     }
 
     @Override
