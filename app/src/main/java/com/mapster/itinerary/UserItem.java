@@ -66,6 +66,7 @@ public class UserItem extends ItineraryItem implements Parcelable {
         return _name;
     }
 
+    @Override
     public LatLng getLocation() {
         return new LatLng(_latitude, _longitude);
     }

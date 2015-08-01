@@ -1,5 +1,6 @@
 package com.mapster.itinerary;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.mapster.itinerary.utils.ItineraryItemTimeComparator;
 
 import org.joda.time.DateTime;
@@ -75,4 +76,6 @@ public abstract class ItineraryItem implements Comparable<ItineraryItem> {
     }
 
     public abstract String getName();
+
+    public abstract LatLng getLocation();
 }

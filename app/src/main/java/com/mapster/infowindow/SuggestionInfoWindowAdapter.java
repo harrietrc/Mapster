@@ -1,50 +1,42 @@
-package com.mapster.suggestions;
+package com.mapster.infowindow;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.TimePicker;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.mapster.R;
 import com.mapster.activities.MainActivity;
 import com.mapster.itinerary.ItineraryItem;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
+import com.mapster.suggestions.Suggestion;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
-
-import java.util.Locale;
 
 /**
  * Created by Harriet on 5/24/2015.
  */
-public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
+public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
         GoogleMap.OnInfoWindowClickListener {
 
     private LayoutInflater _inflater;
 
     // This field prevents the ImageView from being garbage collected before its drawable can be
-    // set, and the image returned by Picasso displayed.
+    // set, and the image returned by Picasso displayed. Ignore the warning!
     private ImageView _currentInfoWindowImage;
     private Activity _activity; // Not great TODO Separate Marker state into a class
     private AlertDialog _optionsDialogue; // Used to set visibility from button listener
 
-    public SuggestionInfoAdapter(LayoutInflater inflater, Activity activity) {
+    public SuggestionInfoWindowAdapter(LayoutInflater inflater, Activity activity) {
         _inflater = inflater;
         _activity = activity;
     }
@@ -52,7 +44,6 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
     /**
      * Inflates and customises the dialogue with options for this suggestion (call, go to website,
      * add to itinerary)
-     * @param marker
      */
     @Override
     public void onInfoWindowClick(Marker marker) {
@@ -63,65 +54,13 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
         if (item == null)
             return;
 
-        // Inflate the dialogue and get references to each button
-        LinearLayout l = new LinearLayout(_activity);
-        LinearLayout content = (LinearLayout) _inflater.inflate(R.layout.suggestion_options_dialogue, l);
-        Button callButton = (Button) content.findViewById(R.id.call_button);
-        Button websiteButton = (Button) content.findViewById(R.id.website_button);
-        Button directionsButton = (Button) content.findViewById(R.id.directions_button);
-        final Button itineraryButton = (Button) content.findViewById(R.id.itinerary_button);
-
-        // Just a simple way to keep track of whether any buttons are visible
-        int numButtons = 3; // The maximum number of buttons displayed
-
-        Suggestion s = item.getSuggestion();
-
-        // Website button - visible if the suggestion is associated with a website
-        final String website = s.getWebsite(); // Need empty string check?
-        if (website != null) {
-            websiteButton.setVisibility(View.VISIBLE);
-            websiteButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent webIntent = new Intent(Intent.ACTION_VIEW);
-                    webIntent.setData(Uri.parse(website)); // Assume it starts with http://
-                    _activity.startActivity(webIntent);
-                }
-            });
-        } else {
-            websiteButton.setVisibility(View.GONE);
-            numButtons--;
-        }
-
-        // Call button - open the phone app with the phone number, if available
-        final String phone = s.getPhoneNumber();
-        if (phone != null) {
-            callButton.setVisibility(View.VISIBLE);
-            callButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    // Dials the phone number (doesn't call it)
-                    Intent phoneIntent = new Intent(Intent.ACTION_DIAL);
-                    phoneIntent.setData(Uri.parse("tel:" + phone));
-                    _activity.startActivity(phoneIntent);
-                }
-            });
-        } else {
-            callButton.setVisibility(View.GONE);
-            numButtons--;
-        }
-
-        // Directions buttons - tries to open the map app or browser with directions to this place
-        directionsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                openDirectionsIntent(item);
-            }
-        });
+        // Set up button listeners and hide the buttons that are irrelevant
+        SuggestionOptionsDialogue window = new SuggestionOptionsDialogue(mainActivity, _inflater);
+        window.updateDialogueFromItem(item);
+        window.show();
 
         // Add to itinerary button - show if the item isn't already in the itinerary
         if (!item.isInItinerary()) {
-            itineraryButton.setVisibility(View.VISIBLE);
             itineraryButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -135,14 +74,16 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
                     // Flag this to not issue this prompt next time
                     item.setIsInItinerary(true);
 
-                    mainActivity.setSuggestionItemMarker(item);
-                    mainActivity.setItineraryUpdateRequired();
+                    // TODO this too, in listener? or in info window class? bad design in first place?
+                    mainActivity.updateSuggestionItemMarker(item);
+                    mainActivity.setItineraryUpdateRequired(); // Still TODO!
 
                     // Will need to change if the addition to the itinerary is cancelable
                     itineraryButton.setVisibility(View.GONE);
 
                     // Hide the dialogue
-                    _optionsDialogue.hide();
+                    // TODO Not sure whether to put this in the listener or not
+                    _optionsDialogue.hide(); // Still TODO!
                 }
             });
         } else {
@@ -152,41 +93,11 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
         }
 
         // Layout is contained in a dialogue - set it up here
-        if (numButtons > 0) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
-            builder.setView(content).setCancelable(false).setPositiveButton(R.string.back, null);
-            _optionsDialogue = builder.create();
-            _optionsDialogue.setCanceledOnTouchOutside(true);
-            _optionsDialogue.show();
-        }
-    }
-
-    /**
-     * Opens Android/Google Maps app (or the browser if the that app is not installed) with
-     * directions from the current location to the address of the provided itinerary item.
-     * @param item An itinerary item to navigate to
-     */
-    public void openDirectionsIntent(SuggestionItem item) {
-        LatLng ll = item.getSuggestion().getLocation();
-        String uri = String.format(Locale.ENGLISH, "http://maps.google.com/maps?daddr=%f,%f (%s)",
-                ll.latitude, ll.longitude, item.getName());
-        Intent mapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-        mapIntent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
-
-        try {
-            // Try to start the Android maps app
-            _activity.startActivity(mapIntent);
-        } catch (ActivityNotFoundException e1) {
-            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-            try {
-                // If it's not installed, try using a browser instead
-                _activity.startActivity(browserIntent);
-            } catch (ActivityNotFoundException e2) {
-                // No browser or maps app - alert the user
-                Toast.makeText(_activity, "No suitable application installed", Toast.LENGTH_LONG).show();
-            }
-        }
-
+        AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+        builder.setView(content).setCancelable(false).setPositiveButton(R.string.back, null);
+        _optionsDialogue = builder.create();
+        _optionsDialogue.setCanceledOnTouchOutside(true);
+        _optionsDialogue.show();
     }
 
     /**
@@ -250,11 +161,11 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
         return null;
     }
 
-    @Override
     /**
      * This is only called if getInfoWindow() returns null. If this returns null, the default info
      * window will be displayed.
      */
+    @Override
     public View getInfoContents(Marker marker) {
         MainActivity activity = (MainActivity) _activity;
 

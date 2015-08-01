@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -48,7 +47,7 @@ import com.mapster.map.models.MapInformation;
 import com.mapster.map.models.Path;
 import com.mapster.map.models.Routes;
 import com.mapster.suggestions.Suggestion;
-import com.mapster.suggestions.SuggestionInfoAdapter;
+import com.mapster.infowindow.suggestions.SuggestionInfoWindowAdapter;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import org.json.JSONObject;
@@ -418,7 +417,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _map.setOnMarkerClickListener(this);
 
         // SuggestionInfoAdapter listens for and adapts all infowindow-related activity
-        SuggestionInfoAdapter infoAdapter = new SuggestionInfoAdapter(getLayoutInflater(), this);
+        SuggestionInfoWindowAdapter infoAdapter = new SuggestionInfoWindowAdapter(getLayoutInflater(), this);
         _map.setInfoWindowAdapter(infoAdapter);
         _map.setOnInfoWindowClickListener(infoAdapter);
 
@@ -780,7 +779,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
     }
 
-    public void setSuggestionItemMarker(SuggestionItem item) {
+    public void updateSuggestionItemMarker(SuggestionItem item) {
         Suggestion suggestion = item.getSuggestion();
         Marker marker = suggestion.getMarker();
         int iconId = 0;
