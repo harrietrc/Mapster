@@ -75,6 +75,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     // Only used to get data from PlacesActivity. Use _userItemsByMarkerId to keep track of UserItems.
     private ArrayList<UserItem> _userItemList;
 
+    // Required to manually trigger onInfoWindowClick() for the tutorial
+    private SuggestionInfoAdapter _infoWindowAdapter;
+
     private GoogleMap _map;
     private ArrayList<List<LatLng>> _sortedCoordinateArrayList;
     private ArrayList<String> _sortedTransportMode;
@@ -421,9 +424,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _map.setOnMarkerClickListener(this);
 
         // SuggestionInfoAdapter listens for and adapts all infowindow-related activity
-        SuggestionInfoAdapter infoAdapter = new SuggestionInfoAdapter(getLayoutInflater(), this);
-        _map.setInfoWindowAdapter(infoAdapter);
-        _map.setOnInfoWindowClickListener(infoAdapter);
+        _infoWindowAdapter = new SuggestionInfoAdapter(getLayoutInflater(), this);
+        _map.setInfoWindowAdapter(_infoWindowAdapter);
+        _map.setOnInfoWindowClickListener(_infoWindowAdapter);
 
         _map.setMyLocationEnabled(true);
         initSuggestionMarkers();
