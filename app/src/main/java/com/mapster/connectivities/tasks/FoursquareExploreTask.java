@@ -68,5 +68,6 @@ public class FoursquareExploreTask extends AsyncTask<LatLng, Void, List<Foursqua
             SuggestionItem item = new SuggestionItem(suggestion, _item);
             mainActivity.addSuggestionItem(item, icon, v.getName());
         }
+        mainActivity.doTutorialAfterSuggestionAppear();
     }
 }

@@ -95,6 +95,7 @@ public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
         StringBuilder sb = new StringBuilder(GEOCODE_API_BASE + OUT_JSON);
         try {
             sb.append("?address=" + URLEncoder.encode(input, "utf8"));
+            System.out.println(sb.toString());
         } catch (UnsupportedEncodingException e){
             e.printStackTrace();
         }

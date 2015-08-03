@@ -99,7 +99,6 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         }
     }
 
-
     public void showDatePickerDialog(View v) {
         _dateTextView = (TextView)v;
         FragmentTransaction ft = getFragmentManager().beginTransaction();
@@ -140,6 +139,83 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         initializeAutoCompleteTextViewInArrayList();
         initializeRadioButton(_transportModeViewList.get(0));
         _userItemList = new ArrayList<>();
+    }
+
+    private void addViewsInLayoutToArrayList(LinearLayout llayout){
+        for (int i = 0; i < llayout.getChildCount(); i++) {
+            if (llayout.getChildAt(i) instanceof ClearableAutoCompleteTextView) {
+                _autoCompleteTextViewLinkedList.add((ClearableAutoCompleteTextView) llayout.getChildAt(i));
+            } else if(llayout.getChildAt(i) instanceof RadioGroup) {
+                _transportModeViewList.add((RadioGroup) llayout.getChildAt(i));
+            }
+        }
+    }
+
+    private void initializeAutoCompleteTextViewInArrayList(){
+        for (ClearableAutoCompleteTextView acTextView : _autoCompleteTextViewLinkedList){
+            initializeAutoCompleteTextViews(acTextView);
+        }
+    }
+
+    private void initializeAutoCompleteTextViews(ClearableAutoCompleteTextView autoCompleteTextView) {
+        autoCompleteTextView.setAdapter(_autoCompAdapter);
+        autoCompleteTextView.setOnItemClickListener(this);
+        displayTextFromStart(autoCompleteTextView);
+    }
+
+    private void displayTextFromStart(final ClearableAutoCompleteTextView acTextView){
+        acTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+            if (hasFocus == false) {  // lost focus
+                acTextView.setSelection(0,0);
+            }
+            }
+        });
+    }
+
+    private void initializeRadioButton(RadioGroup radioGroup){
+        for(int i = 0; i < radioGroup.getChildCount(); i++){
+            RadioButton rb = (RadioButton) radioGroup.getChildAt(i);
+            addFontToRadioButton(rb);
+        }
+    }
+    public void addFontToRadioButton(RadioButton view){
+        Typeface font = Typeface.createFromAsset(getAssets(), "font/ColabReg.otf");
+        view.setTypeface(font);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_places, menu);
+        MenuItem menuItem = menu.getItem(0);
+        ImageView button = (ImageView) menuItem.getActionView();
+        // just adding some padding to look better
+        float density = this.getResources().getDisplayMetrics().density;
+        int padding = (int)(2 * density);
+        button.setScaleX(0.85f);
+        button.setScaleY(0.85f);
+        button.setPadding(padding,padding,padding,padding);
+        button.setImageDrawable(this.getResources().getDrawable(R.drawable.map_marker_green));
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setUpActionBarMenu();
+            }
+        });
+//        setUpTourGuide(button);
+        return true;
+    }
+
+    private void setUpActionBarMenu(){
+        final int positionOfAutoCompleteTextView = 1;
+        final int positionOfRadioGroupView = 2;
+        LinearLayout linearLayout = addStopPoints();
+        addAutoCompleteTextViewToLinkedList((ClearableAutoCompleteTextView) linearLayout.getChildAt(positionOfAutoCompleteTextView));
+        initializeAutoCompleteTextViews((ClearableAutoCompleteTextView)linearLayout.getChildAt(positionOfAutoCompleteTextView));
+        addRadioGroupToList((RadioGroup)linearLayout.getChildAt(positionOfRadioGroupView));
+        initializeRadioButton((RadioGroup)linearLayout.getChildAt(positionOfRadioGroupView));
     }
 
     private void setUpTourGuide(final ImageView imageView){
@@ -283,15 +359,9 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
             @Override
             public void onClick(View view) {
                 mTutorialHandler.cleanUp();
-                final int positionOfAutoCompleteTextView = 1;
-                final int positionOfRadioGroupView = 2;
-                LinearLayout linearLayout = addStopPoints();
-                addAutoCompleteTextViewToLinkedList((ClearableAutoCompleteTextView) linearLayout.getChildAt(positionOfAutoCompleteTextView));
-                initializeAutoCompleteTextViews((ClearableAutoCompleteTextView)linearLayout.getChildAt(positionOfAutoCompleteTextView));
-                addRadioGroupToList((RadioGroup)linearLayout.getChildAt(positionOfRadioGroupView));
-                initializeRadioButton((RadioGroup)linearLayout.getChildAt(positionOfRadioGroupView));
+                setUpActionBarMenu();
                 TypefaceTextView stopPoint = (TypefaceTextView)findViewById(R.id.add_point);
-                if(!isAlreadyDoTutorial) {
+                if(!isAlreadyDoTutorial()) {
                     mTutorialHandler.setToolTip(new ToolTip()
                             .setTitle("Stop Point")
                             .setDescription("Give us locations between origin and destination")
@@ -335,65 +405,6 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         exitAnimation.setDuration(600);
         exitAnimation.setFillAfter(true);
         return exitAnimation;
-    }
-
-    private void addViewsInLayoutToArrayList(LinearLayout llayout){
-        for (int i = 0; i < llayout.getChildCount(); i++) {
-            if (llayout.getChildAt(i) instanceof ClearableAutoCompleteTextView) {
-                _autoCompleteTextViewLinkedList.add((ClearableAutoCompleteTextView) llayout.getChildAt(i));
-            } else if(llayout.getChildAt(i) instanceof RadioGroup) {
-                _transportModeViewList.add((RadioGroup) llayout.getChildAt(i));
-            }
-        }
-    }
-
-    private void initializeAutoCompleteTextViewInArrayList(){
-        for (ClearableAutoCompleteTextView acTextView : _autoCompleteTextViewLinkedList){
-            initializeAutoCompleteTextViews(acTextView);
-        }
-    }
-
-    private void initializeAutoCompleteTextViews(ClearableAutoCompleteTextView autoCompleteTextView) {
-        autoCompleteTextView.setAdapter(_autoCompAdapter);
-        autoCompleteTextView.setOnItemClickListener(this);
-        displayTextFromStart(autoCompleteTextView);
-    }
-
-    private void displayTextFromStart(final ClearableAutoCompleteTextView acTextView){
-        acTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-            if (hasFocus == false) {  // lost focus
-                acTextView.setSelection(0,0);
-            }
-            }
-        });
-    }
-
-    private void initializeRadioButton(RadioGroup radioGroup){
-        for(int i = 0; i < radioGroup.getChildCount(); i++){
-            RadioButton rb = (RadioButton) radioGroup.getChildAt(i);
-            addFontToRadioButton(rb);
-        }
-    }
-    public void addFontToRadioButton(RadioButton view){
-        Typeface font = Typeface.createFromAsset(getAssets(), "font/ColabReg.otf");
-        view.setTypeface(font);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_places, menu);
-        MenuItem menuItem = menu.getItem(0);
-        ImageView button = (ImageView) menuItem.getActionView();
-        // just adding some padding to look better
-        float density = this.getResources().getDisplayMetrics().density;
-        int padding = (int)(5 * density);
-        button.setPadding(padding,padding,padding,padding);
-        button.setImageDrawable(this.getResources().getDrawable(R.drawable.map_marker_green));
-        setUpTourGuide(button);
-        return true;
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.mapster.activities;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -11,10 +12,17 @@ import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewTreeObserver;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.widget.AbsoluteLayout;
+import android.widget.Button;
 import android.widget.ExpandableListView;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -32,6 +40,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
+import com.mapster.Tutorial;
 import com.mapster.android.gui.util.customfonttextview.TypefaceTextView;
 import com.mapster.connectivities.tasks.ExpediaHotelListTask;
 import com.mapster.connectivities.tasks.FoursquareExploreTask;
@@ -53,6 +62,7 @@ import com.mapster.suggestions.SuggestionInfoAdapter;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -63,6 +73,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import tourguide.tourguide.Overlay;
+import tourguide.tourguide.Pointer;
+import tourguide.tourguide.ToolTip;
+import tourguide.tourguide.TourGuide;
 
 public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener, OnMapReadyCallback {
     private static final String TAG = "MainActivity";
@@ -110,6 +125,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     // Controls the state of the filters
     private Filters _filters;
 
+    // For tutorial
+    private Marker _firstMarker;
+    private Marker _suggestedMarker;
+    private Tutorial _tutorial;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -123,6 +142,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         setContentView(R.layout.activity_main);
 
         _layout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+        _tutorial = new Tutorial(this);
         initializeGoogleMap();
         getDataFromPlaceActivity();
         sortCoordinateArrayList();
@@ -202,10 +222,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         Intent i = getIntent();
         _startDateTime = i.getStringExtra(PlacesActivity.START_DATETIME);
         _userItemList = i.getParcelableArrayListExtra(USER_ITEM_LIST);
-        for (UserItem u : _userItemList){
-            System.out.println(u.getName().toString());
-            System.out.println(u.getLocation().toString());
-        }
     }
 
     private void sortCoordinateArrayList(){
@@ -300,6 +316,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 // Use the detail to set the information displayed in the popup and save it to the place.
                 String infoWindowString = s.getInfoWindowString();
                 marker.setSnippet(infoWindowString);
+                System.out.println(infoWindowString);
             }
             marker.showInfoWindow();
             return false; // Marker toolbar will be shown (returning false allows default behaviour)
@@ -382,6 +399,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                     // See other TODO: Prevents duplicates in budget/schedule
                     if (name != null && !names.contains(name)) {
                         Marker m = _map.addMarker(new MarkerOptions().position(position).title(name));
+                        if(pos <= 1){
+                            _firstMarker = m;
+                        }
                         _userMarkers.put(m.getId(), false);
                         _userItemsByMarkerId.put(m.getId(), item);
                         names.add(name);
@@ -407,7 +427,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         String category = suggestion.getCategory();
         List<Marker> cat = _markersByCategory.get(category);
         cat.add(marker);
-
+        _suggestedMarker = marker;
         // Refilter markers
         setVisibilityByFilters();
     }
@@ -427,9 +447,103 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
         _map.setMyLocationEnabled(true);
         initSuggestionMarkers();
+        final View mapView =  getSupportFragmentManager()
+                .findFragmentById(R.id.map).getView();
+        if (mapView.getViewTreeObserver().isAlive()) {
+            mapView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    // remove the listener
+                    // ! before Jelly Bean:
+                    mapView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    // ! for Jelly Bean and later:
+                    //mapView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    // set map viewport
+                    // CENTER is LatLng object with the center of the map
+                    _map.moveCamera(CameraUpdateFactory.newLatLngZoom(_firstMarker.getPosition(), 15));
+                    // ! you can query Projection object here
+                    Point markerScreenPosition = _map.getProjection().toScreenLocation(_firstMarker.getPosition());
+                    doTutorialSuggestion(setUpTutorial(markerScreenPosition));
+                }
+            });
+        }
+
 
         ParserTask task = new ParserTask(this);
         task.execute();
+    }
+    private TextView setUpTutorial(Point markerScreenPosition){
+        TextView tv = new TextView(this);
+        FrameLayout.LayoutParams flp = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT,FrameLayout.LayoutParams.WRAP_CONTENT);
+        tv.setWidth(120);
+        tv.setHeight(120);
+        tv.setLayoutParams(flp);
+        tv.setX(markerScreenPosition.x - 50);
+        tv.setY(markerScreenPosition.y - 90);
+        FrameLayout fl = (FrameLayout)findViewById(R.id.map_layout);
+        fl.addView(tv);
+        return tv;
+    }
+
+    private void doTutorialSuggestion(final TextView marker){
+        final MainActivity activity = this;
+        _tutorial.setToolTip("Map Marker",
+                "Tap the red map marker\nto give you points of interest\nin the surrounding area.",
+                Gravity.BOTTOM | Gravity.CENTER, getResources().getColor(R.color.indigo_600));
+        _tutorial.setOverlayCircle();
+        _tutorial.setTutorialByClick(marker);
+        marker.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                _tutorial.cleanUp();
+                activity.onMarkerClick(_firstMarker);
+                v.setOnClickListener(null);
+                v.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    public void doTutorialAfterSuggestionAppear(){
+        final MainActivity activity = this;
+        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(_suggestedMarker.getPosition(), 15));
+        final Point markerScreenPosition = _map.getProjection().toScreenLocation(_suggestedMarker.getPosition());
+        TextView tv = setUpTutorial(markerScreenPosition);
+        _tutorial.setToolTip( "Suggested Marker",
+                "Tap this suggested marker to see\n" +
+                        "more information about this hotel.",
+                Gravity.BOTTOM | Gravity.CENTER, getResources().getColor(R.color.indigo_600));
+        _tutorial.setTutorialByClick(tv);
+        tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                _tutorial.cleanUp();
+                activity.onMarkerClick(_suggestedMarker);
+                v.setOnClickListener(null);
+                v.setVisibility(View.GONE);
+                TextView tv1 = new TextView(activity);
+                FrameLayout.LayoutParams flp = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT,FrameLayout.LayoutParams.WRAP_CONTENT);
+                tv1.setWidth(120);
+                tv1.setHeight(120);
+                tv1.setLayoutParams(flp);
+
+                tv1.setX(markerScreenPosition.x - 50);
+                tv1.setY(markerScreenPosition.y - 200);
+                FrameLayout fl = (FrameLayout)findViewById(R.id.map_layout);
+                fl.addView(tv1);
+                _tutorial.setToolTip("Add To Itinerary", "Tap this window to add this location to itinerarry", Gravity.BOTTOM | Gravity.CENTER, activity.getResources().getColor(R.color.indigo_600));
+                _tutorial.setTutorialByClick(tv1);
+                tv1.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        _tutorial.cleanUp();
+                        v.setOnClickListener(null);
+                        v.setVisibility(View.GONE);
+                        //TODO ADD WINDOWINFO CLICK LISTENER
+                    }
+                });
+            }
+        });
+
     }
 
     public ItineraryDataSource getItineraryDatasource() {
@@ -612,7 +726,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         valueTV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            ((TextView)v).setPaintFlags( ((TextView)v).getPaintFlags() ^ Paint.STRIKE_THRU_TEXT_FLAG);
+                ((TextView) v).setPaintFlags(((TextView) v).getPaintFlags() ^ Paint.STRIKE_THRU_TEXT_FLAG);
             }
         });
         return valueTV;
