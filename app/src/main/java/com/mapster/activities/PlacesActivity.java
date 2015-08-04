@@ -194,8 +194,8 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         // just adding some padding to look better
         float density = this.getResources().getDisplayMetrics().density;
         int padding = (int)(2 * density);
-        button.setScaleX(0.85f);
-        button.setScaleY(0.85f);
+        button.setScaleX(0.8f);
+        button.setScaleY(0.8f);
         button.setPadding(padding,padding,padding,padding);
         button.setImageDrawable(this.getResources().getDrawable(R.drawable.map_marker_green));
         button.setOnClickListener(new View.OnClickListener() {

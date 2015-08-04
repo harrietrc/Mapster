@@ -49,9 +49,16 @@ public class Tutorial {
     }
 
     public void setTutorialByClick(View view){
-        _tutorialHandler = _tutorialHandler.with(TourGuide.Technique.Click)
+        _tutorialHandler.with(TourGuide.Technique.Click)
                                            .setOverlay(_overlay).setPointer(_pointer)
                                            .setToolTip(_toolTip).playOn(view);
+
+    }
+
+    public void setTutorialBySlide(View view, TourGuide.Technique technique){
+        _tutorialHandler.with(technique).motionType(TourGuide.MotionType.SwipeOnly)
+                .setPointer(_pointer)
+                .setToolTip(_toolTip).playOn(view);
 
     }
 

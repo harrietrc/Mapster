@@ -45,7 +45,7 @@ dependencies {
             url "https://oss.sonatype.org/content/repositories/snapshots"
         }
     }
-    compile 'com.sothree.slidinguppanel:library:3.0.0'
+    compile 'com.sothree.slidinguppanel:library:3.1.0'
     compile 'joda-time:joda-time:2.8'
     compile ('com.github.worker8:tourguide:1.0.12-SNAPSHOT@aar'){
         transitive=true
