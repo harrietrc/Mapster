@@ -37,6 +37,7 @@ import com.mapster.api.googleplaces.GooglePlacesTask;
 import com.mapster.date.CustomDate;
 import com.mapster.filters.Filters;
 import com.mapster.geocode.GeoCode;
+import com.mapster.infowindow.SuggestionInfoWindowAdapter;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
 import com.mapster.itinerary.persistence.ItineraryDataSource;
@@ -47,7 +48,6 @@ import com.mapster.map.models.MapInformation;
 import com.mapster.map.models.Path;
 import com.mapster.map.models.Routes;
 import com.mapster.suggestions.Suggestion;
-import com.mapster.infowindow.suggestions.SuggestionInfoWindowAdapter;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import org.json.JSONObject;

@@ -1,29 +1,27 @@
 package com.mapster.infowindow;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
-import android.widget.TimePicker;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 import com.mapster.R;
 import com.mapster.activities.MainActivity;
-import com.mapster.itinerary.ItineraryItem;
+import com.mapster.infowindow.dialogues.SuggestionDateDialogue;
+import com.mapster.infowindow.dialogues.SuggestionOptionsDialogue;
+import com.mapster.infowindow.dialogues.SuggestionTimeDialogue;
 import com.mapster.itinerary.SuggestionItem;
-import com.mapster.itinerary.UserItem;
 import com.mapster.suggestions.Suggestion;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 /**
  * Created by Harriet on 5/24/2015.
+ * So ideally this shouldn't do much other than initialise the Options dialogue.
  */
 public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
         GoogleMap.OnInfoWindowClickListener {
@@ -34,7 +32,6 @@ public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
     // set, and the image returned by Picasso displayed. Ignore the warning!
     private ImageView _currentInfoWindowImage;
     private Activity _activity; // Not great TODO Separate Marker state into a class
-    private AlertDialog _optionsDialogue; // Used to set visibility from button listener
 
     public SuggestionInfoWindowAdapter(LayoutInflater inflater, Activity activity) {
         _inflater = inflater;
@@ -54,106 +51,15 @@ public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
         if (item == null)
             return;
 
-        // Set up button listeners and hide the buttons that are irrelevant
-        SuggestionOptionsDialogue window = new SuggestionOptionsDialogue(mainActivity, _inflater);
-        window.updateDialogueFromItem(item);
-        window.show();
+        // Create the chain of dialogues that is initiated when the user adds an item to the itinerary
+        // Not really sure whether this should go here or in the dialogue class itself
+        // TODO Probably move this; class should be responsible for InfoWindow only (no subsequent dialogues)
+        SuggestionOptionsDialogue optionsDialogue = new SuggestionOptionsDialogue(_activity, _inflater, item);
+        SuggestionDateDialogue dateDialogue = new SuggestionDateDialogue(_activity, _inflater, item);
+        SuggestionTimeDialogue timeDialogue = new SuggestionTimeDialogue(_activity, _inflater, item);
+        optionsDialogue.setNextDialogue(dateDialogue).setNextDialogue(timeDialogue);
 
-        // Add to itinerary button - show if the item isn't already in the itinerary
-        if (!item.isInItinerary()) {
-            itineraryButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    // Add the suggestion to the list for the UserItem it is associated with
-                    UserItem userItem = item.getUserItem();
-                    userItem.addSuggestionItem(item);
-
-                    // Prompt the user to enter a date for the suggestion (currently optional)
-                    showDateDialogue(item);
-
-                    // Flag this to not issue this prompt next time
-                    item.setIsInItinerary(true);
-
-                    // TODO this too, in listener? or in info window class? bad design in first place?
-                    mainActivity.updateSuggestionItemMarker(item);
-                    mainActivity.setItineraryUpdateRequired(); // Still TODO!
-
-                    // Will need to change if the addition to the itinerary is cancelable
-                    itineraryButton.setVisibility(View.GONE);
-
-                    // Hide the dialogue
-                    // TODO Not sure whether to put this in the listener or not
-                    _optionsDialogue.hide(); // Still TODO!
-                }
-            });
-        } else {
-            // TODO change to 'Remove from itinerary'
-            itineraryButton.setVisibility(View.GONE);
-            numButtons--;
-        }
-
-        // Layout is contained in a dialogue - set it up here
-        AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
-        builder.setView(content).setCancelable(false).setPositiveButton(R.string.back, null);
-        _optionsDialogue = builder.create();
-        _optionsDialogue.setCanceledOnTouchOutside(true);
-        _optionsDialogue.show();
-    }
-
-    /**
-     * Second stage in the call chain of dialogues that is invoked when an item is added to the
-     * itinerary
-     * @param item Suggestion added to the itinerary
-     */
-    public void showDateDialogue(final ItineraryItem item) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(_activity);
-        builder.setTitle("Arrival date");
-
-        // View for this dialogue - a date picker, which sets the item's date fields
-        View v = _inflater.inflate(R.layout.date_dialogue, null, false);
-        final DatePicker picker = (DatePicker) v.findViewById(R.id.date_picker);
-        builder.setView(v);
-
-        // Listeners for button presses - save state and transition to the next dialogue
-        builder.setNegativeButton(R.string.skip, null).setPositiveButton(R.string.ok,
-                new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // Save date picker state to itinerary item and go to the time picker
-                item.setDate(picker.getYear(), picker.getMonth(), picker.getDayOfMonth());
-                showTimePicker(item);
-            }
-        });
-
-        AlertDialog dialogue = builder.create();
-        dialogue.show();
-    }
-
-    /**
-     * Third stage in the call chain that is invoked when an item is added to the itinerary. Allows
-     * the user to set a time for the item. Currently skippable.
-     * @param item
-     */
-    public void showTimePicker(final ItineraryItem item) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(_activity);
-        builder.setTitle("Arrival time");
-
-        // View for this dialogue - time picker used to set item's time fields
-        View v = _inflater.inflate(R.layout.time_dialogue, null, false);
-        final TimePicker picker = (TimePicker) v.findViewById(R.id.time_picker);
-        builder.setView(v);
-
-        // Save time values (or skip and let control fall back to activity)
-        builder.setNegativeButton(R.string.skip, null).setPositiveButton(R.string.ok,
-                new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                item.setTime(picker.getCurrentHour(), picker.getCurrentMinute());
-            }
-        });
-
-        AlertDialog dialogue = builder.create();
-        dialogue.show();
+        optionsDialogue.show();
     }
 
     @Override
@@ -164,6 +70,7 @@ public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
     /**
      * This is only called if getInfoWindow() returns null. If this returns null, the default info
      * window will be displayed.
+     * TODO Refactor; too long and doing too much.
      */
     @Override
     public View getInfoContents(Marker marker) {

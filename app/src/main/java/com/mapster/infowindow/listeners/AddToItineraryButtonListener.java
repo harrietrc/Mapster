@@ -2,17 +2,19 @@ package com.mapster.infowindow.listeners;
 
 import android.view.View;
 
+import com.mapster.infowindow.dialogues.SequentialSuggestionItemDialogue;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
 
 /**
  * Created by Harriet on 7/29/2015.
  */
-public class AddToItineraryButtonListener implements View.OnClickListener {
+public class AddToItineraryButtonListener extends SequentialDialogueContentListener {
 
     private SuggestionItem _itineraryItem;
 
-    public AddToItineraryButtonListener(SuggestionItem item) {
+    public AddToItineraryButtonListener(SequentialSuggestionItemDialogue dialogue, SuggestionItem item) {
+        super(dialogue);
         _itineraryItem = item;
     }
 
@@ -27,5 +29,8 @@ public class AddToItineraryButtonListener implements View.OnClickListener {
 
         // Hide the button - add option no longer available/necessary
         addButton.setVisibility(View.GONE);
+
+        // Move to the next dialogue in the sequence
+        _dialogue.moveToNext();
     }
 }
