@@ -7,25 +7,18 @@ import android.graphics.Point;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
-import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.widget.AbsoluteLayout;
 import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -43,8 +36,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
-import com.mapster.Tutorial;
-import com.mapster.android.gui.util.customfonttextview.TypefaceTextView;
+import com.mapster.apppreferences.AppPreferences;
+import com.mapster.tutorial.Tutorial;
 import com.mapster.connectivities.tasks.ExpediaHotelListTask;
 import com.mapster.connectivities.tasks.FoursquareExploreTask;
 import com.mapster.connectivities.tasks.GooglePlacesTask;
@@ -65,7 +58,6 @@ import com.mapster.suggestions.SuggestionInfoAdapter;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -76,11 +68,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import tourguide.tourguide.Overlay;
-import tourguide.tourguide.Pointer;
-import tourguide.tourguide.ToolTip;
-import tourguide.tourguide.TourGuide;
 
 public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarkerClickListener, OnMapReadyCallback {
     private static final String TAG = "MainActivity";
@@ -135,11 +122,14 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private Marker _firstMarker;
     private Marker _suggestedMarker;
     private Tutorial _tutorial;
-    private boolean _isDoneCollapseInstruction = false;
+    private AppPreferences _preferences;
+    private ImageButton _itineraryItem;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        _preferences = new AppPreferences(this);
         _itineraryDataSource = new ItineraryDataSource(this);
         _itineraryDataSource.open();
 
@@ -443,7 +433,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     public void onMapReady(GoogleMap googleMap) {
         _map = googleMap;
         _map.moveCamera(CameraUpdateFactory.newLatLngZoom(_sortedCoordinateArrayList.get(0).get(0),
-                13));
+                15));
         addMarkers();
         _map.setOnMarkerClickListener(this);
 
@@ -470,7 +460,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                     _map.moveCamera(CameraUpdateFactory.newLatLngZoom(_firstMarker.getPosition(), 15));
                     // ! you can query Projection object here
                     doTutorialInstruction();
-
                 }
             });
         }
@@ -479,56 +468,56 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     private void doTutorialInstruction(){
-        final View totalTextView = findViewById(R.id.total_distance_duration);
-        final LinearLayout instructionLayout = (LinearLayout) findViewById(R.id.instructions);
-        TextView tv = setUpTutorial(new Point((int)totalTextView.getX(), (int)totalTextView.getY()), totalTextView.getWidth(), totalTextView.getHeight(), 0, 0);
-        FrameLayout fl = (FrameLayout)totalTextView.getParent();
-        fl.addView(tv);
-        _tutorial.setToolTip("Turn-by-turn Instructions", "Tap for more detailed instructions. Tap again to close",
-                Gravity.TOP | Gravity.CENTER, getResources().getColor(R.color.indigo_600));
-        _tutorial.setOverlayRectangular();
-        _tutorial.setTutorialByClick(totalTextView);
-        tv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                _tutorial.cleanUp();
-                SlidingUpPanelLayout layout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
-                layout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
-                v.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                TextView instruction = (TextView)instructionLayout.getChildAt(0);
-                                _tutorial.setToolTip("Instruction", "Tap each instruction to indicate that you have" +
-                                                " done this intruction.", Gravity.BOTTOM | Gravity.CENTER,
-                                        getResources().getColor(R.color.indigo_600));
-                                _tutorial.setOverlayRectangular();
-                                _tutorial.setTutorialByClick(instruction);
-                            }
-                        });
-
-                    }
-                }, 100);
-                v.setOnClickListener(null);
-                v.setVisibility(View.GONE);
-                TextView instruction = (TextView)instructionLayout.getChildAt(0);
-                if (instruction != null) {
-                    instruction.setOnClickListener(new View.OnClickListener() {
+        if (!_preferences.isDoneInstructionTutorial()) {
+            final View totalTextView = findViewById(R.id.total_distance_duration);
+            final LinearLayout instructionLayout = (LinearLayout) findViewById(R.id.instructions);
+            TextView tv = setUpTutorial(new Point((int) totalTextView.getX(), (int) totalTextView.getY()), totalTextView.getWidth(), totalTextView.getHeight(), 0, 0);
+            FrameLayout fl = (FrameLayout) totalTextView.getParent();
+            fl.addView(tv);
+            _tutorial.setToolTip("Turn-by-turn Instructions", "Tap for more detailed instructions. Tap again to close",
+                    Gravity.TOP | Gravity.CENTER, getResources().getColor(R.color.indigo_600));
+            _tutorial.setOverlayRectangular();
+            _tutorial.setTutorialByClick(tv);
+            tv.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    _tutorial.cleanUp();
+                    SlidingUpPanelLayout layout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+                    layout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+                    v.postDelayed(new Runnable() {
                         @Override
-                        public void onClick(View v) {
-                            _tutorial.cleanUp();
-                            ((TextView) v).setPaintFlags(((TextView) v).getPaintFlags() ^ Paint.STRIKE_THRU_TEXT_FLAG);
-                            if (!_isDoneCollapseInstruction){
+                        public void run() {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    TextView instruction = (TextView) instructionLayout.getChildAt(0);
+                                    _tutorial.setToolTip("Instruction", "Tap each instruction to indicate that you have" +
+                                                    " done this instruction.", Gravity.BOTTOM | Gravity.CENTER,
+                                            getResources().getColor(R.color.indigo_600));
+                                    _tutorial.setOverlayRectangular();
+                                    _tutorial.setTutorialByClick(instruction);
+                                }
+                            });
+
+                        }
+                    }, 100);
+                    v.setOnClickListener(null);
+                    v.setVisibility(View.GONE);
+                    TextView instruction = (TextView) instructionLayout.getChildAt(0);
+                    if (instruction != null) {
+                        instruction.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                _tutorial.cleanUp();
+                                ((TextView) v).setPaintFlags(((TextView) v).getPaintFlags() ^ Paint.STRIKE_THRU_TEXT_FLAG);
+
                                 doTutorialForCollapseInstruction();
                             }
-                            _isDoneCollapseInstruction = true;
-                        }
-                    });
+                        });
+                    }
                 }
-            }
-        });
+            });
+        }
     }
     private TextView setUpTutorial(Point markerScreenPosition,int width, int height, float offsetX, float offsetY){
         TextView tv = new TextView(this);
@@ -542,96 +531,149 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     private void doTutorialForCollapseInstruction(){
-        final View totalTextView = findViewById(R.id.total_distance_duration);
-        TextView tv = setUpTutorial(new Point((int)totalTextView.getX(), (int)totalTextView.getY()), totalTextView.getWidth(), totalTextView.getHeight(), 0, 0);
-        FrameLayout fl = (FrameLayout)totalTextView.getParent();
-        fl.addView(tv);
-        _tutorial.setToolTip("Turn-by-turn Instructions", "Tap again to close",
-                Gravity.BOTTOM | Gravity.CENTER, getResources().getColor(R.color.indigo_600));
-        _tutorial.setOverlayRectangular();
-        _tutorial.setTutorialByClick(totalTextView);
-        tv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                _tutorial.cleanUp();
-                SlidingUpPanelLayout layout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
-                layout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
-                v.setOnClickListener(null);
-                v.setVisibility(View.GONE);
-                doTutorialSuggestion();
-            }
-        });
+        if (!_preferences.isDoneInstructionTutorial()) {
+            final View totalTextView = findViewById(R.id.total_distance_duration);
+            TextView tv = setUpTutorial(new Point((int) totalTextView.getX(), (int) totalTextView.getY()), totalTextView.getWidth(), totalTextView.getHeight(), 0, 0);
+            FrameLayout fl = (FrameLayout) totalTextView.getParent();
+            fl.addView(tv);
+            _tutorial.setToolTip("Turn-by-turn Instructions", "Tap again to close",
+                    Gravity.BOTTOM | Gravity.CENTER, getResources().getColor(R.color.indigo_600));
+            _tutorial.setOverlayRectangular();
+            _tutorial.setTutorialByClick(totalTextView);
+            tv.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    _tutorial.cleanUp();
+                    SlidingUpPanelLayout layout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+                    layout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+                    v.setOnClickListener(null);
+                    v.setVisibility(View.GONE);
+                    doTutorialSuggestion();
+                }
+            });
+            _preferences.setDoneInstructionTutorial();
+        }
     }
 
     private void doTutorialSuggestion(){
-        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(_firstMarker.getPosition(), 15));
-        Point markerScreenPosition = _map.getProjection().toScreenLocation(_firstMarker.getPosition());
-        TextView marker = setUpTutorial(markerScreenPosition, 120, 120, 50, 90);
-        FrameLayout fl = (FrameLayout)findViewById(R.id.map_layout);
-        fl.addView(marker);
-        final MainActivity activity = this;
-        _tutorial.setToolTip("Map Marker",
-                "Tap the red map marker\nto give you points of interest\nin the surrounding area.",
-                Gravity.BOTTOM | Gravity.CENTER, getResources().getColor(R.color.indigo_600));
-        _tutorial.setOverlayCircle();
-        _tutorial.setTutorialByClick(marker);
-        marker.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                _tutorial.cleanUp();
-                activity.onMarkerClick(_firstMarker);
-                v.setOnClickListener(null);
-                v.setVisibility(View.GONE);
-            }
-        });
+        if (!_preferences.isDoneSuggestionTutorial()) {
+            _map.moveCamera(CameraUpdateFactory.newLatLngZoom(_firstMarker.getPosition(), 15));
+            Point markerScreenPosition = _map.getProjection().toScreenLocation(_firstMarker.getPosition());
+            TextView marker = setUpTutorial(markerScreenPosition, 120, 120, 50, 90);
+            FrameLayout fl = (FrameLayout) findViewById(R.id.map_layout);
+            fl.addView(marker);
+            final MainActivity activity = this;
+            _tutorial.setToolTip("Map Marker",
+                    "Tap the red map marker\nto give you points of interest\nin the surrounding area.",
+                    Gravity.BOTTOM | Gravity.CENTER, getResources().getColor(R.color.indigo_600));
+            _tutorial.setOverlayCircle();
+            _tutorial.setTutorialByClick(marker);
+            marker.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    _tutorial.cleanUp();
+                    activity.onMarkerClick(_firstMarker);
+                    v.setOnClickListener(null);
+                    v.setVisibility(View.GONE);
+                }
+            });
+        }
     }
 
     public void doTutorialAfterSuggestionAppear(){
-        final MainActivity activity = this;
-        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(_suggestedMarker.getPosition(), 15));
-        final Point markerScreenPosition = _map.getProjection().toScreenLocation(_suggestedMarker.getPosition());
-        TextView tv = setUpTutorial(markerScreenPosition, 120, 120, 50, 90);
-        FrameLayout fl = (FrameLayout)findViewById(R.id.map_layout);
-        fl.addView(tv);
-        _tutorial.setToolTip( "Suggested Marker",
-                "Tap this suggested marker to see\n" +
-                        "more information about this hotel.",
-                Gravity.BOTTOM | Gravity.CENTER, getResources().getColor(R.color.indigo_600));
-        _tutorial.setTutorialByClick(tv);
-        tv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                _tutorial.cleanUp();
-                activity.onMarkerClick(_suggestedMarker);
-                v.setOnClickListener(null);
-                v.setVisibility(View.GONE);
-                TextView tv1 = new TextView(activity);
-                FrameLayout.LayoutParams flp = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT,FrameLayout.LayoutParams.WRAP_CONTENT);
-                tv1.setWidth(120);
-                tv1.setHeight(120);
-                tv1.setLayoutParams(flp);
+        if (!_preferences.isDoneSuggestionTutorial()) {
+            final MainActivity activity = this;
+            _map.moveCamera(CameraUpdateFactory.newLatLngZoom(_suggestedMarker.getPosition(), 15));
+            final Point markerScreenPosition = _map.getProjection().toScreenLocation(_suggestedMarker.getPosition());
+            TextView tv = setUpTutorial(markerScreenPosition, 120, 120, 50, 90);
+            FrameLayout fl = (FrameLayout) findViewById(R.id.map_layout);
+            fl.addView(tv);
+            _tutorial.setToolTip("Suggested Marker",
+                    "Tap this suggested marker to see\n" +
+                            "more information about this hotel.",
+                    Gravity.BOTTOM | Gravity.CENTER, getResources().getColor(R.color.indigo_600));
+            _tutorial.setTutorialByClick(tv);
+            tv.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    _tutorial.cleanUp();
+                    activity.onMarkerClick(_suggestedMarker);
+                    v.setOnClickListener(null);
+                    v.setVisibility(View.GONE);
+                    TextView tv1 = new TextView(activity);
+                    FrameLayout.LayoutParams flp = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+                    tv1.setWidth(120);
+                    tv1.setHeight(120);
+                    tv1.setLayoutParams(flp);
 
-                tv1.setX(markerScreenPosition.x - 50);
-                tv1.setY(markerScreenPosition.y - 150);
-                FrameLayout fl = (FrameLayout)findViewById(R.id.map_layout);
-                fl.addView(tv1);
-                _tutorial.setToolTip("Add To Itinerary", "Tap this window to add this location to itinerarry", Gravity.BOTTOM | Gravity.CENTER, activity.getResources().getColor(R.color.indigo_600));
-                _tutorial.setTutorialByClick(tv1);
-                tv1.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        _tutorial.cleanUp();
-                        v.setOnClickListener(null);
-                        v.setVisibility(View.GONE);
-                        activity._infoWindowAdapter.onInfoWindowClick(_suggestedMarker);
-                    }
-                });
-            }
-        });
+                    tv1.setX(markerScreenPosition.x - 50);
+                    tv1.setY(markerScreenPosition.y - 150);
+                    FrameLayout fl = (FrameLayout) findViewById(R.id.map_layout);
+                    fl.addView(tv1);
+                    _tutorial.setToolTip("Add To Itinerary", "Tap this window to add this location to itinerarry", Gravity.BOTTOM | Gravity.CENTER, activity.getResources().getColor(R.color.indigo_600));
+                    _tutorial.setTutorialByClick(tv1);
+                    tv1.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            _tutorial.cleanUp();
+                            v.setOnClickListener(null);
+                            v.setVisibility(View.GONE);
+                            activity._infoWindowAdapter.onInfoWindowClick(_suggestedMarker);
+                        }
+                    });
+                }
+            });
+        }
     }
 
-    private void doTutorialActionBar(){
+    public void doTutorialActionBar() {
+        if (!_preferences.isDoneActionBarMainTutorial()){
+            _tutorial.setToolTip("Filter", "Tap this icon to filter the suggested POIs.",
+                    Gravity.BOTTOM | Gravity.CENTER, getResources().getColor(R.color.indigo_600));
+            _tutorial.setOverlayCircle();
+            _tutorial.setTutorialByClick(_filterItem);
 
+            _filterItem.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    _tutorial.cleanUp();
+                    onFilterButtonClick();
+                    if (!_preferences.isDoneActionBarMainTutorial()) {
+                        _tutorial.setToolTip("Itinerary/Budget", "Tap this icon to go to the itinerary/budget screen.",
+                                Gravity.BOTTOM | Gravity.CENTER, getResources().getColor(R.color.indigo_600));
+                        _tutorial.setOverlayCircle();
+                        _tutorial.setTutorialByClick(_itineraryItem);
+                        _itineraryItem.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                _tutorial.cleanUp();
+                                startBudgetActivity();
+                            }
+                        });
+                        _preferences.setDoneActionBarMainTutorial();
+                    }
+                }
+            });
+        }
+
+    }
+
+    public void doTutorialAddingToItitinerary(final Button yes, Button no){
+        if(!_preferences.isDoneSuggestionTutorial()){
+            no.setEnabled(false);
+            _tutorial.setToolTip("Add To Itinerary", "Add this location to itinerary list", Gravity.CENTER | Gravity.BOTTOM, getResources().getColor(R.color.indigo_600));
+            _tutorial.setNoOverlay();
+            _tutorial.setTutorialByClick(yes);
+            _preferences.setDoneSuggestionTutorial();
+        }
+    }
+
+    public void cleanUpTutorial(){
+        try {
+            _tutorial.cleanUp();
+        } catch (NullPointerException e){
+            e.printStackTrace();
+        }
     }
 
     public ItineraryDataSource getItineraryDatasource() {
@@ -828,6 +870,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
         // Save the filter button so that its visibility can be toggled
         MenuItem menuItem = menu.findItem(R.id.menu_custom);
         LinearLayout ll = (LinearLayout)menuItem.getActionView();
@@ -840,8 +883,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             }
         });
 
-        ImageButton itinerary = (ImageButton)ll.getChildAt(1);
-        itinerary.setOnClickListener(new View.OnClickListener() {
+        _itineraryItem  = (ImageButton)ll.getChildAt(1);
+        _itineraryItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startBudgetActivity();
@@ -899,17 +942,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
             case R.id.action_settings:{
                 return true;
-            }
-
-            //noinspection SimplifiableIfStatement
-            case R.id.filter:{
-                onFilterButtonClick();
-                break;
-            }
-
-            case R.id.budget:{
-                startBudgetActivity();
-                break;
             }
         }
         return super.onOptionsItemSelected(item);

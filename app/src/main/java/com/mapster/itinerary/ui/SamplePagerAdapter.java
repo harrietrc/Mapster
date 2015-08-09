@@ -4,6 +4,7 @@ import android.content.DialogInterface;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.PagerAdapter;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,7 @@ import android.view.ViewTreeObserver;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -20,11 +22,14 @@ import android.widget.TextView;
 import com.mapster.R;
 import com.mapster.activities.ItineraryActivity;
 import com.mapster.activities.SlidingTabsBasicFragment;
+import com.mapster.apppreferences.AppPreferences;
 import com.mapster.itinerary.ItineraryItem;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
 import com.mapster.priceestimation.MealPriceEstimate;
 import com.mapster.suggestions.Suggestion;
+import com.mapster.tutorial.Tutorial;
+import com.mapster.view.SlidingTabLayout;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -55,6 +60,7 @@ public class SamplePagerAdapter extends PagerAdapter {
     private DateTimeFormatter _timeFormatter; // Prints only the time (no month or day)
     private DateTimeFormatter _dateFormatter; // Prints only the date
     private List<ItineraryItem> _sortedItems;
+
     /**
      * @return the number of pages to display
      */

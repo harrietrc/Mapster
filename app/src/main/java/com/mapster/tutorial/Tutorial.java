@@ -1,4 +1,4 @@
-package com.mapster;
+package com.mapster.tutorial;
 
 import android.support.v7.app.ActionBarActivity;
 import android.view.View;
@@ -19,7 +19,7 @@ public class Tutorial {
     private Overlay _overlay;
     private Pointer _pointer;
     public Tutorial(ActionBarActivity activity){
-        _tutorialHandler = TourGuide.init(activity);
+        _tutorialHandler = TourGuide.init(activity).with(TourGuide.Technique.Click);
         _pointer = new Pointer();
     }
 
@@ -38,6 +38,10 @@ public class Tutorial {
 
     public void setOverlayRectangular(){
         _overlay =  new Overlay().setEnterAnimation(getEnterAnimation()).setExitAnimation(getExitAnimation()).setStyle(Overlay.Style.Rectangle);
+    }
+
+    public void setNoOverlay(){
+        _overlay = null;
     }
 
     public void cleanUp(){

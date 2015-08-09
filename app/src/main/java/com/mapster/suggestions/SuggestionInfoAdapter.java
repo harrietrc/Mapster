@@ -55,14 +55,13 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
             AlertDialog.Builder builder = new AlertDialog.Builder(_activity);
             String name = item.getSuggestion().getName();
             builder.setMessage("Add " + name + " to itinerary?");
-
             builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     // Add the suggestion to the list for the UserItem it is associated with
+                    mainActivity.cleanUpTutorial();
                     UserItem userItem = item.getUserItem();
                     userItem.addSuggestionItem(item);
-
                     // Prompt the user to enter a date for the suggestion (currently optional)
                     showDateDialogue(item);
 
@@ -71,12 +70,13 @@ public class SuggestionInfoAdapter implements GoogleMap.InfoWindowAdapter,
 
                     mainActivity.setSuggestionItemMarker(item);
                     mainActivity.setItineraryUpdateRequired();
+                    mainActivity.doTutorialActionBar();
                 }
             });
             builder.setNegativeButton(R.string.no, null);
-
             AlertDialog dialog = builder.create();
             dialog.show();
+            mainActivity.doTutorialAddingToItitinerary(dialog.getButton(AlertDialog.BUTTON_POSITIVE), dialog.getButton(AlertDialog.BUTTON_NEGATIVE));
         }
     }
 

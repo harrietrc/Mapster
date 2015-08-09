@@ -7,9 +7,7 @@ import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
-import android.media.Image;
 import android.os.Bundle;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Gravity;
 import android.view.Menu;
@@ -22,9 +20,7 @@ import android.view.animation.Animation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.Button;
 import android.widget.DatePicker;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -33,15 +29,10 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
-import com.github.amlcurran.showcaseview.ApiUtils;
-import com.github.amlcurran.showcaseview.ShowcaseView;
-import com.github.amlcurran.showcaseview.targets.ActionItemTarget;
-import com.github.amlcurran.showcaseview.targets.ActionViewTarget;
-import com.github.amlcurran.showcaseview.targets.Target;
-import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.mapster.R;
 import com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoCompleteTextView;
 import com.mapster.android.gui.util.customfonttextview.TypefaceTextView;
+import com.mapster.apppreferences.AppPreferences;
 import com.mapster.fragment.DatePickerFragment;
 import com.mapster.fragment.TimePickerFragment;
 import com.mapster.geocode.GeoCode;
@@ -86,6 +77,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     private ArrayList<UserItem> _userItemList;
     private TourGuide mTutorialHandler;
     private boolean isAlreadyDoTutorial = false;
+    private AppPreferences _preferences;
 
     @Override
     public void callback(ArrayList<UserItem> userItems) {
@@ -139,6 +131,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         initializeAutoCompleteTextViewInArrayList();
         initializeRadioButton(_transportModeViewList.get(0));
         _userItemList = new ArrayList<>();
+        _preferences = new AppPreferences(this);
     }
 
     private void addViewsInLayoutToArrayList(LinearLayout llayout){
@@ -204,7 +197,9 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                 setUpActionBarMenu();
             }
         });
-//        setUpTourGuide(button);
+        if (!_preferences.isDonePlacesTutorial()) {
+            setUpTourGuide(button);
+        }
         return true;
     }
 
@@ -383,6 +378,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                 }
             }
         });
+        _preferences.setDonePlacesTutorial();
     }
 
     private boolean isAlreadyDoTutorial(){

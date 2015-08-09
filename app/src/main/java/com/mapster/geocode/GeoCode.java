@@ -33,7 +33,7 @@ import java.util.concurrent.ExecutionException;
  * Created by tommyngo on 20/03/15.
  */
 public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
-    private static final String GEOCODE_API_BASE = "http://maps.google.com/maps/api/geocode";
+    private static final String GEOCODE_API_BASE = "https://maps.google.com/maps/api/geocode";
     private static final String LOG_TAG = "Mapster";
     private static final String OUT_JSON = "/json";
     private HttpURLConnection conn;
@@ -95,6 +95,7 @@ public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
         StringBuilder sb = new StringBuilder(GEOCODE_API_BASE + OUT_JSON);
         try {
             sb.append("?address=" + URLEncoder.encode(input, "utf8"));
+            sb.append("&key="+ _activity.getString(R.string.API_KEY));
             System.out.println(sb.toString());
         } catch (UnsupportedEncodingException e){
             e.printStackTrace();
