@@ -1,4 +1,4 @@
-package com.mapster.itinerary.persistence;
+package com.mapster.persistence;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

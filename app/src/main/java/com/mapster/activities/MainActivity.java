@@ -40,8 +40,8 @@ import com.mapster.geocode.GeoCode;
 import com.mapster.infowindow.SuggestionInfoWindowAdapter;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
-import com.mapster.itinerary.persistence.ItineraryDataSource;
-import com.mapster.itinerary.persistence.UpdateMainFromItineraryTask;
+import com.mapster.persistence.ItineraryDataSource;
+import com.mapster.itinerary.UpdateMainFromItineraryTask;
 import com.mapster.json.JSONParser;
 import com.mapster.json.StatusCode;
 import com.mapster.map.models.MapInformation;
@@ -623,7 +623,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         valueTV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            ((TextView)v).setPaintFlags( ((TextView)v).getPaintFlags() ^ Paint.STRIKE_THRU_TEXT_FLAG);
+                ((TextView) v).setPaintFlags(((TextView) v).getPaintFlags() ^ Paint.STRIKE_THRU_TEXT_FLAG);
             }
         });
         return valueTV;

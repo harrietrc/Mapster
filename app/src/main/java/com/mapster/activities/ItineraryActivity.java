@@ -1,17 +1,15 @@
 package com.mapster.activities;
 
-import android.app.ActionBar;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBarActivity;
 
 import com.astuetz.PagerSlidingTabStrip;
 import com.mapster.R;
 import com.mapster.itinerary.ItineraryItem;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
-import com.mapster.itinerary.persistence.ItineraryDataSource;
+import com.mapster.persistence.ItineraryDataSource;
 import com.mapster.itinerary.ui.BudgetFragment;
 import com.mapster.itinerary.ui.BudgetPagerAdapter;
 import com.mapster.itinerary.ui.ScheduleFragment;

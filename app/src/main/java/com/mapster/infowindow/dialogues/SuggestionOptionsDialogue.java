@@ -93,6 +93,8 @@ public class SuggestionOptionsDialogue extends SequentialSuggestionItemDialogue 
                 throw new IllegalArgumentException("" + className + " argument (value " +
                         truthyOrFalsyProperty + ") has no implicit truth value");
             }
+        } catch (NullPointerException e) {
+            // Do nothing; boolean stays false.
         }
 
         int visibility = buttonShouldBeVisible ? View.VISIBLE : View.GONE;

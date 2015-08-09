@@ -1,11 +1,9 @@
-package com.mapster.itinerary.persistence;
+package com.mapster.itinerary;
 
 import android.os.AsyncTask;
 
 import com.mapster.activities.MainActivity;
-import com.mapster.itinerary.ItineraryItem;
-import com.mapster.itinerary.SuggestionItem;
-import com.mapster.itinerary.UserItem;
+import com.mapster.persistence.ItineraryDataSource;
 
 import java.util.ArrayList;
 import java.util.Collection;
