@@ -110,7 +110,7 @@ public class ItineraryActivity extends FragmentActivity {
     }
 
     private void writeItemsToDatabase() {
-        _itineraryDataSource.recreateItinerary();
+        _itineraryDataSource.deleteUnsavedItineraryItems();
         _itineraryDataSource.insertMultipleItineraryItems(_items);
     }
 

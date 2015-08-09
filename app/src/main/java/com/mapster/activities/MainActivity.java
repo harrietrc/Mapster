@@ -929,7 +929,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     private void updateItineraryDatabase() {
         Collection<UserItem> userItems = _userItemsByMarkerId.values();
-        _itineraryDataSource.recreateItinerary();
+        _itineraryDataSource.deleteUnsavedItineraryItems();
         _itineraryDataSource.insertMultipleItineraryItems(userItems);
         _itineraryUpdateRequired = false;
     }

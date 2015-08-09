@@ -122,9 +122,9 @@ public class ItineraryDataSource {
         _database.insert(ItineraryHelper.TABLE_ITINERARY_ITEM, null, values);
     }
 
-    public void recreateItinerary() {
-        _database.execSQL("drop table if exists " + ItineraryHelper.TABLE_ITINERARY_ITEM);
-        _helper.onCreate(_database); // Dodgy?
+    public void deleteUnsavedItineraryItems() {
+        String whereClause = ItineraryHelper.COLUMN_ITINERARY_ID + " is null";
+        _database.delete(ItineraryHelper.TABLE_ITINERARY_ITEM, whereClause, null);
     }
 
     /**
