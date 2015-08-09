@@ -386,6 +386,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 }
             }
         }
+
+        updateItineraryDatabase();
     }
 
     /**
@@ -919,14 +921,16 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     private void startBudgetActivity() {
         // TODO Maybe make the database access a task?
-        if (_itineraryUpdateRequired) {
-            // Update the database if the itinerary has changed
-            Collection<UserItem> userItems = _userItemsByMarkerId.values();
-            _itineraryDataSource.recreateItinerary();
-            _itineraryDataSource.insertMultipleItineraryItems(userItems);
-            _itineraryUpdateRequired = false;
-        }
+        if (_itineraryUpdateRequired)
+            updateItineraryDatabase();
         Intent intent = new Intent(this, ItineraryActivity.class);
         startActivity(intent);
+    }
+
+    private void updateItineraryDatabase() {
+        Collection<UserItem> userItems = _userItemsByMarkerId.values();
+        _itineraryDataSource.recreateItinerary();
+        _itineraryDataSource.insertMultipleItineraryItems(userItems);
+        _itineraryUpdateRequired = false;
     }
 }

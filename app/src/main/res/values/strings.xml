@@ -65,4 +65,8 @@
     <string name="back">Back</string>
     <string name="directions">Get directions</string>
 
+    <!-- Persistence -->
+    <string name="save">Save</string>
+    <string name="load">Load</string>
+
 </resources>

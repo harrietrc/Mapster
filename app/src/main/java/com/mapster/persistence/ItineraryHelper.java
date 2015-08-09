@@ -21,12 +21,21 @@ public class ItineraryHelper extends SQLiteOpenHelper {
     public static final String COLUMN_ID = "Id";
     public static final String COLUMN_SERIALISED = "SerialisedItem";
 
+    public static final String TABLE_ITINERARY = "Itinerary";
+    public static final String COLUMN_ITINERARY_ID = "ItineraryId";
+    public static final String COLUMN_ITINERARY_NAME = "ItineraryName";
+
     private static final String DATABASE_NAME = "itinerary.db";
     private static final int DATABASE_VERSION = 1;
 
-    private static final String CREATE_ITINERARY_ITEM = "create table " + TABLE_ITINERARY_ITEM + "("
-            + COLUMN_ID + " integer primary key autoincrement, " + COLUMN_SERIALISED +
-            " text not null);";
+    private static final String CREATE_ITINERARY_TABLE = "create table if not exists " +
+            TABLE_ITINERARY + "(" + COLUMN_ITINERARY_ID + " integer primary key autoincrement, "
+            + COLUMN_ITINERARY_NAME + " text not null);";
+    private static final String CREATE_ITINERARY_ITEM_TABLE = "create table if not exists " +
+            TABLE_ITINERARY_ITEM + "(" + COLUMN_ID + " integer primary key autoincrement, " +
+            COLUMN_ITINERARY_ID + " integer," + COLUMN_SERIALISED + " text not null, foreign key("
+            + COLUMN_ITINERARY_ID + ") " + "references " + TABLE_ITINERARY + "(" +
+            COLUMN_ITINERARY_ID + "));";
 
     public ItineraryHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -34,7 +43,8 @@ public class ItineraryHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL(CREATE_ITINERARY_ITEM);
+        db.execSQL(CREATE_ITINERARY_TABLE);
+        db.execSQL(CREATE_ITINERARY_ITEM_TABLE);
     }
 
     @Override

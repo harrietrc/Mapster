@@ -32,6 +32,7 @@ import com.mapster.fragment.TimePickerFragment;
 import com.mapster.geocode.GeoCode;
 import com.mapster.interfaces.GeoCodeListener;
 import com.mapster.itinerary.UserItem;
+import com.mapster.persistence.ItineraryDataSource;
 import com.mapster.places.autocomplete.PlacesAutoCompleteAdapter;
 
 import org.joda.time.LocalTime;
@@ -49,6 +50,9 @@ import static junit.framework.Assert.assertTrue;
 public class PlacesActivity extends ActionBarActivity implements OnItemClickListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener, GeoCodeListener {
 
     public static final String START_DATETIME = "START_DATETIME";
+
+    // Persistence stuff
+    private ItineraryDataSource _itineraryDataSource;
 
     private PlacesAutoCompleteAdapter _autoCompAdapter;
     private LinkedList<ClearableAutoCompleteTextView> _autoCompleteTextViewLinkedList;
@@ -76,6 +80,17 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         }
     }
 
+    @Override
+    protected void onPause() {
+        _itineraryDataSource.close();
+        super.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        _itineraryDataSource.open();
+        super.onResume();
+    }
 
     public void showDatePickerDialog(View v) {
         _dateTextView = (TextView)v;
@@ -107,6 +122,10 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Set up database (saving itineraries)
+        _itineraryDataSource = new ItineraryDataSource(this);
+        _itineraryDataSource.open();
+
         _autoCompleteTextViewLinkedList = new LinkedList<>();
         _transportModeViewList = new ArrayList<>();
         _autoCompAdapter = new PlacesAutoCompleteAdapter(this, R.layout.list_item);
@@ -182,6 +201,13 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                 initializeAutoCompleteTextViews((ClearableAutoCompleteTextView)linearLayout.getChildAt(positionOfAutoCompleteTextView));
                 addRadioGroupToList((RadioGroup)linearLayout.getChildAt(positionOfRadioGroupView));
                 initializeRadioButton((RadioGroup)linearLayout.getChildAt(positionOfRadioGroupView));
+                return true;
+            case R.id.save:
+                // Test
+                long id = _itineraryDataSource.createAndGetItineraryId("test");
+                _itineraryDataSource.insertMultipleItineraryItems(_userItemList, id);
+                return true;
+            case R.id.load:
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
