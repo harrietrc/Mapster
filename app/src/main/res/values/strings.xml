@@ -68,5 +68,8 @@
     <!-- Persistence -->
     <string name="save">Save</string>
     <string name="load">Load</string>
+    <string name="save_itinerary">Save itinerary</string>
+    <string name="load_itinerary">Load itinerary</string>
+    <string name="itinerary_name">Itinerary name</string>
 
 </resources>

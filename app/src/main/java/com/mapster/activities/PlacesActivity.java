@@ -33,6 +33,7 @@ import com.mapster.geocode.GeoCode;
 import com.mapster.interfaces.GeoCodeListener;
 import com.mapster.itinerary.UserItem;
 import com.mapster.persistence.ItineraryDataSource;
+import com.mapster.persistence.LoadAndSaveHelper;
 import com.mapster.places.autocomplete.PlacesAutoCompleteAdapter;
 
 import org.joda.time.LocalTime;
@@ -53,6 +54,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     // Persistence stuff
     private ItineraryDataSource _itineraryDataSource;
+    private LoadAndSaveHelper _loadAndSaveItineraryHelper;
 
     private PlacesAutoCompleteAdapter _autoCompAdapter;
     private LinkedList<ClearableAutoCompleteTextView> _autoCompleteTextViewLinkedList;
@@ -122,10 +124,6 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Set up database (saving itineraries)
-        _itineraryDataSource = new ItineraryDataSource(this);
-        _itineraryDataSource.open();
-
         _autoCompleteTextViewLinkedList = new LinkedList<>();
         _transportModeViewList = new ArrayList<>();
         _autoCompAdapter = new PlacesAutoCompleteAdapter(this, R.layout.list_item);
@@ -135,6 +133,12 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         initializeAutoCompleteTextViewInArrayList();
         initializeRadioButton(_transportModeViewList.get(0));
         _userItemList = new ArrayList<>();
+
+        // Set up database (saving itineraries)
+        _itineraryDataSource = new ItineraryDataSource(this);
+        _itineraryDataSource.open();
+        _loadAndSaveItineraryHelper = new LoadAndSaveHelper(this, getLayoutInflater(),
+                _itineraryDataSource, _autoCompleteTextViewLinkedList, _transportModeViewList);
     }
 
     private void addViewsInLayoutToArrayList(LinearLayout llayout){
@@ -203,9 +207,8 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                 initializeRadioButton((RadioGroup)linearLayout.getChildAt(positionOfRadioGroupView));
                 return true;
             case R.id.save:
-                // Test
-                long id = _itineraryDataSource.createAndGetItineraryId("test");
-                _itineraryDataSource.insertMultipleItineraryItems(_userItemList, id);
+                // May be a race condition here
+                _loadAndSaveItineraryHelper.showSaveDialogue();
                 return true;
             case R.id.load:
                 return true;
@@ -305,7 +308,6 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     private void addUserCoordinateToArrayList(){
         new GeoCode(_autoCompleteTextViewLinkedList, _transportModeViewList, this).execute();
     }
-
 
     private void mergeDateAndTimeToDateTime(){
         if (_dateStartJourney == null)
