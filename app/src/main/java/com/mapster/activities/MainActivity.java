@@ -37,6 +37,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
 import com.mapster.apppreferences.AppPreferences;
+import com.mapster.map.models.SortedCoordinate;
 import com.mapster.tutorial.Tutorial;
 import com.mapster.connectivities.tasks.ExpediaHotelListTask;
 import com.mapster.connectivities.tasks.FoursquareExploreTask;
@@ -65,6 +66,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -84,8 +86,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private SuggestionInfoAdapter _infoWindowAdapter;
 
     private GoogleMap _map;
-    private ArrayList<List<LatLng>> _sortedCoordinateArrayList;
-    private ArrayList<String> _sortedTransportMode;
+    private List<SortedCoordinate> _sortedCoordinateList;
     private String _startDateTime;
     private CustomDate _customDate;
     private SlidingUpPanelLayout _layout;
@@ -223,13 +224,13 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     private void sortCoordinateArrayList(){
         //TODO Refactor
-        _sortedTransportMode = new ArrayList<>();
-        _sortedCoordinateArrayList = new ArrayList<>();
+        _sortedCoordinateList = new ArrayList<>();
         int posInCoordinateArrayList = 0;
         List<LatLng> helper = null;
         int i = 0;
+        String modeTransport = null;
         while( i <_userItemList.size() - 1){
-            _sortedTransportMode.add(_userItemList.get(i).getTravelMode());
+            modeTransport = _userItemList.get(i).getTravelMode();
             if(_userItemList.get(i).getTravelMode().equals(_userItemList.get(i + 1).getTravelMode())) {
                 while (_userItemList.get(i).getTravelMode().equals(_userItemList.get(i + 1).getTravelMode())) {
                     i++;
@@ -240,30 +241,26 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             }
             i++;
             helper = addPointToList(i, posInCoordinateArrayList);
-            if (helper.size() > 2 && _sortedTransportMode.get(_sortedTransportMode.size() - 1).equals(GeoCode.TravelMode.TRANSIT.name().toLowerCase())) {
+            if (helper.size() > 2 && modeTransport.equals(GeoCode.TravelMode.TRANSIT.name().toLowerCase())) {
                 List<LatLng> transitHelper = null;
                 for (int j = 0; j < helper.size() - 1; j++) {
                     transitHelper = new ArrayList<>();
                     for (int k = j; k < j + 2; k++) {
                         transitHelper.add(helper.get(k));
                     }
-                    _sortedCoordinateArrayList.add(transitHelper);
-                    if (j > 0)
-                        _sortedTransportMode.add(_sortedTransportMode.get(_sortedTransportMode.size() - 1));
+                    _sortedCoordinateList.add(new SortedCoordinate(modeTransport, transitHelper));
                 }
             } else if (helper.size() > 8) {
                 int position = 1;
                 for (int j = 8; j < helper.size(); j = j + 8){
-                    _sortedCoordinateArrayList.add(helper.subList(position - 1, j));
+                    _sortedCoordinateList.add(new SortedCoordinate(modeTransport, helper.subList(position - 1, j)));
                     position = j ;
                     if (j + 8 >= helper.size() && j != helper.size()){
-                        _sortedCoordinateArrayList.add(helper.subList(position - 1, helper.size()));
+                        _sortedCoordinateList.add(new SortedCoordinate(modeTransport, helper.subList(position - 1, helper.size())));
                     }
-                    if (j > 8)
-                        _sortedTransportMode.add(_sortedTransportMode.get(_sortedTransportMode.size() - 1));
                 }
             } else {
-                _sortedCoordinateArrayList.add(helper);
+                _sortedCoordinateList.add(new SortedCoordinate(modeTransport, helper));
             }
             posInCoordinateArrayList = i;
         }
@@ -377,14 +374,15 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     private void addMarkers() {
-        // TODO Temporary fix, I'll need to go over your code properly and suss out what _sortedCoordinateArrayList
+        // TODO Temporary fix, I'll need to go over your code properly and suss out what _sortedCoordinateList
         // is (the 'helper' stuff up in sortCoordinateArrayList().
         Set<String> names = new HashSet<>();
 
         if (_map != null) {
             int pos = 0;
-            for(List<LatLng> latLng : _sortedCoordinateArrayList){
-                for (int i=0; i<latLng.size(); i++){
+            for (int j = 0; j < _sortedCoordinateList.size(); j++) {
+                List<LatLng> latLng = _sortedCoordinateList.get(j).getSortedCoordinateList();
+                for (int i = 0; i < latLng.size(); i++) {
                     LatLng position = latLng.get(i);
                     UserItem item = null;
                     String name = null;
@@ -396,7 +394,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                     // See other TODO: Prevents duplicates in budget/schedule
                     if (name != null && !names.contains(name)) {
                         Marker m = _map.addMarker(new MarkerOptions().position(position).title(name));
-                        if(pos <= 1){
+                        if (pos <= 1) {
                             _firstMarker = m;
                         }
                         _userMarkers.put(m.getId(), false);
@@ -432,7 +430,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     @Override
     public void onMapReady(GoogleMap googleMap) {
         _map = googleMap;
-        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(_sortedCoordinateArrayList.get(0).get(0),
+        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(_sortedCoordinateList.get(0).getSortedCoordinateList().get(0),
                 15));
         addMarkers();
         _map.setOnMarkerClickListener(this);
@@ -722,8 +720,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         protected MapInformation doInBackground(Void... params) {
             MapInformation mapInformation = null;
             JSONObject jObject;
-            for(int i = 0; i < _sortedCoordinateArrayList.size(); i++) {
-                String url = getMapsApiDirectionsUrl(_sortedCoordinateArrayList.get(i), _sortedTransportMode.get(i),mapInformation);
+            for (SortedCoordinate sortedCoordinate : _sortedCoordinateList){
+                String url = getMapsApiDirectionsUrl(sortedCoordinate.getSortedCoordinateList(), sortedCoordinate.getModeTransport(),mapInformation);
                 if (mapInformation != null) {
                     _customDate = mapInformation.getDate();
                     System.out.println(mapInformation.getDate().toString());
