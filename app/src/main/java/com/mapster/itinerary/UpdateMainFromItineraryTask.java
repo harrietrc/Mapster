@@ -39,7 +39,7 @@ public class UpdateMainFromItineraryTask extends AsyncTask<Void, Void, Collectio
             return null;
         }
 
-        List<ItineraryItem> dbItems = itineraryDataSource.getAllItems();
+        List<UserItem> dbItems = itineraryDataSource.getAllItems();
         Collection<UserItem> existingItems = userItemsByMarkerId.values();
 
         // Sets of suggestion IDs so that we can tell which ones were deleted from the itinerary

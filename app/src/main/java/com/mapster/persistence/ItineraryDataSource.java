@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mapster.itinerary.ItineraryItem;
+import com.mapster.itinerary.UserItem;
 import com.mapster.itinerary.serialisation.FoursquareSuggestionInstanceCreator;
 import com.mapster.itinerary.serialisation.ItineraryItemAdapter;
 import com.mapster.itinerary.serialisation.SuggestionAdapter;
@@ -16,8 +17,8 @@ import com.mapster.suggestions.FoursquareSuggestion;
 import com.mapster.suggestions.Suggestion;
 
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -29,7 +30,7 @@ public class ItineraryDataSource {
     private ItineraryHelper _helper;
     private Gson _gson;
     private String[] _allColumnsItineraryItem = {ItineraryHelper.COLUMN_ID,
-            ItineraryHelper.COLUMN_SERIALISED};
+            ItineraryHelper.COLUMN_ITINERARY_ID, ItineraryHelper.COLUMN_SERIALISED};
 
     public ItineraryDataSource(Context context) {
         _helper = new ItineraryHelper(context);
@@ -44,16 +45,18 @@ public class ItineraryDataSource {
      * Returning the ItineraryItem type means type information is lost. Will necessitate instanceof
      * checks later.
      */
-    public List<ItineraryItem> getAllItems() {
-        // Changed this to a linked list to help with removing objects later (see BudgetActivity)
-        List<ItineraryItem> items = new LinkedList<>();
-
+    public List<UserItem> getAllItems() {
         Cursor cursor = _database.query(ItineraryHelper.TABLE_ITINERARY_ITEM,
                 _allColumnsItineraryItem, null, null, null, null, null);
-        cursor.moveToFirst();
 
+        return cursorToItemList(cursor);
+    }
+
+    private List<UserItem> cursorToItemList(Cursor cursor) {
+        List<UserItem> items = new ArrayList<>();
+        cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
-            ItineraryItem item = cursorToItem(cursor);
+            UserItem item = cursorToItem(cursor);
             items.add(item);
             cursor.moveToNext();
         }
@@ -127,12 +130,24 @@ public class ItineraryDataSource {
         _database.delete(ItineraryHelper.TABLE_ITINERARY_ITEM, whereClause, null);
     }
 
+    public List<UserItem> getItemsByItineraryName(String itineraryName) {
+        // Select serialised item from ItineraryItem where the itinerary name matches the one given
+        String query = "select " + ItineraryHelper.TABLE_ITINERARY_ITEM + "." +
+                ItineraryHelper.COLUMN_SERIALISED + " from " + ItineraryHelper.TABLE_ITINERARY_ITEM
+                + "," + ItineraryHelper.TABLE_ITINERARY + " where " + ItineraryHelper.TABLE_ITINERARY
+                + "." + ItineraryHelper.COLUMN_ITINERARY_ID + "=" + ItineraryHelper.TABLE_ITINERARY_ITEM
+                + "." + ItineraryHelper.COLUMN_ITINERARY_ID + " and " + ItineraryHelper.TABLE_ITINERARY
+                + "." + ItineraryHelper.COLUMN_ITINERARY_NAME + "=" + "\""  + itineraryName + "\";";
+        Cursor cursor = _database.rawQuery(query, null);
+        return cursorToItemList(cursor);
+    }
+
     /**
      * Deserialises the SerialisedItem field and returns that object. Bit of type information lost.
      */
-    private ItineraryItem cursorToItem(Cursor cursor) {
-        String serialisedItem = cursor.getString(1);
-        ItineraryItem item = _gson.fromJson(serialisedItem, ItineraryItem.class);
+    private UserItem cursorToItem(Cursor cursor) {
+        String serialisedItem = cursor.getString(2);
+        UserItem item = _gson.fromJson(serialisedItem, UserItem.class);
         return item;
     }
 

@@ -25,7 +25,7 @@ public class ItineraryActivity extends FragmentActivity {
 
     // Data about the itinerary
     private ItineraryDataSource _itineraryDataSource;
-    private List<ItineraryItem> _items; // Itinerary items (ordered by date in onCreate())
+    private List<? extends ItineraryItem> _items; // Itinerary items (ordered by date in onCreate())
     private android.support.v7.app.ActionBar mActionBar;
     // Two fragments: schedule and budget
     ScheduleFragment _scheduleFragment;
@@ -65,7 +65,7 @@ public class ItineraryActivity extends FragmentActivity {
     /**
      * @return The time-sorted itinerary items list (shared between fragments)
      */
-    public List<ItineraryItem> getItems() {
+    public List<? extends ItineraryItem> getItems() {
         return _items;
     }
 
@@ -114,7 +114,7 @@ public class ItineraryActivity extends FragmentActivity {
         _itineraryDataSource.insertMultipleItineraryItems(_items);
     }
 
-    private List<ItineraryItem> getItemsFromDatabase() {
+    private List<UserItem> getItemsFromDatabase() {
         return _itineraryDataSource.getAllItems();
     }
 }

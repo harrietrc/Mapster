@@ -32,7 +32,7 @@ import java.util.List;
  * Created by tommyngo on 20/03/15.
  */
 public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
-    private static final String GEOCODE_API_BASE = "http://maps.google.com/maps/api/geocode";
+    private static final String GEOCODE_API_BASE = "https://maps.google.com/maps/api/geocode";
     private static final String LOG_TAG = "Mapster";
     private static final String OUT_JSON = "/json";
     private HttpURLConnection conn;
@@ -97,6 +97,7 @@ public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
         } catch (UnsupportedEncodingException e){
             e.printStackTrace();
         }
+        sb.append("&key=" + _activity.getString(R.string.API_KEY));
         return sb;
     }
 

@@ -9,6 +9,7 @@ import android.widget.LinearLayout;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.mapster.R;
+import com.mapster.activities.MainActivity;
 import com.mapster.infowindow.listeners.AddToItineraryButtonListener;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.infowindow.listeners.CallButtonListener;
@@ -138,7 +139,8 @@ public class SuggestionOptionsDialogue extends SequentialSuggestionItemDialogue 
     }
 
     private void configureAddToItineraryButton() {
-        AddToItineraryButtonListener addListener = new AddToItineraryButtonListener(this, _item);
+        MainActivity activity = (MainActivity) _context; // Required to update marker icon
+        AddToItineraryButtonListener addListener = new AddToItineraryButtonListener(activity, this, _item);
         _addToItineraryButton.setOnClickListener(addListener);
     }
 }

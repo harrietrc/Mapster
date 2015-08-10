@@ -2,6 +2,7 @@ package com.mapster.infowindow.listeners;
 
 import android.view.View;
 
+import com.mapster.activities.MainActivity;
 import com.mapster.infowindow.dialogues.SequentialSuggestionItemDialogue;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
@@ -12,10 +13,13 @@ import com.mapster.itinerary.UserItem;
 public class AddToItineraryButtonListener extends SequentialDialogueContentListener {
 
     private SuggestionItem _itineraryItem;
+    private MainActivity _activity; // Need to change marker icon colour on click
 
-    public AddToItineraryButtonListener(SequentialSuggestionItemDialogue dialogue, SuggestionItem item) {
+    public AddToItineraryButtonListener(MainActivity activity, SequentialSuggestionItemDialogue dialogue,
+                                        SuggestionItem item) {
         super(dialogue);
         _itineraryItem = item;
+        _activity = activity;
     }
 
     @Override
@@ -29,6 +33,9 @@ public class AddToItineraryButtonListener extends SequentialDialogueContentListe
 
         // Hide the button - add option no longer available/necessary
         addButton.setVisibility(View.GONE);
+
+        // Change marker colour
+        _activity.updateSuggestionItemMarker(_itineraryItem);
 
         // Move to the next dialogue in the sequence
         _dialogue.moveToNext();

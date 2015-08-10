@@ -86,7 +86,7 @@ public class BudgetFragment extends Fragment {
     }
 
     private void createRowsFromItems() {
-        List<ItineraryItem> items = ((ItineraryActivity) getActivity()).getItems();
+        List<? extends ItineraryItem> items = ((ItineraryActivity) getActivity()).getItems();
 
         for (ItineraryItem item: items) {
             if (item instanceof UserItem) {
@@ -269,10 +269,9 @@ public class BudgetFragment extends Fragment {
         _totalsMap = new HashMap<>();
 
         // TODO See other note about datasource
-        List<ItineraryItem> items = ((ItineraryActivity) getActivity()).getItems();
+        List<? extends ItineraryItem> items = ((ItineraryActivity) getActivity()).getItems();
 
         for (ItineraryItem item: items) {
-            // This is the only possibility at the moment - UserItems only
             if (item instanceof UserItem)
                 for (SuggestionItem s: ((UserItem) item).getSuggestionItems()) {
                     String currencyCode = s.getSuggestion().getCurrencyCode();

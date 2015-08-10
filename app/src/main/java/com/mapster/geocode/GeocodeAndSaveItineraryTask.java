@@ -30,7 +30,7 @@ public class GeocodeAndSaveItineraryTask extends GeoCode {
 
     /**
      * Called after task execution. Might want to move it into the task itself so it doesn't run in
-     * the UI thread.
+     * the UI thread. Not really a massive deal as long as the DB is written to eventually, though.
      * @param userItems ItineraryItem representation of addresses taken from the text fields.
      */
     @Override
