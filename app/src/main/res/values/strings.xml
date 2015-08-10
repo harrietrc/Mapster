@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- Name for the shared preferences file (used to store current itinerary name) -->
+    <string name="shared_prefs">MapsterSharedPrefs</string>
+    <string name="itinerary_name_prefs">ItineraryName</string>
+
     <string name="app_name">Mapster</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>

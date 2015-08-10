@@ -6,6 +6,7 @@ import android.app.FragmentTransaction;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -139,6 +140,18 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         _itineraryDataSource.open();
         _loadAndSaveItineraryHelper = new LoadAndSaveHelper(this, getLayoutInflater(),
                 _itineraryDataSource, _autoCompleteTextViewLinkedList, _transportModeViewList);
+
+        // Set current itinerary name to null
+        writeItineraryNameToSettings(null);
+    }
+
+    private void writeItineraryNameToSettings(String itineraryName) {
+        String sharedPrefsName = getResources().getString(R.string.shared_prefs);
+        String itineraryNamePrefs = getResources().getString(R.string.itinerary_name_prefs);
+        SharedPreferences settings = getSharedPreferences(sharedPrefsName, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString(itineraryNamePrefs, itineraryName);
+        editor.apply();
     }
 
     private void addViewsInLayoutToArrayList(LinearLayout llayout){

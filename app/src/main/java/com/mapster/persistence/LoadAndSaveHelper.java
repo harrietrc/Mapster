@@ -3,6 +3,7 @@ package com.mapster.persistence;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -80,6 +81,16 @@ public class LoadAndSaveHelper {
                 new GeocodeAndSaveItineraryTask(_autoCompleteTextViews, _transportModes, activity,
                         _datasource, itineraryName);
         geocodeTask.execute();
+        writeItineraryNameToSettings(itineraryName);
+    }
+
+    private void writeItineraryNameToSettings(String itineraryName) {
+        String sharedPrefsName = _context.getResources().getString(R.string.shared_prefs);
+        String itineraryNamePrefs = _context.getResources().getString(R.string.itinerary_name_prefs);
+        SharedPreferences settings = _context.getSharedPreferences(sharedPrefsName, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString(itineraryNamePrefs, itineraryName);
+        editor.apply();
     }
 
     public void showLoadDialogue() {

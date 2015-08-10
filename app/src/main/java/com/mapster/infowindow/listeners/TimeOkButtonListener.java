@@ -23,5 +23,6 @@ public class TimeOkButtonListener extends SequentialDialogueListener {
     @Override
     public void onClick(DialogInterface dialog, int which) {
         _item.setTime(_picker.getCurrentHour(), _picker.getCurrentMinute());
+        _dialogue.dismiss(); // Need to do this or dismiss(), else the dialogue leaks
     }
 }

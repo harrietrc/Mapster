@@ -59,12 +59,12 @@ public abstract class SequentialSuggestionItemDialogue {
         _dialogue.show();
     }
 
-    public void hide() {
-        _dialogue.hide();
+    public void dismiss() {
+        _dialogue.dismiss();
     }
 
     public void moveToNext() {
-        hide();
+        dismiss();
 
         if (_nextInSequence != null)
             _nextInSequence.show();

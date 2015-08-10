@@ -1,7 +1,9 @@
 package com.mapster.itinerary;
 
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 
+import com.mapster.R;
 import com.mapster.activities.MainActivity;
 import com.mapster.persistence.ItineraryDataSource;
 
@@ -39,7 +41,11 @@ public class UpdateMainFromItineraryTask extends AsyncTask<Void, Void, Collectio
             return null;
         }
 
-        List<UserItem> dbItems = itineraryDataSource.getAllItems();
+        String sharedPrefsName = _activity.getResources().getString(R.string.shared_prefs);
+        String itineraryNamePrefs = _activity.getResources().getString(R.string.itinerary_name_prefs);
+        SharedPreferences settings = _activity.getSharedPreferences(sharedPrefsName, 0);
+        String currentItineraryName = settings.getString(itineraryNamePrefs, null);
+        List<ItineraryItem> dbItems = itineraryDataSource.getItemsByItineraryName(currentItineraryName);
         Collection<UserItem> existingItems = userItemsByMarkerId.values();
 
         // Sets of suggestion IDs so that we can tell which ones were deleted from the itinerary

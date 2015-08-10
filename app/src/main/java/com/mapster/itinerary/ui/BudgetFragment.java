@@ -254,7 +254,7 @@ public class BudgetFragment extends Fragment {
                 // Update the list of totals
                 updateTotals();
 
-                // Delete the row in the table and hide the dialogue
+                // Delete the row in the table and dismiss the dialogue
                 _layout.removeView(row);
                 dialog.hide();
             }

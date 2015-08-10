@@ -290,7 +290,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
             if (marker.getSnippet() == null) {
                 // Make requests to the web API's, populating suggestion information. Internet access required.
-                s.requestSuggestionInfo(this.getApplicationContext());
+                s.requestSuggestionInfo(this);
 
                 // Use the detail to set the information displayed in the popup and save it to the place.
                 String infoWindowString = s.getInfoWindowString();

@@ -1,5 +1,6 @@
 package com.mapster.activities;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
@@ -115,6 +116,11 @@ public class ItineraryActivity extends FragmentActivity {
     }
 
     private List<ItineraryItem> getItemsFromDatabase() {
-        return _itineraryDataSource.getAllItems();
+        // Get itinerary items that match current itinerary name (stored in shared prefs)
+        String sharedPrefsName = getResources().getString(R.string.shared_prefs);
+        String itineraryNamePrefs = getResources().getString(R.string.itinerary_name_prefs);
+        SharedPreferences settings = getSharedPreferences(sharedPrefsName, 0);
+        String currentItineraryName = settings.getString(itineraryNamePrefs, null);
+        return _itineraryDataSource.getItemsByItineraryName(currentItineraryName);
     }
 }

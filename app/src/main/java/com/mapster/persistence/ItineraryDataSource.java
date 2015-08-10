@@ -9,12 +9,13 @@ import android.database.sqlite.SQLiteDatabase;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mapster.itinerary.ItineraryItem;
-import com.mapster.itinerary.UserItem;
 import com.mapster.itinerary.serialisation.FoursquareSuggestionInstanceCreator;
 import com.mapster.itinerary.serialisation.ItineraryItemAdapter;
 import com.mapster.itinerary.serialisation.SuggestionAdapter;
 import com.mapster.suggestions.FoursquareSuggestion;
 import com.mapster.suggestions.Suggestion;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -45,18 +46,18 @@ public class ItineraryDataSource {
      * Returning the ItineraryItem type means type information is lost. Will necessitate instanceof
      * checks later.
      */
-    public List<UserItem> getAllItems() {
+    public List<ItineraryItem> getAllItems() {
         Cursor cursor = _database.query(ItineraryHelper.TABLE_ITINERARY_ITEM,
                 _allColumnsItineraryItem, null, null, null, null, null);
 
         return cursorToItemList(cursor);
     }
 
-    private List<UserItem> cursorToItemList(Cursor cursor) {
-        List<UserItem> items = new ArrayList<>();
+    private List<ItineraryItem> cursorToItemList(Cursor cursor) {
+        List<ItineraryItem> items = new ArrayList<>();
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
-            UserItem item = cursorToItem(cursor);
+            ItineraryItem item = cursorToItem(cursor);
             items.add(item);
             cursor.moveToNext();
         }
@@ -130,24 +131,62 @@ public class ItineraryDataSource {
         _database.delete(ItineraryHelper.TABLE_ITINERARY_ITEM, whereClause, null);
     }
 
-    public List<UserItem> getItemsByItineraryName(String itineraryName) {
+    public List<ItineraryItem> getItemsByItineraryName(String itineraryName) {
+        Cursor cursor;
+
         // Select serialised item from ItineraryItem where the itinerary name matches the one given
-        String query = "select " + ItineraryHelper.TABLE_ITINERARY_ITEM + "." +
-                ItineraryHelper.COLUMN_SERIALISED + " from " + ItineraryHelper.TABLE_ITINERARY_ITEM
-                + "," + ItineraryHelper.TABLE_ITINERARY + " where " + ItineraryHelper.TABLE_ITINERARY
-                + "." + ItineraryHelper.COLUMN_ITINERARY_ID + "=" + ItineraryHelper.TABLE_ITINERARY_ITEM
-                + "." + ItineraryHelper.COLUMN_ITINERARY_ID + " and " + ItineraryHelper.TABLE_ITINERARY
-                + "." + ItineraryHelper.COLUMN_ITINERARY_NAME + "=" + "\""  + itineraryName + "\";";
-        Cursor cursor = _database.rawQuery(query, null);
+        if (itineraryName == null) {
+            cursor = queryItemsWithNoItinerary();
+        } else {
+            cursor = queryItemsByItineraryName(itineraryName);
+        }
+
         return cursorToItemList(cursor);
+    }
+
+    /**
+     * Assumes a non-null itinerary name (see public version above)
+     */
+    private Cursor queryItemsByItineraryName(String itineraryName) {
+        String query = "select " + formatAllItineraryItemColumns() + " from " +
+                ItineraryHelper.TABLE_ITINERARY_ITEM+ "," + ItineraryHelper.TABLE_ITINERARY +
+                " where " + ItineraryHelper.TABLE_ITINERARY + "." +
+                ItineraryHelper.COLUMN_ITINERARY_ID + "=" + ItineraryHelper.TABLE_ITINERARY_ITEM
+                + "." + ItineraryHelper.COLUMN_ITINERARY_ID + " and " +
+                ItineraryHelper.TABLE_ITINERARY + "." + ItineraryHelper.COLUMN_ITINERARY_NAME +
+                "=\""  + itineraryName + "\";";
+        return _database.rawQuery(query, null);
+    }
+
+    /**
+     * For cases in which items are not associated with an itinerary (not saved)
+     */
+    private Cursor queryItemsWithNoItinerary() {
+        String query = "select " + formatAllItineraryItemColumns() + " from " +
+                ItineraryHelper.TABLE_ITINERARY_ITEM + " where " + ItineraryHelper.COLUMN_ITINERARY_ID
+                + " is null;";
+        return _database.rawQuery(query, null);
+    }
+
+    /**
+     * My select queries are retrieving all 3 columns for consistency, even though only the
+     * one with the serialised item is really necessary. This just formats the column names for
+     * those queries.
+     */
+    private String formatAllItineraryItemColumns() {
+        String[] formattedColumns = new String[_allColumnsItineraryItem.length];
+        for (int i=0; i<_allColumnsItineraryItem.length; i++)
+            formattedColumns[i] = ItineraryHelper.TABLE_ITINERARY_ITEM + "." +
+                    _allColumnsItineraryItem[i];
+        return StringUtils.join(formattedColumns, ',');
     }
 
     /**
      * Deserialises the SerialisedItem field and returns that object. Bit of type information lost.
      */
-    private UserItem cursorToItem(Cursor cursor) {
+    private ItineraryItem cursorToItem(Cursor cursor) {
         String serialisedItem = cursor.getString(2);
-        UserItem item = _gson.fromJson(serialisedItem, UserItem.class);
+        ItineraryItem item = _gson.fromJson(serialisedItem, ItineraryItem.class);
         return item;
     }
 

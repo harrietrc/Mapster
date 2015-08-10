@@ -1,5 +1,6 @@
 package com.mapster.api.googleplaces;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 
@@ -18,9 +19,19 @@ import org.json.JSONObject;
 public class GooglePlaceDetailTask extends AsyncTask<GooglePlaceSuggestion, Void, GooglePlaceSuggestion> {
 
     private GooglePlaces _api;
+    private ProgressDialog _dialog;
+    private Context _context;
 
     public GooglePlaceDetailTask(Context context) {
+        _context = context;
         _api = new GooglePlaces(context);
+    }
+
+    @Override
+    public void onPreExecute(){
+        _dialog = new ProgressDialog(_context);
+        _dialog.setMessage("Please wait...");
+        _dialog.show();
     }
 
     @Override
@@ -55,6 +66,7 @@ public class GooglePlaceDetailTask extends AsyncTask<GooglePlaceSuggestion, Void
         Marker marker = suggestion.getMarker();
         String info = suggestion.getInfoWindowString();
         marker.setSnippet(info);
+        _dialog.dismiss();
         marker.showInfoWindow(); // Might run into some timing issues here
     }
 }
