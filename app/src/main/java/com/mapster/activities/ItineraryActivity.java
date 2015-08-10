@@ -74,7 +74,7 @@ public class ItineraryActivity extends FragmentActivity {
      * itinerary
      */
     private void refreshDataFromDatabase() {
-        List sortedItems = new LinkedList<>();
+        List<ItineraryItem> sortedItems = new LinkedList<>();
 
         // Reconstruct the itinerary (children of user-defined items)
         for (ItineraryItem item: _items)
@@ -114,7 +114,7 @@ public class ItineraryActivity extends FragmentActivity {
         _itineraryDataSource.insertMultipleItineraryItems(_items);
     }
 
-    private List<UserItem> getItemsFromDatabase() {
+    private List<ItineraryItem> getItemsFromDatabase() {
         return _itineraryDataSource.getAllItems();
     }
 }
