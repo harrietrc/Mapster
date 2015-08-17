@@ -1,9 +1,15 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools" tools:context="com.mapster.activities.PlacesActivity">
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools" tools:context="com.mapster.activities.PlacesActivity">
     <item android:id="@+id/action_add_stops"
-        android:title="Add Stop"
-        app:showAsAction="withText|ifRoom"
-        app:actionViewClass="android.widget.ImageView"
+          android:title="Add Stop"
+          app:showAsAction="withText|ifRoom"
+          app:actionViewClass="android.widget.ImageView"
         />
+    <item android:id="@+id/save"
+          android:title="@string/save"
+          app:showAsAction="ifRoom"/>
+    <item android:id="@+id/load"
+          android:title="@string/load"
+          app:showAsAction="ifRoom"/>
 </menu>
