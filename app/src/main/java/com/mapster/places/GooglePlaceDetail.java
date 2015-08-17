@@ -18,6 +18,14 @@ public class GooglePlaceDetail {
         _phoneNumber = phoneNumber;
     }
 
+    public String getWebsite() {
+        return _website;
+    }
+
+    public String getPhoneNumber() {
+        return _phoneNumber;
+    }
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(_shortAddress);

@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- Name for the shared preferences file (used to store current itinerary name) -->
+    <string name="shared_prefs">MapsterSharedPrefs</string>
+    <string name="itinerary_name_prefs">ItineraryName</string>
+
     <string name="app_name">Mapster</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
@@ -13,12 +17,15 @@
 
     <!-- Alternative API Key - use if we reach the request limit (or use the one commented out above) -->
     <!-- email: mapsterfolife@gmail.com password: mymapster (if you want to add APIs)  -->
-    <string name="API_KEY">AIzaSyAh-GF9VWptgEAzMjr7drnNMCRHOHM0Lps</string>
+    <!--<string name="API_KEY">AIzaSyAh-GF9VWptgEAzMjr7drnNMCRHOHM0Lps</string>-->
+
+    <!-- Third account: mapsterv2@gmail.com password: mappy123 -->
+    <string name="API_KEY">AIzaSyAsAoeJ4krpDFlz5_W9pjyUVCmjR90Nbi0</string>
 
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="cancel">Cancel</string>
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
     <string name="skip">Skip</string>
     <string name="next">Next</string>
 
@@ -58,5 +65,19 @@
     <string name="destination">Destination</string>
     <string name="cost">Cost</string>
     <string name="edit">Edit</string>
+
+    <!-- Suggestion options dialogue -->
+    <string name="go_to_website">Website</string>
+    <string name="call_phone">Call</string>
+    <string name="add_to_itinerary">Add to itinerary</string>
+    <string name="back">Back</string>
+    <string name="directions">Get directions</string>
+
+    <!-- Persistence -->
+    <string name="save">Save</string>
+    <string name="load">Load</string>
+    <string name="save_itinerary">Save itinerary</string>
+    <string name="load_itinerary">Load itinerary</string>
+    <string name="itinerary_name">Itinerary name</string>
 
 </resources>

@@ -6,6 +6,7 @@ import android.app.FragmentTransaction;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -38,6 +39,8 @@ import com.mapster.fragment.TimePickerFragment;
 import com.mapster.geocode.GeoCode;
 import com.mapster.interfaces.GeoCodeListener;
 import com.mapster.itinerary.UserItem;
+import com.mapster.persistence.ItineraryDataSource;
+import com.mapster.persistence.LoadAndSaveHelper;
 import com.mapster.places.autocomplete.PlacesAutoCompleteAdapter;
 
 import org.joda.time.LocalTime;
@@ -62,7 +65,10 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     public static final String START_DATETIME = "START_DATETIME";
 
-    private int counter = 0;
+    // Persistence stuff
+    private ItineraryDataSource _itineraryDataSource;
+    private LoadAndSaveHelper _loadAndSaveItineraryHelper;
+
     private PlacesAutoCompleteAdapter _autoCompAdapter;
     private LinkedList<ClearableAutoCompleteTextView> _autoCompleteTextViewLinkedList;
     private List<RadioGroup> _transportModeViewList;
@@ -89,6 +95,18 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
             Toast.makeText(this,"Origin and Destination fields must not be blank",
                     Toast.LENGTH_SHORT).show();
         }
+    }
+
+    @Override
+    protected void onPause() {
+        _itineraryDataSource.close();
+        super.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        _itineraryDataSource.open();
+        super.onResume();
     }
 
     public void showDatePickerDialog(View v) {
@@ -132,6 +150,24 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         initializeRadioButton(_transportModeViewList.get(0));
         _userItemList = new ArrayList<>();
         _preferences = new AppPreferences(this);
+
+        // Set up database (saving itineraries)
+        _itineraryDataSource = new ItineraryDataSource(this);
+        _itineraryDataSource.open();
+        _loadAndSaveItineraryHelper = new LoadAndSaveHelper(this, getLayoutInflater(),
+                _itineraryDataSource, _autoCompleteTextViewLinkedList, _transportModeViewList);
+
+        // Set current itinerary name to null
+        writeItineraryNameToSettings(null);
+    }
+
+    private void writeItineraryNameToSettings(String itineraryName) {
+        String sharedPrefsName = getResources().getString(R.string.shared_prefs);
+        String itineraryNamePrefs = getResources().getString(R.string.itinerary_name_prefs);
+        SharedPreferences settings = getSharedPreferences(sharedPrefsName, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString(itineraryNamePrefs, itineraryName);
+        editor.apply();
     }
 
     private void addViewsInLayoutToArrayList(LinearLayout llayout){
@@ -410,6 +446,12 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                 return true;
             case R.id.action_add_stops:
                 return true;
+            case R.id.save:
+                // May be a race condition here
+                _loadAndSaveItineraryHelper.showSaveDialogue();
+                return true;
+            case R.id.load:
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -506,7 +548,6 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     private void addUserCoordinateToArrayList(){
         new GeoCode(_autoCompleteTextViewLinkedList, _transportModeViewList, this).execute();
     }
-
 
     private void mergeDateAndTimeToDateTime(){
         if (_dateStartJourney == null)

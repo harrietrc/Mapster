@@ -12,7 +12,6 @@
         android:layout_width="0dp"
         android:id="@+id/budget_col_suggestion_name"
         android:layout_weight="0.3"
-        android:textColor="#287AA9"
         android:ellipsize="end"
         android:ems="10"
         android:paddingRight="2dp"
@@ -41,7 +40,7 @@
         android:id="@+id/budget_col_user_value"/>
     <ImageButton
         android:layout_weight="0.115"
-        android:background="@drawable/ic_table_edit_grey600_48dp"
+        android:background="@drawable/edit_icon_75"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:contentDescription="@string/budget_edit_description"

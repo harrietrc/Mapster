@@ -1,5 +1,6 @@
 package com.mapster.itinerary;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.mapster.suggestions.Suggestion;
 
 /**
@@ -23,6 +24,7 @@ public class SuggestionItem extends ItineraryItem {
     private transient UserItem _userItem;
 
     public SuggestionItem(Suggestion suggestion, UserItem userItem) {
+        _isInItinerary = false;
         _suggestion = suggestion;
         _userItem = userItem;
         _multiplier = 1;
@@ -76,5 +78,10 @@ public class SuggestionItem extends ItineraryItem {
     @Override
     public String getName() {
         return _suggestion.getName();
+    }
+
+    @Override
+    public LatLng getLocation() {
+        return _suggestion.getLocation();
     }
 }

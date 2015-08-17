@@ -1,6 +1,6 @@
 package com.mapster.activities;
 
-import android.app.ActionBar;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
@@ -10,13 +10,16 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ViewAnimator;
-
 import com.astuetz.PagerSlidingTabStrip;
 import com.mapster.R;
 import com.mapster.itinerary.ItineraryItem;
-import com.mapster.itinerary.persistence.ItineraryDataSource;
 
+import com.mapster.itinerary.SuggestionItem;
+import com.mapster.itinerary.UserItem;
+import com.mapster.persistence.ItineraryDataSource;
 
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -26,15 +29,7 @@ public class ItineraryActivity extends ActionBarActivity {
 
     // Data about the itinerary
     private ItineraryDataSource _itineraryDataSource;
-    private List<ItineraryItem> _items;
-
-    public List<ItineraryItem> getItems() {
-        return _items;
-    }
-
-    public ItineraryDataSource getDataSource() {
-        return _itineraryDataSource;
-    }
+    private List<? extends ItineraryItem> _items; // Itinerary items (ordered by date in onCreate())
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,9 +40,12 @@ public class ItineraryActivity extends ActionBarActivity {
         // Note that for whatever reason, SuggestionItem._userItem is set to null when deserialised
         // - possibly because it was a bidirectional relationship? Will look into it. TODO!
 
+        // Construct a list of all the itinerary items, ordered by date
+        refreshDataFromDatabase();
+
         // Set layout
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_budget);
+        setContentView(R.layout.activity_itinerary);
 
         if (savedInstanceState == null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
@@ -55,6 +53,35 @@ public class ItineraryActivity extends ActionBarActivity {
             transaction.replace(R.id.sample_content_fragment, fragment);
             transaction.commit();
         }
+    }
+
+    /**
+     * @return The time-sorted itinerary items list (shared between fragments)
+     */
+    public List<? extends ItineraryItem> getItems() {
+        return _items;
+    }
+
+    /**
+     * Refreshes the data from the database, sorting by date and updating the list of items in the
+     * itinerary
+     */
+    private void refreshDataFromDatabase() {
+        List<ItineraryItem> sortedItems = new LinkedList<>();
+
+        // Reconstruct the itinerary (children of user-defined items)
+        for (ItineraryItem item: _items)
+            if (item instanceof UserItem) {
+                UserItem u = (UserItem) item;
+                sortedItems.add(u);
+                for (SuggestionItem s : u.getSuggestionItems()) {
+                    // TODO Hack until I figure out why userItems aren't deserialised
+                    s.setUserItem(u);
+                    sortedItems.add(s);
+                }
+            }
+        Collections.sort(sortedItems); // Sort by date/time
+        _items = sortedItems;
     }
 
     @Override
@@ -93,12 +120,17 @@ public class ItineraryActivity extends ActionBarActivity {
     }
 
     private void writeItemsToDatabase() {
-        _itineraryDataSource.recreateItinerary();
+        _itineraryDataSource.deleteUnsavedItineraryItems();
         _itineraryDataSource.insertMultipleItineraryItems(_items);
     }
 
     private List<ItineraryItem> getItemsFromDatabase() {
-        return _itineraryDataSource.getAllItems();
+        // Get itinerary items that match current itinerary name (stored in shared prefs)
+        String sharedPrefsName = getResources().getString(R.string.shared_prefs);
+        String itineraryNamePrefs = getResources().getString(R.string.itinerary_name_prefs);
+        SharedPreferences settings = getSharedPreferences(sharedPrefsName, 0);
+        String currentItineraryName = settings.getString(itineraryNamePrefs, null);
+        return _itineraryDataSource.getItemsByItineraryName(currentItineraryName);
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

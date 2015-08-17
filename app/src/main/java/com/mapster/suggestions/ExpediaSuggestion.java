@@ -3,8 +3,8 @@ package com.mapster.suggestions;
 import android.content.Context;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.mapster.connectivities.tasks.ExpediaHotelInfoTask;
-import com.mapster.expedia.ExpediaHotel;
+import com.mapster.api.expedia.ExpediaHotel;
+import com.mapster.api.expedia.ExpediaHotelInfoTask;
 
 /**
  * Created by Harriet on 5/25/2015.
@@ -29,6 +29,16 @@ public class ExpediaSuggestion extends Suggestion {
     @Override
     public String getCurrencyCode() {
         return _hotel.getCurrencyCode();
+    }
+
+    @Override
+    public String getWebsite() {
+        return null; // TODO can we get a website? Most probably
+    }
+
+    @Override
+    public String getPhoneNumber() {
+        return null; // TODO Same as above
     }
 
     @Override

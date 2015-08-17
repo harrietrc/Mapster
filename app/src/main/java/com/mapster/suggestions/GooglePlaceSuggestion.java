@@ -3,7 +3,7 @@ package com.mapster.suggestions;
 import android.content.Context;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.mapster.connectivities.tasks.GooglePlaceDetailTask;
+import com.mapster.api.googleplaces.GooglePlaceDetailTask;
 import com.mapster.places.GooglePlace;
 import com.mapster.places.GooglePlaceDetail;
 
@@ -61,6 +61,16 @@ public class GooglePlaceSuggestion extends Suggestion {
     @Override
     public String getCurrencyCode() {
         return null; // No pricing info = no currency code required
+    }
+
+    @Override
+    public String getWebsite() {
+        return _place.getWebsite();
+    }
+
+    @Override
+    public String getPhoneNumber() {
+        return _place.getPhoneNumber();
     }
 
     @Override

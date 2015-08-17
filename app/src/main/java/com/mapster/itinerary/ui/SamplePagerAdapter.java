@@ -169,7 +169,7 @@ public class SamplePagerAdapter extends PagerAdapter {
 
     private void createRowsFromItemsBudget() {
         // TODO Shift itinerary data out of activity to a datasource class?
-        List<ItineraryItem> items = ((ItineraryActivity) _activity).getItems();
+        List<? extends ItineraryItem> items = ((ItineraryActivity) _activity).getItems();
 
         for (ItineraryItem item: items) {
             if (item instanceof UserItem) {
@@ -356,7 +356,7 @@ public class SamplePagerAdapter extends PagerAdapter {
         _totalsMap = new HashMap<>();
 
         // TODO See other note about datasource
-        List<ItineraryItem> items = ((ItineraryActivity) _activity).getItems();
+        List<? extends ItineraryItem> items = ((ItineraryActivity) _activity).getItems();
 
         for (ItineraryItem item: items) {
             // This is the only possibility at the moment - UserItems only
@@ -381,8 +381,9 @@ public class SamplePagerAdapter extends PagerAdapter {
             }
         }
     }
+
     private void refreshDataFromDatabase() {
-        List<ItineraryItem> items = ((ItineraryActivity) _activity).getItems();
+        List<? extends ItineraryItem> items = ((ItineraryActivity) _activity).getItems();
         _sortedItems = new LinkedList<>();
         // Add the user-defined items
         _sortedItems.addAll(items);

@@ -1,7 +1,7 @@
 package com.mapster.json;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.mapster.foursquare.FoursquareVenue;
+import com.mapster.api.foursquare.FoursquareVenue;
 
 import org.json.JSONArray;
 import org.json.JSONException;

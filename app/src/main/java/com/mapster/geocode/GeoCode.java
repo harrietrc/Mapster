@@ -27,7 +27,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Created by tommyngo on 20/03/15.
@@ -100,6 +99,7 @@ public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
         } catch (UnsupportedEncodingException e){
             e.printStackTrace();
         }
+        sb.append("&key=" + _activity.getString(R.string.API_KEY));
         return sb;
     }
 
@@ -173,7 +173,12 @@ public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
 
     @Override
     public void onPostExecute(ArrayList<UserItem> userItems){
+        callback(userItems);
         _dialog.dismiss();
+        _activity.callback(userItems);
+    }
+
+    protected void callback(ArrayList<UserItem> userItems) {
         _activity.callback(userItems);
     }
 

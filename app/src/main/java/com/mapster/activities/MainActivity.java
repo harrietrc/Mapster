@@ -39,23 +39,23 @@ import com.mapster.R;
 import com.mapster.apppreferences.AppPreferences;
 import com.mapster.map.models.SortedCoordinate;
 import com.mapster.tutorial.Tutorial;
-import com.mapster.connectivities.tasks.ExpediaHotelListTask;
-import com.mapster.connectivities.tasks.FoursquareExploreTask;
-import com.mapster.connectivities.tasks.GooglePlacesTask;
+import com.mapster.api.expedia.ExpediaHotelListTask;
+import com.mapster.api.foursquare.FoursquareExploreTask;
+import com.mapster.api.googleplaces.GooglePlacesTask;
 import com.mapster.date.CustomDate;
 import com.mapster.filters.Filters;
 import com.mapster.geocode.GeoCode;
+import com.mapster.infowindow.SuggestionInfoWindowAdapter;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
-import com.mapster.itinerary.persistence.ItineraryDataSource;
-import com.mapster.itinerary.persistence.UpdateMainFromItineraryTask;
+import com.mapster.persistence.ItineraryDataSource;
+import com.mapster.itinerary.UpdateMainFromItineraryTask;
 import com.mapster.json.JSONParser;
 import com.mapster.json.StatusCode;
 import com.mapster.map.models.MapInformation;
 import com.mapster.map.models.Path;
 import com.mapster.map.models.Routes;
 import com.mapster.suggestions.Suggestion;
-import com.mapster.suggestions.SuggestionInfoAdapter;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import org.json.JSONObject;
@@ -66,7 +66,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,7 +82,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private ArrayList<UserItem> _userItemList;
 
     // Required to manually trigger onInfoWindowClick() for the tutorial
-    private SuggestionInfoAdapter _infoWindowAdapter;
+    private SuggestionInfoWindowAdapter _infoWindowAdapter;
 
     private GoogleMap _map;
     private List<SortedCoordinate> _sortedCoordinateList;
@@ -305,7 +304,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
             if (marker.getSnippet() == null) {
                 // Make requests to the web API's, populating suggestion information. Internet access required.
-                s.requestSuggestionInfo(this.getApplicationContext());
+                s.requestSuggestionInfo(this);
 
                 // Use the detail to set the information displayed in the popup and save it to the place.
                 String infoWindowString = s.getInfoWindowString();
@@ -391,7 +390,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                         name = item.getName();
                         pos++;
                     }
+
                     // See other TODO: Prevents duplicates in budget/schedule
+                    // TODO This is dodgy - fix.
                     if (name != null && !names.contains(name)) {
                         Marker m = _map.addMarker(new MarkerOptions().position(position).title(name));
                         if (pos <= 1) {
@@ -404,6 +405,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 }
             }
         }
+
+        updateItineraryDatabase();
     }
 
     /**
@@ -436,7 +439,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _map.setOnMarkerClickListener(this);
 
         // SuggestionInfoAdapter listens for and adapts all infowindow-related activity
-        _infoWindowAdapter = new SuggestionInfoAdapter(getLayoutInflater(), this);
+        _infoWindowAdapter = new SuggestionInfoWindowAdapter(getLayoutInflater(), this);
         _map.setInfoWindowAdapter(_infoWindowAdapter);
         _map.setOnInfoWindowClickListener(_infoWindowAdapter);
 
@@ -735,6 +738,19 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                     e.printStackTrace();
                 }
             }
+
+            // Save the dates/times for each waypoint to the corresponding itinerary items
+            if (mapInformation != null && mapInformation.getDates() != null) {
+                List<CustomDate> waypointDates = mapInformation.getDates();
+                if (_userItemList.size() == waypointDates.size()) {
+                    // The dates saved in the MapInformation are expected to correspond with the user-defined waypoints
+                    for (int i=0; i<waypointDates.size(); i++)
+                        _userItemList.get(i).setDateTime(waypointDates.get(i).getDateTime());
+                } else {
+                    throw new AssertionError("Expected the number of dates to be the same as the number of waypoints");
+                }
+            }
+
             return mapInformation;
         }
 
@@ -794,6 +810,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 _map.addPolyline(polyLineOptions);
             }
             drawInstructions(mapInformation);
+
+            // Moved here because UserItems should be updated with dates/times
+            addMarkers();
         }
 
         private void drawInstructions(MapInformation mapInformation){
@@ -1016,7 +1035,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
     }
 
-    public void setSuggestionItemMarker(SuggestionItem item) {
+    public void updateSuggestionItemMarker(SuggestionItem item) {
         Suggestion suggestion = item.getSuggestion();
         Marker marker = suggestion.getMarker();
         int iconId = 0;
@@ -1156,14 +1175,16 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     private void startBudgetActivity() {
         // TODO Maybe make the database access a task?
-        if (_itineraryUpdateRequired) {
-            // Update the database if the itinerary has changed
-            Collection<UserItem> userItems = _userItemsByMarkerId.values();
-            _itineraryDataSource.recreateItinerary();
-            _itineraryDataSource.insertMultipleItineraryItems(userItems);
-            _itineraryUpdateRequired = false;
-        }
+        if (_itineraryUpdateRequired)
+            updateItineraryDatabase();
         Intent intent = new Intent(this, ItineraryActivity.class);
         startActivity(intent);
+    }
+
+    private void updateItineraryDatabase() {
+        Collection<UserItem> userItems = _userItemsByMarkerId.values();
+        _itineraryDataSource.deleteUnsavedItineraryItems();
+        _itineraryDataSource.insertMultipleItineraryItems(userItems);
+        _itineraryUpdateRequired = false;
     }
 }

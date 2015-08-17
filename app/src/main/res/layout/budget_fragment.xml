@@ -61,15 +61,13 @@
         android:layout_width="wrap_content"
         android:orientation="vertical">
         <TextView
-            android:background="@android:color/darker_gray"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingLeft="10dp"
             android:paddingBottom="3dp"
             android:paddingTop="3dp"
             android:textAllCaps="true"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"
+            android:textColor="#287AA9"
             android:text="@string/total"/>
         <ListView
             android:layout_height="wrap_content"
