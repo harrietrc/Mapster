@@ -5,6 +5,7 @@ import android.content.Context;
 import com.mapster.priceestimation.data.City;
 import com.mapster.priceestimation.data.Country;
 import com.mapster.priceestimation.data.MealPriceDataSource;
+import com.mapster.suggestions.CostPerPerson;
 import com.mapster.suggestions.FoursquareSuggestion;
 import com.mapster.suggestions.Suggestion;
 
@@ -49,11 +50,11 @@ public class MealPriceEstimate {
      * @param restaurant Restaurant with a price level between 1 and 4, where 4 is expensive
      * @return Estimated meal price in the local currency of the country
      */
-    public double estimateMealPrice(FoursquareSuggestion restaurant) {
+    public CostPerPerson estimateMealPrice(FoursquareSuggestion restaurant, String currencyCode) {
         Integer priceLevel = restaurant.getPriceLevel();
         String countryCode = restaurant.getCountryCode();
         String city = restaurant.getCity();
-        double priceEstimate = DEFAULT_MEAL_PRICE;
+        CostPerPerson estimate = new CostPerPerson(DEFAULT_MEAL_PRICE, currencyCode);
 
         if (countryCode == null) {
             countryCode = findCountryCode(restaurant);
@@ -62,10 +63,11 @@ public class MealPriceEstimate {
         if (priceLevel != null)  {
             double averageMealPrice = getAverageMealPrice(city, countryCode);
             // Fairly arbitrary estimate at the moment. Tweak until more accurate.
-            priceEstimate = averageMealPrice + (priceLevel-2)*averageMealPrice/3;
+            double priceEstimate = averageMealPrice + (priceLevel-2)*averageMealPrice/3;
+            estimate = new CostPerPerson(priceEstimate, currencyCode);
         }
 
-        return priceEstimate;
+        return estimate;
     }
 
     public String findCountryCode(Suggestion suggestion) {

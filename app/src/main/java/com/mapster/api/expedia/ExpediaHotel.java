@@ -1,6 +1,7 @@
 package com.mapster.api.expedia;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.mapster.suggestions.CostPerPerson;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 
@@ -13,8 +14,8 @@ public class ExpediaHotel {
     private String _name;
     private String _address;
     private String _thumbnailUrl;
-    private Double _lowRate;
-    private Double _highRate;
+    private CostPerPerson _lowRate;
+    private CostPerPerson _highRate;
     private double _latitude;
     private double _longitude;
     private Float _rating; // In stars out of 5
@@ -25,7 +26,7 @@ public class ExpediaHotel {
      * Everything passed into this constructor is retrievable in a HotelListRequest.
      */
     public ExpediaHotel(Integer hotelId, String name, String address, LatLng latLng, Float rating,
-                        Double lowRate, Double highRate, String locationDescription,
+                        CostPerPerson lowRate, CostPerPerson highRate, String locationDescription,
                         String thumbnailUrl, String currencyCode) {
         _hotelId = hotelId;
         _name = StringEscapeUtils.unescapeHtml4(name);
@@ -42,18 +43,18 @@ public class ExpediaHotel {
 
     public Double estimateAverageRate() {
         // Might want to refine this
-        return (_lowRate + _highRate) / 2;
+        return (_lowRate.inHomeCurrency() + _highRate.inHomeCurrency() / 2);
     }
 
     public String getThumbnailUrl() {
         return _thumbnailUrl;
     }
 
-    public Double getLowRate() {
+    public CostPerPerson getLowRate() {
         return _lowRate;
     }
 
-    public Double getHighRate() {
+    public CostPerPerson getHighRate() {
         return _highRate;
     }
 
