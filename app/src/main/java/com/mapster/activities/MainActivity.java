@@ -948,13 +948,14 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             }
         });
 
-        _itineraryItem  = (ImageButton)ll.getChildAt(1);
+        _itineraryItem  = (ImageButton)ll.getChildAt(2);
         _itineraryItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startItineraryActivity();
             }
         });
+        ImageButton clear = (ImageButton)ll.getChildAt(1);
         MenuItem item = menu.findItem(R.id.action_toggle);
         if (_layout != null) {
             if (_layout.getPanelState() == SlidingUpPanelLayout.PanelState.HIDDEN) {
