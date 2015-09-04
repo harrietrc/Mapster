@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mapster.itinerary.ItineraryItem;
+import com.mapster.itinerary.UserItem;
 import com.mapster.itinerary.serialisation.FoursquareSuggestionInstanceCreator;
 import com.mapster.itinerary.serialisation.ItineraryItemAdapter;
 import com.mapster.itinerary.serialisation.SuggestionAdapter;
@@ -73,7 +74,8 @@ public class ItineraryDataSource {
         try {
             _database.beginTransaction();
             for (ItineraryItem item: items)
-                insertItineraryItem(item);
+                if (item instanceof UserItem) // Ignore SuggestionItems for now
+                    insertItineraryItem(item);
             _database.setTransactionSuccessful();
         } finally {
             _database.endTransaction();

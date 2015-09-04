@@ -66,6 +66,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -92,6 +93,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     // Markers divided into categories (to make enumeration of categories faster)
     private HashMap<String, List<Marker>> _markersByCategory;
+
+    private ParserTask _parserTask; // Must wait for this before switching to ItineraryActivity
 
     // All suggestions, keyed by marker ID
     private HashMap<String, SuggestionItem> _suggestionItemsByMarkerId;
@@ -409,6 +412,54 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         updateItineraryDatabase();
     }
 
+    // TODO this is terrible, but a hotfix
+    private void updateItems() {
+        Set<String> names = new HashSet<>();
+        Map<String, UserItem> itemsToUpdate = new HashMap<>(_userItemsByMarkerId);
+
+        // _userItemsList contains updated items. Get times from those / update _userItemsByMarkerId
+        // Look at _userItemList and see what can be used as keys (name)
+        // Copy times - joda time as intermediary?
+        if (_map != null) {
+            int pos = 0;
+            for (int j = 0; j < _sortedCoordinateList.size(); j++) {
+                List<LatLng> latLng = _sortedCoordinateList.get(j).getSortedCoordinateList();
+                for (int i = 0; i < latLng.size(); i++) {
+                    UserItem item = null;
+                    String name = null;
+                    if (pos == 0 || i != 0) {
+                        item = _userItemList.get(pos);
+                        name = item.getName();
+                        pos++;
+                    }
+
+                    // See other TODO: Prevents duplicates in budget/schedule
+                    // TODO This is dodgy - fix.
+                    if (name != null && !names.contains(name)) {
+                        // Worst thing ever
+                        for (Map.Entry<String, UserItem> pair : itemsToUpdate.entrySet()) {
+                            UserItem u = pair.getValue();
+                            // TODO Bad code
+                            Collection<SuggestionItem> suggestionItems = u.getSuggestionItems();
+                            // Avoids ConcurrentModificationException
+                            SuggestionItem[] itemArray = suggestionItems.toArray(new SuggestionItem[suggestionItems.size()]);
+                            for (SuggestionItem s : itemArray)
+                                item.addSuggestionItem(s);
+                            if (u.getName().equals(name)) {
+                                _userItemsByMarkerId.put(pair.getKey(), item);
+                                itemsToUpdate.remove(pair.getKey()); // Don't process this next time
+                                break;
+                            }
+                        }
+                        names.add(name);
+                    }
+                }
+            }
+        }
+
+        _itineraryUpdateRequired = true;
+    }
+
     /**
      * Adds a marker for a suggestion, updates the suggestion with the new marker, and saves the
      * suggestion.
@@ -464,8 +515,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 }
             });
         }
-        ParserTask task = new ParserTask(this);
-        task.execute();
+        _parserTask = new ParserTask(this); // Saved so we can wait for it before going to the next activity
+        _parserTask.execute();
     }
 
     private void doTutorialInstruction(){
@@ -648,7 +699,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                             @Override
                             public void onClick(View v) {
                                 _tutorial.cleanUp();
-                                startBudgetActivity();
+                                startItineraryActivity();
                             }
                         });
                         _preferences.setDoneActionBarMainTutorial();
@@ -810,9 +861,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 _map.addPolyline(polyLineOptions);
             }
             drawInstructions(mapInformation);
-
-            // Moved here because UserItems should be updated with dates/times
-            addMarkers();
         }
 
         private void drawInstructions(MapInformation mapInformation){
@@ -904,7 +952,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _itineraryItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startBudgetActivity();
+                startItineraryActivity();
             }
         });
         MenuItem item = menu.findItem(R.id.action_toggle);
@@ -1035,24 +1083,32 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         }
     }
 
-    public void updateSuggestionItemMarker(SuggestionItem item) {
+    public void updateSuggestionItem(SuggestionItem item) {
         Suggestion suggestion = item.getSuggestion();
         Marker marker = suggestion.getMarker();
         int iconId = 0;
         BitmapDescriptor icon;
+        boolean isInItinerary = item.isInItinerary();
+
         switch (suggestion.getCategory()) {
             case "dining":
-                iconId = item.isInItinerary() ? R.drawable.restaurant_red : R.drawable.restaurant;
+                iconId = isInItinerary ? R.drawable.restaurant_red : R.drawable.restaurant;
                 break;
             case "accommodation":
-                iconId = item.isInItinerary() ? R.drawable.lodging_0star_red : R.drawable.lodging_0star;
+                iconId = isInItinerary ? R.drawable.lodging_0star_red : R.drawable.lodging_0star;
                 break;
             case "attractions":
-                iconId = item.isInItinerary() ? R.drawable.flag_export_red : R.drawable.flag_export;
+                iconId = isInItinerary ? R.drawable.flag_export_red : R.drawable.flag_export;
                 break;
         }
         icon = BitmapDescriptorFactory.fromResource(iconId);
         marker.setIcon(icon);
+
+        // Remove the SuggestionItem from its UserItem if it has been deleted
+        if (!isInItinerary) {
+            UserItem userItem = item.getUserItem();
+            userItem.removeSuggestionItem(item);
+        }
     }
 
     /**
@@ -1173,7 +1229,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 item.getSuggestion().getMarker().setVisible(isVisible);
     }
 
-    private void startBudgetActivity() {
+    private void startItineraryActivity() {
+        updateItems();
         // TODO Maybe make the database access a task?
         if (_itineraryUpdateRequired)
             updateItineraryDatabase();

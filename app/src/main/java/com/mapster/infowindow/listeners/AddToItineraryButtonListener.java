@@ -35,7 +35,7 @@ public class AddToItineraryButtonListener extends SequentialDialogueContentListe
         addButton.setVisibility(View.GONE);
 
         // Change marker colour
-        _activity.updateSuggestionItemMarker(_itineraryItem);
+        _activity.updateSuggestionItem(_itineraryItem);
 
         // Move to the next dialogue in the sequence
         _dialogue.moveToNext();

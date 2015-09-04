@@ -1,6 +1,7 @@
 package com.mapster.itinerary.ui;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.PagerAdapter;
 import android.util.Log;
@@ -36,6 +37,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Currency;
 import java.util.HashMap;
@@ -59,7 +61,7 @@ public class SamplePagerAdapter extends PagerAdapter {
 
     private DateTimeFormatter _timeFormatter; // Prints only the time (no month or day)
     private DateTimeFormatter _dateFormatter; // Prints only the date
-    private List<ItineraryItem> _sortedItems;
+    private List<? extends ItineraryItem> _items;
 
     /**
      * @return the number of pages to display
@@ -111,6 +113,8 @@ public class SamplePagerAdapter extends PagerAdapter {
             // Formats arrival time for the UI
             _dateFormatter = DateTimeFormat.mediumDate(); // TODO Fiddle with this
             _timeFormatter = DateTimeFormat.shortTime();
+
+            _items = ((ItineraryActivity) _activity).getItemsFromDatabase();
 
             // Construct a list of all the itinerary items, ordered by date
             refreshDataFromDatabase();
@@ -168,10 +172,7 @@ public class SamplePagerAdapter extends PagerAdapter {
     }
 
     private void createRowsFromItemsBudget() {
-        // TODO Shift itinerary data out of activity to a datasource class?
-        List<? extends ItineraryItem> items = ((ItineraryActivity) _activity).getItems();
-
-        for (ItineraryItem item: items) {
+        for (ItineraryItem item: _items) {
             if (item instanceof UserItem) {
                 // 'Parent' user-defined destination that the suggestions were retrieved for
                 UserItem u = (UserItem) item;
@@ -355,10 +356,7 @@ public class SamplePagerAdapter extends PagerAdapter {
         // Totally reinitialise the map of totals and recreate it from the itinerary
         _totalsMap = new HashMap<>();
 
-        // TODO See other note about datasource
-        List<? extends ItineraryItem> items = ((ItineraryActivity) _activity).getItems();
-
-        for (ItineraryItem item: items) {
+        for (ItineraryItem item: _items) {
             // This is the only possibility at the moment - UserItems only
             if (item instanceof UserItem) {
                 for (SuggestionItem s : ((UserItem) item).getSuggestionItems()) {
@@ -383,20 +381,26 @@ public class SamplePagerAdapter extends PagerAdapter {
     }
 
     private void refreshDataFromDatabase() {
-        List<? extends ItineraryItem> items = ((ItineraryActivity) _activity).getItems();
-        _sortedItems = new LinkedList<>();
-        // Add the user-defined items
-        _sortedItems.addAll(items);
-        // Add the suggestion items (children of user-defined items)
-        for (ItineraryItem item: items)
-            if (item instanceof UserItem)
-                _sortedItems.addAll(((UserItem) item).getSuggestionItems());
-        Collections.sort(_sortedItems); // Sort by date/time
+        List<ItineraryItem> sortedItems = new LinkedList<>();
+
+        // Reconstruct the itinerary (children of user-defined items)
+        for (ItineraryItem item: _items)
+            if (item instanceof UserItem) {
+                UserItem u = (UserItem) item;
+                sortedItems.add(u);
+                for (SuggestionItem s : u.getSuggestionItems()) {
+                    // TODO Hack until I figure out why userItems aren't deserialised
+                    s.setUserItem(u);
+                    sortedItems.add(s);
+                }
+            }
+        Collections.sort(sortedItems); // Sort by date/time
+        _items = sortedItems;
     }
 
     private void createRowsFromItemsSchedule() {
         DateTime currentTime = new DateTime();
-        for (ItineraryItem item: _sortedItems) {
+        for (ItineraryItem item: _items) {
             DateTime itemTime = item.getTime();
             // Add a row with just the date, if this item has a different date to the previous one
             if (currentTime != null)
@@ -448,4 +452,7 @@ public class SamplePagerAdapter extends PagerAdapter {
         _layout.addView(v);
     }
 
+    public Collection<? extends ItineraryItem> getItems() {
+        return _items;
+    }
 }
