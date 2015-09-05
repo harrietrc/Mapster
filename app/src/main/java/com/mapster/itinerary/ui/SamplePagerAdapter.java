@@ -1,11 +1,8 @@
 package com.mapster.itinerary.ui;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.PagerAdapter;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +10,6 @@ import android.view.ViewTreeObserver;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -22,15 +18,11 @@ import android.widget.TextView;
 
 import com.mapster.R;
 import com.mapster.activities.ItineraryActivity;
-import com.mapster.activities.SlidingTabsBasicFragment;
-import com.mapster.apppreferences.AppPreferences;
 import com.mapster.itinerary.ItineraryItem;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
 import com.mapster.priceestimation.MealPriceEstimate;
 import com.mapster.suggestions.Suggestion;
-import com.mapster.tutorial.Tutorial;
-import com.mapster.view.SlidingTabLayout;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -56,7 +48,8 @@ public class SamplePagerAdapter extends PagerAdapter {
     List<String> _totalsList;
     ArrayAdapter<String> _totalsListAdapter;
     private LayoutInflater _inflater;
-    private LinearLayout _layout;
+    private LinearLayout _budgetLayout;
+    private LinearLayout _scheduleLayout;
 
 
     private DateTimeFormatter _timeFormatter; // Prints only the time (no month or day)
@@ -109,6 +102,7 @@ public class SamplePagerAdapter extends PagerAdapter {
             _inflater = _activity.getLayoutInflater();
             view = _activity.getLayoutInflater().inflate(R.layout.schedule_fragment,
                     container, false);
+            _scheduleLayout = (LinearLayout) view.findViewById(R.id.schedule_layout);
 
             // Formats arrival time for the UI
             _dateFormatter = DateTimeFormat.mediumDate(); // TODO Fiddle with this
@@ -119,15 +113,12 @@ public class SamplePagerAdapter extends PagerAdapter {
             // Construct a list of all the itinerary items, ordered by date
             refreshDataFromDatabase();
 
-            // Set up the main table view for this fragment
-            _layout = (LinearLayout) view.findViewById(R.id.schedule_layout);
-
             createRowsFromItemsSchedule();
         } else {
             _inflater = _activity.getLayoutInflater();
             view = _inflater.inflate(R.layout.budget_fragment,
                     container, false);
-            _layout = (LinearLayout) view.findViewById(R.id.budget_layout);
+            _budgetLayout = (LinearLayout) view.findViewById(R.id.budget_layout);
             // Populate list of totals
             _totalsList = new ArrayList<>();
             _totalsListAdapter = new ArrayAdapter<>(_activity, android.R.layout.simple_list_item_1, _totalsList);
@@ -155,6 +146,7 @@ public class SamplePagerAdapter extends PagerAdapter {
     public void destroyItem(ViewGroup container, int position, Object object) {
         container.removeView((View) object);
     }
+
     private void formatTotalsAsList() {
         _totalsList.clear();
         System.out.println(_totalsMap);
@@ -205,7 +197,7 @@ public class SamplePagerAdapter extends PagerAdapter {
         String title = item.getName();
         titleView.setText(title);
 
-        _layout.addView(v);
+        _budgetLayout.addView(v);
     }
 
     public void createSuggestionRow(final SuggestionItem item) {
@@ -259,7 +251,7 @@ public class SamplePagerAdapter extends PagerAdapter {
             }
         });
 
-        _layout.addView(rowView);
+        _budgetLayout.addView(rowView);
     }
 
     /**
@@ -338,15 +330,23 @@ public class SamplePagerAdapter extends PagerAdapter {
             public void onClick(View v) {
                 UserItem userItem = item.getUserItem();
                 userItem.removeSuggestionItem(item);
+                _items.remove(item); // TODO probably not efficient - this whole thing needs a redesign
 
                 // Update the list of totals
                 updateTotals();
 
+                // TODO Budget and schedule layout should really be associated with each other
                 // Delete the row in the table and hide the dialogue
-                _layout.removeView(row);
+                _budgetLayout.removeView(row);
+                refreshScheduleRows();
                 dialog.hide();
             }
         });
+    }
+
+    private void refreshScheduleRows() {
+        _scheduleLayout.removeAllViews();
+        createRowsFromItemsSchedule(); // Unnecessary - see TODO above
     }
 
     /**
@@ -405,13 +405,13 @@ public class SamplePagerAdapter extends PagerAdapter {
             // Add a row with just the date, if this item has a different date to the previous one
             if (currentTime != null)
                 if (itemTime == null || !currentTime.toLocalDate().equals(itemTime.toLocalDate()))
-                    createDateRow(itemTime);
+                    createDateRow(itemTime, _scheduleLayout);
             currentTime = itemTime;
             // Create a row for the itinerary item with its name
             if (item instanceof UserItem) {
-                createRow(item, R.layout.schedule_user_destination_row);
+                createRow(item, R.layout.schedule_user_destination_row, _scheduleLayout);
             } else if (item instanceof  SuggestionItem)  {
-                createRow(item, R.layout.schedule_suggestion_row);
+                createRow(item, R.layout.schedule_suggestion_row, _scheduleLayout);
             }
         }
     }
@@ -420,7 +420,7 @@ public class SamplePagerAdapter extends PagerAdapter {
      * Creates a row with just the date
      * @param time
      */
-    public void createDateRow(DateTime time) {
+    public void createDateRow(DateTime time, LinearLayout parent) {
         LinearLayout row = new LinearLayout(_activity);
         LinearLayout v = (LinearLayout) _inflater.inflate(R.layout.schedule_date_row, row, false);
 
@@ -432,10 +432,10 @@ public class SamplePagerAdapter extends PagerAdapter {
             dateView.setText(_dateFormatter.print(time));
         }
 
-        _layout.addView(v);
+        parent.addView(v);
     }
 
-    public void createRow(ItineraryItem item, int layoutId) {
+    public void createRow(ItineraryItem item, int layoutId, LinearLayout parent) {
         RelativeLayout row = new RelativeLayout(_activity);
         RelativeLayout v = (RelativeLayout) _inflater.inflate(layoutId, row, false);
 
@@ -449,7 +449,7 @@ public class SamplePagerAdapter extends PagerAdapter {
         if (time != null) // Set to null if the date is missing
             timeView.setText(_timeFormatter.print(time)); // TODO Change to only display time
 
-        _layout.addView(v);
+        parent.addView(v);
     }
 
     public Collection<? extends ItineraryItem> getItems() {

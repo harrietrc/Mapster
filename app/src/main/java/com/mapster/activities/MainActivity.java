@@ -58,6 +58,7 @@ import com.mapster.map.models.Routes;
 import com.mapster.suggestions.Suggestion;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import org.joda.time.DateTime;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -412,51 +413,19 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         updateItineraryDatabase();
     }
 
-    // TODO this is terrible, but a hotfix
     private void updateItems() {
-        Set<String> names = new HashSet<>();
-        Map<String, UserItem> itemsToUpdate = new HashMap<>(_userItemsByMarkerId);
-
-        // _userItemsList contains updated items. Get times from those / update _userItemsByMarkerId
-        // Look at _userItemList and see what can be used as keys (name)
-        // Copy times - joda time as intermediary?
         if (_map != null) {
-            int pos = 0;
-            for (int j = 0; j < _sortedCoordinateList.size(); j++) {
-                List<LatLng> latLng = _sortedCoordinateList.get(j).getSortedCoordinateList();
-                for (int i = 0; i < latLng.size(); i++) {
-                    UserItem item = null;
-                    String name = null;
-                    if (pos == 0 || i != 0) {
-                        item = _userItemList.get(pos);
-                        name = item.getName();
-                        pos++;
-                    }
+            // TODO Not efficient - points at design issues
+            Map<String, UserItem> itemsByName = new HashMap<>();
+            for (UserItem item : _userItemList)
+                itemsByName.put(item.getName(), item);
 
-                    // See other TODO: Prevents duplicates in budget/schedule
-                    // TODO This is dodgy - fix.
-                    if (name != null && !names.contains(name)) {
-                        // Worst thing ever
-                        for (Map.Entry<String, UserItem> pair : itemsToUpdate.entrySet()) {
-                            UserItem u = pair.getValue();
-                            // TODO Bad code
-                            Collection<SuggestionItem> suggestionItems = u.getSuggestionItems();
-                            // Avoids ConcurrentModificationException
-                            SuggestionItem[] itemArray = suggestionItems.toArray(new SuggestionItem[suggestionItems.size()]);
-                            for (SuggestionItem s : itemArray)
-                                item.addSuggestionItem(s);
-                            if (u.getName().equals(name)) {
-                                _userItemsByMarkerId.put(pair.getKey(), item);
-                                itemsToUpdate.remove(pair.getKey()); // Don't process this next time
-                                break;
-                            }
-                        }
-                        names.add(name);
-                    }
-                }
+            for (UserItem itemToUpdate : _userItemsByMarkerId.values()) {
+                String itemName = itemToUpdate.getName();
+                DateTime updatedTime = itemsByName.get(itemName).getTime();
+                itemToUpdate.setDateTime(updatedTime);
             }
         }
-
         _itineraryUpdateRequired = true;
     }
 
