@@ -451,6 +451,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                 _loadAndSaveItineraryHelper.showSaveDialogue();
                 return true;
             case R.id.load:
+                _loadAndSaveItineraryHelper.showLoadDialogue();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

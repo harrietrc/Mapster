@@ -104,6 +104,9 @@ public class LoadAndSaveHelper {
                 loadItinerary();
             }
         });
+
+        AlertDialog saveDialogue = builder.create();
+        saveDialogue.show();
     }
 
     private void loadItinerary() {
