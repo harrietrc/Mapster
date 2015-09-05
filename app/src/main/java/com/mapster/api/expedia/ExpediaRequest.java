@@ -37,13 +37,14 @@ public class ExpediaRequest extends ApiRequest {
     private String _signature;
     private int _radius;
 
-    public ExpediaRequest(String cid, String apiKey, String signature, LatLng location, int radius) {
+    public ExpediaRequest(String cid, String apiKey, String signature, LatLng location, int radius,
+                          String currencyCode) {
         _apiKey = apiKey;
         _cid = cid;
         _signature = signature;
         _radius = radius;
         _location = location;
-        _currencyCode = "NZD"; // TODO Should be set based on location or user preference
+        _currencyCode = currencyCode;
         _radiusUnit = "KM"; // TODO User should be able to set to MI or KM
     }
 
