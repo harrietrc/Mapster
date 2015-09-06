@@ -54,6 +54,11 @@ public class ItineraryDataSource {
         return cursorToItemList(cursor);
     }
 
+    public List<String> getAllNames() {
+        Cursor cursor = queryItineraryNames();
+        return cursortToItineraryNameList(cursor);
+    }
+
     private List<ItineraryItem> cursorToItemList(Cursor cursor) {
         List<ItineraryItem> items = new ArrayList<>();
         cursor.moveToFirst();
@@ -64,6 +69,18 @@ public class ItineraryDataSource {
         }
         cursor.close();
         return items;
+    }
+
+    private List<String> cursortToItineraryNameList(Cursor cursor) {
+        List<String> itineraryNames = new ArrayList<>();
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            String name = cursorToItineraryName(cursor);
+            itineraryNames.add(name);
+            cursor.moveToNext();
+        }
+        cursor.close();
+        return itineraryNames;
     }
 
     /**
@@ -161,6 +178,15 @@ public class ItineraryDataSource {
     }
 
     /**
+     * @return Cursor with all the names of itineraries in the database
+     */
+    private Cursor queryItineraryNames() {
+        String query = "select " + ItineraryHelper.COLUMN_ITINERARY_NAME + " from " +
+                ItineraryHelper.TABLE_ITINERARY;
+        return _database.rawQuery(query, null);
+    }
+
+    /**
      * For cases in which items are not associated with an itinerary (not saved)
      */
     private Cursor queryItemsWithNoItinerary() {
@@ -190,6 +216,10 @@ public class ItineraryDataSource {
         String serialisedItem = cursor.getString(2);
         ItineraryItem item = _gson.fromJson(serialisedItem, ItineraryItem.class);
         return item;
+    }
+
+    private String cursorToItineraryName(Cursor cursor) {
+        return cursor.getString(0);
     }
 
     public void open() throws SQLException {

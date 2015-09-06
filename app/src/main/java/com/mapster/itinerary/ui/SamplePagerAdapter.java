@@ -277,13 +277,29 @@ public class SamplePagerAdapter extends PagerAdapter {
         LinearLayout content = (LinearLayout) _inflater.inflate(R.layout.budget_edit_dialogue, l);
         final EditText multiplierView = (EditText) content.findViewById(R.id.budget_multiplier_field);
         final EditText moneySpentView = (EditText) content.findViewById(R.id.budget_money_spent_field);
-        Button deleteButton = (Button) content.findViewById(R.id.budget_remove_item_button);
 
         // Set EditText values to existing values
         setEditableValues(multiplierView, moneySpentView, item);
 
         builder.setView(content);
-        builder.setNegativeButton(R.string.cancel, null);
+        builder.setNegativeButton(R.string.delete_destination, new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                UserItem userItem = item.getUserItem();
+                userItem.removeSuggestionItem(item);
+                _items.remove(item); // TODO probably not efficient - this whole thing needs a redesign
+
+                // Update the list of totals
+                updateTotals();
+
+                // TODO Budget and schedule layout should really be associated with each other
+                // Delete the row in the table and hide the dialogue
+                _budgetLayout.removeView(row);
+                refreshScheduleRows();
+            }
+        });
+
         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -324,24 +340,6 @@ public class SamplePagerAdapter extends PagerAdapter {
         });
         final AlertDialog dialog = builder.create();
         dialog.show(); // Leak?
-
-        deleteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                UserItem userItem = item.getUserItem();
-                userItem.removeSuggestionItem(item);
-                _items.remove(item); // TODO probably not efficient - this whole thing needs a redesign
-
-                // Update the list of totals
-                updateTotals();
-
-                // TODO Budget and schedule layout should really be associated with each other
-                // Delete the row in the table and hide the dialogue
-                _budgetLayout.removeView(row);
-                refreshScheduleRows();
-                dialog.hide();
-            }
-        });
     }
 
     private void refreshScheduleRows() {

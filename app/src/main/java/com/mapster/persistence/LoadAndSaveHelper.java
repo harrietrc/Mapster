@@ -6,15 +6,21 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.RadioGroup;
 
 import com.mapster.R;
 import com.mapster.activities.PlacesActivity;
 import com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoCompleteTextView;
 import com.mapster.geocode.GeocodeAndSaveItineraryTask;
+import com.mapster.itinerary.ItineraryItem;
+import com.mapster.itinerary.UserItem;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -33,6 +39,8 @@ public class LoadAndSaveHelper {
     // after the user chooses an itinerary name.
     LinkedList<ClearableAutoCompleteTextView> _autoCompleteTextViews;
     List<RadioGroup> _transportModes;
+
+    private String _selectedItineraryName; // Non-null when user selects an itinerary to load
 
     public LoadAndSaveHelper(Context context, LayoutInflater inflater, ItineraryDataSource datasource,
                              LinkedList<ClearableAutoCompleteTextView> autoCompleteTextViewLinkedList,
@@ -53,6 +61,7 @@ public class LoadAndSaveHelper {
         builder.setCancelable(true);
         builder.setNegativeButton(R.string.cancel, null);
 
+        // TODO Probably don't need to reinflate each time this is called
         final LinearLayout l = new LinearLayout(_context);
         View content = _inflater.inflate(R.layout.save_itinerary_dialogue, l);
         builder.setView(content);
@@ -94,10 +103,18 @@ public class LoadAndSaveHelper {
     }
 
     public void showLoadDialogue() {
+        _selectedItineraryName = null;
+
         AlertDialog.Builder builder = new AlertDialog.Builder(_context);
         builder.setTitle(R.string.load_itinerary);
         builder.setCancelable(true);
         builder.setNegativeButton(R.string.cancel, null);
+
+        LinearLayout l = new LinearLayout(_context);
+        View content = _inflater.inflate(R.layout.load_dialogue, l);
+        builder.setView(content);
+        ListView loadList = (ListView) l.findViewById(R.id.saved_itinerary_list);
+
         builder.setPositiveButton(R.string.load, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -105,11 +122,41 @@ public class LoadAndSaveHelper {
             }
         });
 
-        AlertDialog saveDialogue = builder.create();
-        saveDialogue.show();
+        // Get itinerary names from the database and update the list view
+        loadItineraryList(loadList);
+
+        AlertDialog loadDialogue = builder.create();
+        loadDialogue.show();
+    }
+
+    /**
+     * Loads up a list of itinerary names from the database into the provided ListView
+     */
+    private void loadItineraryList(final ListView listView) {
+        List<String> itineraryNames = _datasource.getAllNames();
+        ArrayAdapter<String> listAdapter = new ArrayAdapter<String>(_context,
+                android.R.layout.simple_list_item_1, itineraryNames);
+        listView.setAdapter(listAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                _selectedItineraryName = (String) listView.getItemAtPosition(position);
+                view.setSelected(true);
+            }
+        });
     }
 
     private void loadItinerary() {
+        List<ItineraryItem> itineraryItems = new ArrayList<>();
 
+        if (_selectedItineraryName != null)
+            itineraryItems = _datasource.getItemsByItineraryName(_selectedItineraryName);
+
+        // TODO Might want to change the DB to only store UserItems so this isn't necessary
+        ArrayList<UserItem> userItems = new ArrayList<>();
+        for (ItineraryItem item : itineraryItems)
+            userItems.add((UserItem) item);
+
+        ((PlacesActivity) _context).callback(userItems);
     }
 }
