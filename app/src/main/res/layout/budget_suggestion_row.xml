@@ -14,8 +14,9 @@
         android:layout_weight="0.3"
         android:ellipsize="end"
         android:ems="10"
+        android:textColor="@color/black"
         android:paddingRight="2dp"
-        android:paddingLeft="2dp"
+        android:paddingLeft="10dp"
         />
     <TextView
         android:layout_weight="0.195"
@@ -23,6 +24,7 @@
         android:layout_width="0dp"
         android:paddingRight="2dp"
         android:paddingLeft="2dp"
+        android:textColor="@color/black"
         android:id="@+id/budget_col_base_cost"/>
     <TextView
         android:layout_weight="0.195"
@@ -30,6 +32,7 @@
         android:layout_width="0dp"
         android:paddingRight="2dp"
         android:paddingLeft="2dp"
+        android:textColor="@color/black"
         android:id="@+id/budget_col_total"/>
     <TextView
         android:layout_weight="0.195"
@@ -37,12 +40,19 @@
         android:layout_width="0dp"
         android:paddingRight="2dp"
         android:paddingLeft="2dp"
+        android:textColor="@color/black"
         android:id="@+id/budget_col_user_value"/>
-    <ImageButton
-        android:layout_weight="0.115"
-        android:background="@drawable/edit_icon_75"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:contentDescription="@string/budget_edit_description"
-        android:id="@+id/budget_col_edit"/>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingRight="5dp">
+        <ImageButton
+            android:layout_weight="0.115"
+            android:background="@drawable/edit_icon_75"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:textColor="@color/black"
+            android:contentDescription="@string/budget_edit_description"
+            android:id="@+id/budget_col_edit"/>
+    </LinearLayout>
 </LinearLayout>

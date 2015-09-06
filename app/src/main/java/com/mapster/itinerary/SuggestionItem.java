@@ -50,7 +50,7 @@ public class SuggestionItem extends ItineraryItem {
         return _actualCost;
     }
 
-    public void setActualCost(double actualCost) {
+    public void setActualCost(Double actualCost) {
         _actualCost = actualCost;
     }
 

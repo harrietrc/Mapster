@@ -22,7 +22,7 @@ public class DateOkButtonListener extends SequentialDialogueListener {
 
     @Override
     public void onClick(DialogInterface dialog, int which) {
-        _item.setDate(_picker.getYear(), _picker.getMonth(), _picker.getDayOfMonth());
+        _item.setDate(_picker.getYear(), _picker.getMonth()+1, _picker.getDayOfMonth());
         _dialogue.moveToNext();
     }
 }

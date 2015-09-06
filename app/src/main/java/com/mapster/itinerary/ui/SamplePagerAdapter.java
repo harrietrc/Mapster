@@ -302,7 +302,7 @@ public class SamplePagerAdapter extends PagerAdapter {
                 String moneySpentString = moneySpentView.getText().toString();
                 TextView actualCostView = (TextView) row.findViewById(R.id.budget_col_user_value);
                 if (moneySpentString.equals("")) {
-                    item.setActualCost(0); // Money spent was cleared
+                    item.setActualCost(null); // Money spent was cleared
                     actualCostView.setText(null);
                 } else {
                     double moneySpent = Double.parseDouble(moneySpentString);
@@ -400,19 +400,37 @@ public class SamplePagerAdapter extends PagerAdapter {
 
     private void createRowsFromItemsSchedule() {
         DateTime currentTime = new DateTime();
+
+        // We'll add rows for the items with no time/date at the end
+        List<ItineraryItem> itemsWithNoTime = new ArrayList<>();
+
         for (ItineraryItem item: _items) {
             DateTime itemTime = item.getTime();
             // Add a row with just the date, if this item has a different date to the previous one
             if (currentTime != null)
-                if (itemTime == null || !currentTime.toLocalDate().equals(itemTime.toLocalDate()))
-                    createDateRow(itemTime, _scheduleLayout);
+                if (itemTime != null && !currentTime.toLocalDate().equals(itemTime.toLocalDate()))
+                    createDateRow(itemTime);
             currentTime = itemTime;
             // Create a row for the itinerary item with its name
-            if (item instanceof UserItem) {
-                createRow(item, R.layout.schedule_user_destination_row, _scheduleLayout);
-            } else if (item instanceof  SuggestionItem)  {
-                createRow(item, R.layout.schedule_suggestion_row, _scheduleLayout);
+            if (itemTime == null) {
+                itemsWithNoTime.add(item);
+            } else {
+                createRowFromItemSchedule(item);
             }
+        }
+
+        if (itemsWithNoTime.size() != 0)
+            for (ItineraryItem item : itemsWithNoTime) {
+                createDateRow(null);
+                createRowFromItemSchedule(item);
+            }
+    }
+
+    private void createRowFromItemSchedule(ItineraryItem item) {
+        if (item instanceof UserItem) {
+            createRow(item, R.layout.schedule_user_destination_row);
+        } else if (item instanceof  SuggestionItem)  {
+            createRow(item, R.layout.schedule_suggestion_row);
         }
     }
 
@@ -420,7 +438,7 @@ public class SamplePagerAdapter extends PagerAdapter {
      * Creates a row with just the date
      * @param time
      */
-    public void createDateRow(DateTime time, LinearLayout parent) {
+    public void createDateRow(DateTime time) {
         LinearLayout row = new LinearLayout(_activity);
         LinearLayout v = (LinearLayout) _inflater.inflate(R.layout.schedule_date_row, row, false);
 
@@ -432,10 +450,10 @@ public class SamplePagerAdapter extends PagerAdapter {
             dateView.setText(_dateFormatter.print(time));
         }
 
-        parent.addView(v);
+        _scheduleLayout.addView(v);
     }
 
-    public void createRow(ItineraryItem item, int layoutId, LinearLayout parent) {
+    public void createRow(ItineraryItem item, int layoutId) {
         RelativeLayout row = new RelativeLayout(_activity);
         RelativeLayout v = (RelativeLayout) _inflater.inflate(layoutId, row, false);
 
@@ -449,7 +467,7 @@ public class SamplePagerAdapter extends PagerAdapter {
         if (time != null) // Set to null if the date is missing
             timeView.setText(_timeFormatter.print(time)); // TODO Change to only display time
 
-        parent.addView(v);
+        _scheduleLayout.addView(v);
     }
 
     public Collection<? extends ItineraryItem> getItems() {

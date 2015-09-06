@@ -116,6 +116,19 @@ public class SlidingTabsBasicFragment extends Fragment {
         // it's PagerAdapter set.
         mSlidingTabLayout = (SlidingTabLayout) view.findViewById(R.id.sliding_tabs);
         mSlidingTabLayout.setViewPager(mViewPager);
+        mSlidingTabLayout.setBackgroundColor(getResources().getColor(R.color.white));
+//        mSlidingTabLayout.setCustomTabColorizer(new SlidingTabLayout.TabColorizer() {
+//
+//            @Override
+//            public int getIndicatorColor(int position) {
+//                return getResources().getColor(R.color.white);    //define any color in xml resources and set it here, I have used white
+//            }
+//
+//            @Override
+//            public int getDividerColor(int position) {
+//                return getResources().getColor(R.color.white);
+//            }
+//        });
         // END_INCLUDE (setup_slidingtablayout)
     }
     // END_INCLUDE (fragment_onviewcreated)

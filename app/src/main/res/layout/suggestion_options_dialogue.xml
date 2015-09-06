@@ -39,4 +39,14 @@
         android:textColor="#287AA9"
         android:background="#fff"
         android:textAllCaps="false"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/remove_from_itinerary_button"
+        android:text="@string/remove_from_itinerary"
+        android:textSize="8pt"
+        android:textColor="#287AA9"
+        android:background="#fff"
+        android:textAllCaps="false"
+        android:visibility="gone"/>
 </LinearLayout>

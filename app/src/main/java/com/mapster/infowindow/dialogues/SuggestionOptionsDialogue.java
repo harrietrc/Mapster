@@ -11,6 +11,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.mapster.R;
 import com.mapster.activities.MainActivity;
 import com.mapster.infowindow.listeners.AddToItineraryButtonListener;
+import com.mapster.infowindow.listeners.RemoveFromItineraryButtonListener;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.infowindow.listeners.CallButtonListener;
 import com.mapster.infowindow.listeners.DirectionsButtonListener;
@@ -30,6 +31,7 @@ public class SuggestionOptionsDialogue extends SequentialSuggestionItemDialogue 
     private Button _callButton;
     private Button _addToItineraryButton;
     private Button _getDirectionsButton;
+    private Button _removeFromItineraryButton;
 
     public SuggestionOptionsDialogue(Context context, LayoutInflater inflater, SuggestionItem item) {
         super(context, inflater, item);
@@ -44,6 +46,7 @@ public class SuggestionOptionsDialogue extends SequentialSuggestionItemDialogue 
         _websiteButton = (Button) content.findViewById(R.id.website_button);
         _addToItineraryButton = (Button) content.findViewById(R.id.itinerary_button);
         _getDirectionsButton = (Button) content.findViewById(R.id.directions_button);
+        _removeFromItineraryButton = (Button) content.findViewById(R.id.remove_from_itinerary_button);
 
         return content;
     }
@@ -66,11 +69,10 @@ public class SuggestionOptionsDialogue extends SequentialSuggestionItemDialogue 
     private void setButtonVisibilitiesFromItem() {
         Suggestion suggestion = _item.getSuggestion();
 
-        boolean itemNotAlreadyInItinerary = !_item.isInItinerary();
-
         setButtonVisibilityFromProperty(_websiteButton, suggestion.getWebsite());
         setButtonVisibilityFromProperty(_callButton, suggestion.getPhoneNumber());
-        setButtonVisibilityFromProperty(_addToItineraryButton, itemNotAlreadyInItinerary);
+        setButtonVisibilityFromProperty(_addToItineraryButton, !_item.isInItinerary());
+        setButtonVisibilityFromProperty(_removeFromItineraryButton, _item.isInItinerary());
     }
 
     /**
@@ -110,6 +112,7 @@ public class SuggestionOptionsDialogue extends SequentialSuggestionItemDialogue 
             configureWebsiteButton();
         if (isButtonVisible(_addToItineraryButton))
             configureAddToItineraryButton();
+        configureRemoveFromItineraryButton();
     }
 
     private boolean isButtonVisible(Button button) {
@@ -140,7 +143,15 @@ public class SuggestionOptionsDialogue extends SequentialSuggestionItemDialogue 
 
     private void configureAddToItineraryButton() {
         MainActivity activity = (MainActivity) _context; // Required to update marker icon
-        AddToItineraryButtonListener addListener = new AddToItineraryButtonListener(activity, this, _item);
+        AddToItineraryButtonListener addListener = new AddToItineraryButtonListener(activity, this,
+                _item);
         _addToItineraryButton.setOnClickListener(addListener);
+    }
+
+    private void configureRemoveFromItineraryButton() {
+        MainActivity activity = (MainActivity) _context;
+        RemoveFromItineraryButtonListener removeListener = new RemoveFromItineraryButtonListener(
+                activity, this, _item);
+        _removeFromItineraryButton.setOnClickListener(removeListener);
     }
 }
