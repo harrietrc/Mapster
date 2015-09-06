@@ -1,5 +1,4 @@
-/.idea/
-/.idea/libraries
+
 .DS_Store
 
 # Built application files
@@ -27,6 +26,4 @@ proguard/
 /app/*.iml
 /local.properties
 .idea/
-/.idea/
-/.idea/inspectionProfiles/
-/app/.idea
+app/.idea
