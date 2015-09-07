@@ -23,6 +23,7 @@ import com.mapster.itinerary.UserItem;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Harriet on 9/08/2015. Access this to display save/load itinerary dialogues (which also
@@ -134,7 +135,7 @@ public class LoadAndSaveHelper {
      */
     private void loadItineraryList(final ListView listView) {
         List<String> itineraryNames = _datasource.getAllNames();
-        ArrayAdapter<String> listAdapter = new ArrayAdapter<String>(_context,
+        ArrayAdapter<String> listAdapter = new ArrayAdapter<>(_context,
                 android.R.layout.simple_list_item_1, itineraryNames);
         listView.setAdapter(listAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -147,16 +148,30 @@ public class LoadAndSaveHelper {
     }
 
     private void loadItinerary() {
-        List<ItineraryItem> itineraryItems = new ArrayList<>();
+        List<ItineraryItem> itineraryItems;
 
-        if (_selectedItineraryName != null)
+        if (_selectedItineraryName != null) {
             itineraryItems = _datasource.getItemsByItineraryName(_selectedItineraryName);
 
-        // TODO Might want to change the DB to only store UserItems so this isn't necessary
-        ArrayList<UserItem> userItems = new ArrayList<>();
-        for (ItineraryItem item : itineraryItems)
-            userItems.add((UserItem) item);
+            // TODO Might want to change the DB to only store UserItems so this isn't necessary
+            ArrayList<UserItem> userItems = new ArrayList<>();
+            for (ItineraryItem item : itineraryItems)
+                userItems.add((UserItem) item);
 
-        ((PlacesActivity) _context).callback(userItems);
+            // Update itinerary name
+            writeItineraryNameToSettings(_selectedItineraryName);
+
+            ((PlacesActivity) _context).callback(userItems);
+        }
+    }
+
+    // TODO Duplicated from ItineraryActivity - refactor.
+    public List<ItineraryItem> getItemsFromDatabase() {
+        // Get itinerary items that match current itinerary name (stored in shared prefs)
+        String sharedPrefsName = _context.getResources().getString(R.string.shared_prefs);
+        String itineraryNamePrefs = _context.getResources().getString(R.string.itinerary_name_prefs);
+        SharedPreferences settings = _context.getSharedPreferences(sharedPrefsName, 0);
+        String currentItineraryName = settings.getString(itineraryNamePrefs, null);
+        return _datasource.getItemsByItineraryName(currentItineraryName);
     }
 }

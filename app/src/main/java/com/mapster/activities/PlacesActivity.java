@@ -38,11 +38,13 @@ import com.mapster.fragment.DatePickerFragment;
 import com.mapster.fragment.TimePickerFragment;
 import com.mapster.geocode.GeoCode;
 import com.mapster.interfaces.GeoCodeListener;
+import com.mapster.itinerary.ItineraryItem;
 import com.mapster.itinerary.UserItem;
 import com.mapster.persistence.ItineraryDataSource;
 import com.mapster.persistence.LoadAndSaveHelper;
 import com.mapster.places.autocomplete.PlacesAutoCompleteAdapter;
 
+import org.joda.time.DateTime;
 import org.joda.time.LocalTime;
 
 import java.text.SimpleDateFormat;
@@ -50,8 +52,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import tourguide.tourguide.Overlay;
 import tourguide.tourguide.Pointer;
@@ -88,13 +94,38 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     @Override
     public void callback(ArrayList<UserItem> userItems) {
         if (userItems != null){
-            _userItemList = userItems;
+            _userItemList = retainExistingItems(userItems);
             mergeDateAndTimeToDateTime();
             moveToMainActivityWithData();
         } else {
             Toast.makeText(this,"Origin and Destination fields must not be blank",
                     Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private ArrayList<UserItem> retainExistingItems(ArrayList<UserItem> items) {
+        List<ItineraryItem> existingItems = _loadAndSaveItineraryHelper.getItemsFromDatabase();
+
+        // Make a set of all the destination names that already exist in the itinerary
+        Map<String, UserItem> existingItemsByName = new HashMap<>();
+        for (ItineraryItem item : existingItems)
+            existingItemsByName.put(item.getName(), (UserItem) item);
+
+        // Create a new list that retains the old data, if still relevant. Copy times/dates.
+        ArrayList<UserItem> updatedItems = new ArrayList<>();
+        for (UserItem item : items) {
+            UserItem existingItem = existingItemsByName.get(item.getName());
+            if (existingItem != null) {
+                DateTime time = item.getTime();
+                if (time != null)
+                    existingItem.setDateTime(time);
+                updatedItems.add(existingItem);
+            } else {
+                updatedItems.add(item);
+            }
+        }
+
+        return items;
     }
 
     @Override

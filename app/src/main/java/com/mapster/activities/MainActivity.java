@@ -194,10 +194,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         super.onResume();
     }
 
-    public void setItineraryUpdateRequired() {
-        _itineraryUpdateRequired = true;
-    }
-
     public SuggestionItem getSuggestionItemByMarker(Marker marker) {
         String id = marker.getId();
         return  _suggestionItemsByMarkerId.get(id);
