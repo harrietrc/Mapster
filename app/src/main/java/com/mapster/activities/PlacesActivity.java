@@ -50,6 +50,7 @@ import org.joda.time.LocalTime;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -125,7 +126,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
             }
         }
 
-        return items;
+        return updatedItems;
     }
 
     @Override
@@ -613,5 +614,31 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     protected void createToast(String name, int duration){
         Toast.makeText(this, name, duration).show();
+    }
+
+    /**
+     * Called when itinerary is loaded so that the text fields reflect the stop points.
+     */
+    public void updateFieldsFromItinerary(List<UserItem> items) {
+        View mainActivityLayout = findViewById(R.id.place_activity_layout); // Will this be null?
+        ClearableAutoCompleteTextView originTextField =
+                (ClearableAutoCompleteTextView) mainActivityLayout.findViewById(R.id.autocomplete_origin);
+        ClearableAutoCompleteTextView destinationTextField =
+                (ClearableAutoCompleteTextView) mainActivityLayout.findViewById(R.id.autocomplete_destination);
+
+        // Set origin and destination text from the first and last items in the list
+        int nItems = items.size();
+        UserItem origin = items.get(0);
+        UserItem destination = items.get(nItems - 1);
+        originTextField.setText(origin.getName());
+        destinationTextField.setText(destination.getName());
+
+        // Go through the rest of the list, adding 'stop point' views for each item
+        for (int i=1; i<nItems-1; i++) {
+            LinearLayout stopPointLayout = addStopPoints(); // Layout with an empty text field
+            ClearableAutoCompleteTextView stopPointNameView = (ClearableAutoCompleteTextView)
+                    stopPointLayout.findViewById(R.id.stop_point_name);
+            stopPointNameView.setText(items.get(i).getName());
+        }
     }
 }

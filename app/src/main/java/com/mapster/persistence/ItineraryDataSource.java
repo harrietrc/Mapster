@@ -43,20 +43,9 @@ public class ItineraryDataSource {
                 .excludeFieldsWithModifiers(Modifier.TRANSIENT, Modifier.STATIC).create();
     }
 
-    /**
-     * Returning the ItineraryItem type means type information is lost. Will necessitate instanceof
-     * checks later.
-     */
-    public List<ItineraryItem> getAllItems() {
-        Cursor cursor = _database.query(ItineraryHelper.TABLE_ITINERARY_ITEM,
-                _allColumnsItineraryItem, null, null, null, null, null);
-
-        return cursorToItemList(cursor);
-    }
-
     public List<String> getAllNames() {
         Cursor cursor = queryItineraryNames();
-        return cursortToItineraryNameList(cursor);
+        return cursorToItineraryNameList(cursor);
     }
 
     private List<ItineraryItem> cursorToItemList(Cursor cursor) {
@@ -71,7 +60,7 @@ public class ItineraryDataSource {
         return items;
     }
 
-    private List<String> cursortToItineraryNameList(Cursor cursor) {
+    private List<String> cursorToItineraryNameList(Cursor cursor) {
         List<String> itineraryNames = new ArrayList<>();
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {

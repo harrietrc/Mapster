@@ -133,7 +133,8 @@ public class UpdateMainFromItineraryTask extends AsyncTask<Void, Void, Collectio
     @Override
     protected void onPostExecute(Collection<SuggestionItem> items) {
         // Reset the icons for the suggestions that were removed from the itinerary
-        for (SuggestionItem s : items)
-            _activity.updateSuggestionItem(s);
+        if (items != null)
+            for (SuggestionItem s : items)
+                _activity.updateSuggestionItem(s);
     }
 }

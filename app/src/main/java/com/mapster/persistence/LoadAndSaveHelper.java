@@ -161,6 +161,7 @@ public class LoadAndSaveHelper {
             // Update itinerary name
             writeItineraryNameToSettings(_selectedItineraryName);
 
+            ((PlacesActivity) _context).updateFieldsFromItinerary(userItems); // Updates the UI
             ((PlacesActivity) _context).callback(userItems);
         }
     }

@@ -76,10 +76,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private static final String TAG = "MainActivity";
     private static final String USER_ITEM_LIST = "USER_ITEM_LIST";
 
-    // Flag that says whether to update the itinerary database (at the moment this is a heavy-handed
-    // drop-table and insertion of all the user-defined destinations and chosen suggestions.
-    private boolean _itineraryUpdateRequired;
-
     // Only used to get data from PlacesActivity. Use _userItemsByMarkerId to keep track of UserItems.
     private ArrayList<UserItem> _userItemList;
 
@@ -137,9 +133,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _itineraryDataSource = new ItineraryDataSource(this);
         _itineraryDataSource.open();
 
-        // If we change activity, save the existing user-defined destinations to the database
-        _itineraryUpdateRequired = true;
-
         setContentView(R.layout.activity_main);
 
         _layout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
@@ -179,6 +172,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     @Override
     protected void onPause() {
+        updateItineraryDatabase();
         _itineraryDataSource.close();
         super.onPause();
     }
@@ -186,11 +180,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     @Override
     public void onResume() {
         _itineraryDataSource.open();
-        if (!_suggestionItemsByMarkerId.isEmpty()) {
-            // Don't want this to run straight after the first onCreate() call
-            UpdateMainFromItineraryTask updateTask = new UpdateMainFromItineraryTask(this);
-            updateTask.execute();
-        }
+        // TODO Runs when it doesn't always need to - fix
+        UpdateMainFromItineraryTask updateTask = new UpdateMainFromItineraryTask(this);
+        updateTask.execute();
         super.onResume();
     }
 
@@ -422,7 +414,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 itemToUpdate.setDateTime(updatedTime);
             }
         }
-        _itineraryUpdateRequired = true;
     }
 
     /**
@@ -1197,9 +1188,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     private void startItineraryActivity() {
         updateItems();
-        // TODO Maybe make the database access a task?
-        if (_itineraryUpdateRequired)
-            updateItineraryDatabase();
+        updateItineraryDatabase();
         Intent intent = new Intent(this, ItineraryActivity.class);
         startActivity(intent);
     }
@@ -1208,6 +1197,5 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         Collection<UserItem> userItems = _userItemsByMarkerId.values();
         _itineraryDataSource.deleteUnsavedItineraryItems();
         _itineraryDataSource.insertMultipleItineraryItems(userItems);
-        _itineraryUpdateRequired = false;
     }
 }
