@@ -627,6 +627,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                             v.setOnClickListener(null);
                             v.setVisibility(View.GONE);
                             activity._infoWindowAdapter.onInfoWindowClick(_suggestedMarker);
+                            _preferences.setDoneSuggestionTutorial();
                         }
                     });
                 }

@@ -9,8 +9,6 @@ import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.ViewAnimator;
-import com.astuetz.PagerSlidingTabStrip;
 import com.mapster.R;
 import com.mapster.itinerary.ItineraryItem;
 
