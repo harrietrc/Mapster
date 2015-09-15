@@ -13,8 +13,8 @@
             app:customTypeface="font/ColabThi.otf"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="75"
-            android:id="@+id/origin"
+            android:layout_weight="65"
+            android:id="@+id/add_point"
             android:text="Stop Point"
             android:textSize="30sp"
             android:textColor="@color/indigo_500"
@@ -22,7 +22,7 @@
         <com.mapster.android.gui.util.customfonttextview.TypefaceTextView
             app:customTypeface="font/ColabThi.otf"
             android:layout_width="0dp"
-            android:layout_weight="25"
+            android:layout_weight="35"
             android:layout_height="wrap_content"
             android:onClick="removeStopPoint"
             android:clickable="true"
@@ -35,12 +35,13 @@
     </LinearLayout>
     <com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoCompleteTextView
         app:customTypefaceAutoComplete="font/ColabReg.otf"
+        android:id="@+id/stop_point_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:lines="1"
         android:maxLines="1"
         android:singleLine="true"
-        android:textSize="17sp"
+        android:textSize="15sp"
         android:hint="Stop Point"
         android:paddingLeft="10dp"/>
     <RadioGroup

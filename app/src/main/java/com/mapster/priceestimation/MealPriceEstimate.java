@@ -8,6 +8,8 @@ import com.mapster.priceestimation.data.MealPriceDataSource;
 import com.mapster.suggestions.FoursquareSuggestion;
 import com.mapster.suggestions.Suggestion;
 
+import java.util.Currency;
+
 /**
  * Created by Harriet on 6/12/2015.
  * TODO Database should be closed onPause and onResume
@@ -33,6 +35,12 @@ public class MealPriceEstimate {
         if (country != null)
             currencyCode = country.getCurrencyCode();
         return currencyCode;
+    }
+
+    public String getCurrencySymbol(String countryCode) {
+        String currencyCode = getCurrencyCode(countryCode);
+        Currency currency = Currency.getInstance(currencyCode);
+        return currency.getSymbol();
     }
 
     /**

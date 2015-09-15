@@ -4,18 +4,24 @@
     xmlns:sothree="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" app:showAsAction="never" />
+    <!--<item-->
+        <!--android:title="@string/itinerary_button"-->
+        <!--android:id="@+id/budget_button"-->
+        <!--app:showAsAction="ifRoom">-->
+    <!--</item>-->
+    <!--<item-->
+        <!--android:title="Filter"-->
+        <!--android:id="@+id/filter"-->
+        <!--android:visible="true"-->
+        <!--app:showAsAction="ifRoom"-->
+        <!-->-->
+    <!--</item>-->
     <item
-        android:title="@string/itinerary_button"
-        android:id="@+id/budget_button"
-        app:showAsAction="ifRoom">
-    </item>
-    <item
-        android:title="Filter"
-        android:id="@+id/filter"
-        android:icon="@drawable/ic_menu_star"
-        android:visible="false"
-        app:showAsAction="always">
-    </item>
+        android:title="@string/abc_action_bar_home_description"
+        android:id="@+id/menu_custom"
+        app:actionLayout="@layout/menu_layout"
+        app:showAsAction="always"/>
+
 
     <item
         android:id="@+id/action_toggle"

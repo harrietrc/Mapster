@@ -51,6 +51,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Currency;
 import java.util.HashMap;
@@ -79,6 +80,8 @@ public class SlidingTabsBasicFragment extends Fragment {
      */
     private ViewPager mViewPager;
 
+    private SamplePagerAdapter _adapter;
+
     /**
      * Inflates the {@link android.view.View} which will be displayed by this {@link Fragment}, from the app's
      * resources.
@@ -104,7 +107,8 @@ public class SlidingTabsBasicFragment extends Fragment {
         // BEGIN_INCLUDE (setup_viewpager)
         // Get the ViewPager and set it's PagerAdapter so that it can display items
         mViewPager = (ViewPager) view.findViewById(R.id.viewpager);
-        mViewPager.setAdapter(new SamplePagerAdapter(this.getActivity()));
+        _adapter = new SamplePagerAdapter(this.getActivity());
+        mViewPager.setAdapter(_adapter);
         // END_INCLUDE (setup_viewpager)
 
         // BEGIN_INCLUDE (setup_slidingtablayout)
@@ -112,9 +116,26 @@ public class SlidingTabsBasicFragment extends Fragment {
         // it's PagerAdapter set.
         mSlidingTabLayout = (SlidingTabLayout) view.findViewById(R.id.sliding_tabs);
         mSlidingTabLayout.setViewPager(mViewPager);
+        mSlidingTabLayout.setBackgroundColor(getResources().getColor(R.color.white));
+//        mSlidingTabLayout.setCustomTabColorizer(new SlidingTabLayout.TabColorizer() {
+//
+//            @Override
+//            public int getIndicatorColor(int position) {
+//                return getResources().getColor(R.color.white);    //define any color in xml resources and set it here, I have used white
+//            }
+//
+//            @Override
+//            public int getDividerColor(int position) {
+//                return getResources().getColor(R.color.white);
+//            }
+//        });
         // END_INCLUDE (setup_slidingtablayout)
     }
     // END_INCLUDE (fragment_onviewcreated)
+
+    public Collection<? extends ItineraryItem> getItems() {
+        return _adapter.getItems();
+    }
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} used to display pages in this sample.

@@ -3,7 +3,6 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.PagerAdapter;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +18,6 @@ import android.widget.TextView;
 
 import com.mapster.R;
 import com.mapster.activities.ItineraryActivity;
-import com.mapster.activities.SlidingTabsBasicFragment;
 import com.mapster.itinerary.ItineraryItem;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
@@ -31,6 +29,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Currency;
 import java.util.HashMap;
@@ -49,12 +48,14 @@ public class SamplePagerAdapter extends PagerAdapter {
     List<String> _totalsList;
     ArrayAdapter<String> _totalsListAdapter;
     private LayoutInflater _inflater;
-    private LinearLayout _layout;
+    private LinearLayout _budgetLayout;
+    private LinearLayout _scheduleLayout;
 
 
     private DateTimeFormatter _timeFormatter; // Prints only the time (no month or day)
     private DateTimeFormatter _dateFormatter; // Prints only the date
-    private List<ItineraryItem> _sortedItems;
+    private List<? extends ItineraryItem> _items;
+
     /**
      * @return the number of pages to display
      */
@@ -101,23 +102,23 @@ public class SamplePagerAdapter extends PagerAdapter {
             _inflater = _activity.getLayoutInflater();
             view = _activity.getLayoutInflater().inflate(R.layout.schedule_fragment,
                     container, false);
+            _scheduleLayout = (LinearLayout) view.findViewById(R.id.schedule_layout);
 
             // Formats arrival time for the UI
             _dateFormatter = DateTimeFormat.mediumDate(); // TODO Fiddle with this
             _timeFormatter = DateTimeFormat.shortTime();
 
+            _items = ((ItineraryActivity) _activity).getItemsFromDatabase();
+
             // Construct a list of all the itinerary items, ordered by date
             refreshDataFromDatabase();
-
-            // Set up the main table view for this fragment
-            _layout = (LinearLayout) view.findViewById(R.id.schedule_layout);
 
             createRowsFromItemsSchedule();
         } else {
             _inflater = _activity.getLayoutInflater();
             view = _inflater.inflate(R.layout.budget_fragment,
                     container, false);
-            _layout = (LinearLayout) view.findViewById(R.id.budget_layout);
+            _budgetLayout = (LinearLayout) view.findViewById(R.id.budget_layout);
             // Populate list of totals
             _totalsList = new ArrayList<>();
             _totalsListAdapter = new ArrayAdapter<>(_activity, android.R.layout.simple_list_item_1, _totalsList);
@@ -145,6 +146,7 @@ public class SamplePagerAdapter extends PagerAdapter {
     public void destroyItem(ViewGroup container, int position, Object object) {
         container.removeView((View) object);
     }
+
     private void formatTotalsAsList() {
         _totalsList.clear();
         System.out.println(_totalsMap);
@@ -162,10 +164,7 @@ public class SamplePagerAdapter extends PagerAdapter {
     }
 
     private void createRowsFromItemsBudget() {
-        // TODO Shift itinerary data out of activity to a datasource class?
-        List<ItineraryItem> items = ((ItineraryActivity) _activity).getItems();
-
-        for (ItineraryItem item: items) {
+        for (ItineraryItem item: _items) {
             if (item instanceof UserItem) {
                 // 'Parent' user-defined destination that the suggestions were retrieved for
                 UserItem u = (UserItem) item;
@@ -198,7 +197,7 @@ public class SamplePagerAdapter extends PagerAdapter {
         String title = item.getName();
         titleView.setText(title);
 
-        _layout.addView(v);
+        _budgetLayout.addView(v);
     }
 
     public void createSuggestionRow(final SuggestionItem item) {
@@ -252,7 +251,7 @@ public class SamplePagerAdapter extends PagerAdapter {
             }
         });
 
-        _layout.addView(rowView);
+        _budgetLayout.addView(rowView);
     }
 
     /**
@@ -278,13 +277,29 @@ public class SamplePagerAdapter extends PagerAdapter {
         LinearLayout content = (LinearLayout) _inflater.inflate(R.layout.budget_edit_dialogue, l);
         final EditText multiplierView = (EditText) content.findViewById(R.id.budget_multiplier_field);
         final EditText moneySpentView = (EditText) content.findViewById(R.id.budget_money_spent_field);
-        Button deleteButton = (Button) content.findViewById(R.id.budget_remove_item_button);
 
         // Set EditText values to existing values
         setEditableValues(multiplierView, moneySpentView, item);
 
         builder.setView(content);
-        builder.setNegativeButton(R.string.cancel, null);
+        builder.setNegativeButton(R.string.delete_destination, new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                UserItem userItem = item.getUserItem();
+                userItem.removeSuggestionItem(item);
+                _items.remove(item); // TODO probably not efficient - this whole thing needs a redesign
+
+                // Update the list of totals
+                updateTotals();
+
+                // TODO Budget and schedule layout should really be associated with each other
+                // Delete the row in the table and hide the dialogue
+                _budgetLayout.removeView(row);
+                refreshScheduleRows();
+            }
+        });
+
         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -303,7 +318,7 @@ public class SamplePagerAdapter extends PagerAdapter {
                 String moneySpentString = moneySpentView.getText().toString();
                 TextView actualCostView = (TextView) row.findViewById(R.id.budget_col_user_value);
                 if (moneySpentString.equals("")) {
-                    item.setActualCost(0); // Money spent was cleared
+                    item.setActualCost(null); // Money spent was cleared
                     actualCostView.setText(null);
                 } else {
                     double moneySpent = Double.parseDouble(moneySpentString);
@@ -325,21 +340,11 @@ public class SamplePagerAdapter extends PagerAdapter {
         });
         final AlertDialog dialog = builder.create();
         dialog.show(); // Leak?
+    }
 
-        deleteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                UserItem userItem = item.getUserItem();
-                userItem.removeSuggestionItem(item);
-
-                // Update the list of totals
-                updateTotals();
-
-                // Delete the row in the table and hide the dialogue
-                _layout.removeView(row);
-                dialog.hide();
-            }
-        });
+    private void refreshScheduleRows() {
+        _scheduleLayout.removeAllViews();
+        createRowsFromItemsSchedule(); // Unnecessary - see TODO above
     }
 
     /**
@@ -349,10 +354,7 @@ public class SamplePagerAdapter extends PagerAdapter {
         // Totally reinitialise the map of totals and recreate it from the itinerary
         _totalsMap = new HashMap<>();
 
-        // TODO See other note about datasource
-        List<ItineraryItem> items = ((ItineraryActivity) _activity).getItems();
-
-        for (ItineraryItem item: items) {
+        for (ItineraryItem item: _items) {
             // This is the only possibility at the moment - UserItems only
             if (item instanceof UserItem) {
                 for (SuggestionItem s : ((UserItem) item).getSuggestionItems()) {
@@ -375,33 +377,58 @@ public class SamplePagerAdapter extends PagerAdapter {
             }
         }
     }
+
     private void refreshDataFromDatabase() {
-        List<ItineraryItem> items = ((ItineraryActivity) _activity).getItems();
-        _sortedItems = new LinkedList<>();
-        // Add the user-defined items
-        _sortedItems.addAll(items);
-        // Add the suggestion items (children of user-defined items)
-        for (ItineraryItem item: items)
-            if (item instanceof UserItem)
-                _sortedItems.addAll(((UserItem) item).getSuggestionItems());
-        Collections.sort(_sortedItems); // Sort by date/time
+        List<ItineraryItem> sortedItems = new LinkedList<>();
+
+        // Reconstruct the itinerary (children of user-defined items)
+        for (ItineraryItem item: _items)
+            if (item instanceof UserItem) {
+                UserItem u = (UserItem) item;
+                sortedItems.add(u);
+                for (SuggestionItem s : u.getSuggestionItems()) {
+                    // TODO Hack until I figure out why userItems aren't deserialised
+                    s.setUserItem(u);
+                    sortedItems.add(s);
+                }
+            }
+        Collections.sort(sortedItems); // Sort by date/time
+        _items = sortedItems;
     }
 
     private void createRowsFromItemsSchedule() {
         DateTime currentTime = new DateTime();
-        for (ItineraryItem item: _sortedItems) {
+
+        // We'll add rows for the items with no time/date at the end
+        List<ItineraryItem> itemsWithNoTime = new ArrayList<>();
+
+        for (ItineraryItem item: _items) {
             DateTime itemTime = item.getTime();
             // Add a row with just the date, if this item has a different date to the previous one
             if (currentTime != null)
-                if (itemTime == null || !currentTime.toLocalDate().equals(itemTime.toLocalDate()))
+                if (itemTime != null && !currentTime.toLocalDate().equals(itemTime.toLocalDate()))
                     createDateRow(itemTime);
             currentTime = itemTime;
             // Create a row for the itinerary item with its name
-            if (item instanceof UserItem) {
-                createRow(item, R.layout.schedule_user_destination_row);
-            } else if (item instanceof  SuggestionItem)  {
-                createRow(item, R.layout.schedule_suggestion_row);
+            if (itemTime == null) {
+                itemsWithNoTime.add(item);
+            } else {
+                createRowFromItemSchedule(item);
             }
+        }
+
+        if (itemsWithNoTime.size() != 0)
+            for (ItineraryItem item : itemsWithNoTime) {
+                createDateRow(null);
+                createRowFromItemSchedule(item);
+            }
+    }
+
+    private void createRowFromItemSchedule(ItineraryItem item) {
+        if (item instanceof UserItem) {
+            createRow(item, R.layout.schedule_user_destination_row);
+        } else if (item instanceof  SuggestionItem)  {
+            createRow(item, R.layout.schedule_suggestion_row);
         }
     }
 
@@ -421,7 +448,7 @@ public class SamplePagerAdapter extends PagerAdapter {
             dateView.setText(_dateFormatter.print(time));
         }
 
-        _layout.addView(v);
+        _scheduleLayout.addView(v);
     }
 
     public void createRow(ItineraryItem item, int layoutId) {
@@ -438,7 +465,10 @@ public class SamplePagerAdapter extends PagerAdapter {
         if (time != null) // Set to null if the date is missing
             timeView.setText(_timeFormatter.print(time)); // TODO Change to only display time
 
-        _layout.addView(v);
+        _scheduleLayout.addView(v);
     }
 
+    public Collection<? extends ItineraryItem> getItems() {
+        return _items;
+    }
 }

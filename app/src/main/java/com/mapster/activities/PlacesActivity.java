@@ -6,20 +6,23 @@ import android.app.FragmentTransaction;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.DatePicker;
-import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -27,38 +30,52 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
-import com.github.amlcurran.showcaseview.ApiUtils;
-import com.github.amlcurran.showcaseview.ShowcaseView;
-import com.github.amlcurran.showcaseview.targets.ActionViewTarget;
-import com.github.amlcurran.showcaseview.targets.Target;
-import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.mapster.R;
 import com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoCompleteTextView;
+import com.mapster.android.gui.util.customfonttextview.TypefaceTextView;
+import com.mapster.apppreferences.AppPreferences;
 import com.mapster.fragment.DatePickerFragment;
 import com.mapster.fragment.TimePickerFragment;
 import com.mapster.geocode.GeoCode;
 import com.mapster.interfaces.GeoCodeListener;
+import com.mapster.itinerary.ItineraryItem;
 import com.mapster.itinerary.UserItem;
+import com.mapster.persistence.ItineraryDataSource;
+import com.mapster.persistence.LoadAndSaveHelper;
 import com.mapster.places.autocomplete.PlacesAutoCompleteAdapter;
 
+import org.joda.time.DateTime;
 import org.joda.time.LocalTime;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import tourguide.tourguide.Overlay;
+import tourguide.tourguide.Pointer;
+import tourguide.tourguide.ToolTip;
+import tourguide.tourguide.TourGuide;
 
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 
-public class PlacesActivity extends ActionBarActivity implements OnItemClickListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener, GeoCodeListener, View.OnClickListener {
+public class PlacesActivity extends ActionBarActivity implements OnItemClickListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener, GeoCodeListener {
 
     public static final String START_DATETIME = "START_DATETIME";
 
-    private int counter = 0;
+    // Persistence stuff
+    private ItineraryDataSource _itineraryDataSource;
+    private LoadAndSaveHelper _loadAndSaveItineraryHelper;
+
     private PlacesAutoCompleteAdapter _autoCompAdapter;
     private LinkedList<ClearableAutoCompleteTextView> _autoCompleteTextViewLinkedList;
     private List<RadioGroup> _transportModeViewList;
@@ -69,15 +86,16 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     private String _timeStartJourney = _timeFormat.format (new Date());
     private String _dateTimeStartJourney;
     private TextView _timeTextView;
-    private ShowcaseView _showcaseView;
-    private final ApiUtils apiUtils = new ApiUtils();
     // List of parcelable user-defined destinations
     private ArrayList<UserItem> _userItemList;
+    private TourGuide mTutorialHandler;
+    private boolean isAlreadyDoTutorial = false;
+    private AppPreferences _preferences;
 
     @Override
     public void callback(ArrayList<UserItem> userItems) {
         if (userItems != null){
-            _userItemList = userItems;
+            _userItemList = retainExistingItems(userItems);
             mergeDateAndTimeToDateTime();
             moveToMainActivityWithData();
         } else {
@@ -86,6 +104,42 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         }
     }
 
+    private ArrayList<UserItem> retainExistingItems(ArrayList<UserItem> items) {
+        List<ItineraryItem> existingItems = _loadAndSaveItineraryHelper.getItemsFromDatabase();
+
+        // Make a set of all the destination names that already exist in the itinerary
+        Map<String, UserItem> existingItemsByName = new HashMap<>();
+        for (ItineraryItem item : existingItems)
+            existingItemsByName.put(item.getName(), (UserItem) item);
+
+        // Create a new list that retains the old data, if still relevant. Copy times/dates.
+        ArrayList<UserItem> updatedItems = new ArrayList<>();
+        for (UserItem item : items) {
+            UserItem existingItem = existingItemsByName.get(item.getName());
+            if (existingItem != null) {
+                DateTime time = item.getTime();
+                if (time != null)
+                    existingItem.setDateTime(time);
+                updatedItems.add(existingItem);
+            } else {
+                updatedItems.add(item);
+            }
+        }
+
+        return updatedItems;
+    }
+
+    @Override
+    protected void onPause() {
+        _itineraryDataSource.close();
+        super.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        _itineraryDataSource.open();
+        super.onResume();
+    }
 
     public void showDatePickerDialog(View v) {
         _dateTextView = (TextView)v;
@@ -117,6 +171,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         _autoCompleteTextViewLinkedList = new LinkedList<>();
         _transportModeViewList = new ArrayList<>();
         _autoCompAdapter = new PlacesAutoCompleteAdapter(this, R.layout.list_item);
@@ -126,49 +181,25 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         initializeAutoCompleteTextViewInArrayList();
         initializeRadioButton(_transportModeViewList.get(0));
         _userItemList = new ArrayList<>();
-        _showcaseView = new ShowcaseView.Builder(this)
-                .setTarget(new ViewTarget(findViewById(R.id.add_stop_points_fake)))
-                .setOnClickListener(this)
-                .setContentText("Click the icon to add more stop points between origin and destination")
-                .build();
-        _showcaseView.setButtonText(getString(R.string.cancel));
+        _preferences = new AppPreferences(this);
+
+        // Set up database (saving itineraries)
+        _itineraryDataSource = new ItineraryDataSource(this);
+        _itineraryDataSource.open();
+        _loadAndSaveItineraryHelper = new LoadAndSaveHelper(this, getLayoutInflater(),
+                _itineraryDataSource, _autoCompleteTextViewLinkedList, _transportModeViewList);
+
+        // Set current itinerary name to null
+        writeItineraryNameToSettings(null);
     }
 
-
-    private void setAlpha(float alpha, View... views) {
-        if (apiUtils.isCompatWithHoneycomb()) {
-            for (View view : views) {
-                view.setAlpha(alpha);
-            }
-        }
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch (counter) {
-            case 0:
-                _showcaseView.setShowcase(new ViewTarget(findViewById(R.id.destination)), true);
-                _showcaseView.setContentText("Where do you want to end up?");
-                break;
-
-            case 1:
-                _showcaseView.setShowcase(new ViewTarget(findViewById(R.id.ok)), true);
-                break;
-
-            case 2:
-                _showcaseView.setTarget(Target.NONE);
-                _showcaseView.setContentTitle("Check it out");
-                _showcaseView.setContentText("You don't always need a target to showcase");
-                _showcaseView.setButtonText(getString(R.string.cancel));
-                setAlpha(0.4f, findViewById(R.id.add_stop_points_fake), findViewById(R.id.destination), findViewById(R.id.ok));
-                break;
-
-            case 3:
-                _showcaseView.hide();
-                setAlpha(1.0f, findViewById(R.id.add_stop_points_fake), findViewById(R.id.destination), findViewById(R.id.ok));
-                break;
-        }
-        counter++;
+    private void writeItineraryNameToSettings(String itineraryName) {
+        String sharedPrefsName = getResources().getString(R.string.shared_prefs);
+        String itineraryNamePrefs = getResources().getString(R.string.itinerary_name_prefs);
+        SharedPreferences settings = getSharedPreferences(sharedPrefsName, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString(itineraryNamePrefs, itineraryName);
+        editor.apply();
     }
 
     private void addViewsInLayoutToArrayList(LinearLayout llayout){
@@ -219,7 +250,225 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_places, menu);
+        MenuItem menuItem = menu.getItem(0);
+        ImageView button = (ImageView) menuItem.getActionView();
+        // just adding some padding to look better
+        float density = this.getResources().getDisplayMetrics().density;
+        int padding = (int)(2 * density);
+        button.setScaleX(0.8f);
+        button.setScaleY(0.8f);
+        button.setPadding(padding,padding,padding,padding);
+        button.setImageDrawable(this.getResources().getDrawable(R.drawable.map_marker_green));
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setUpActionBarMenu();
+            }
+        });
+        if (!_preferences.isDonePlacesTutorial()) {
+            setUpTourGuide(button);
+        }
         return true;
+    }
+
+    private void setUpActionBarMenu(){
+        final int positionOfAutoCompleteTextView = 1;
+        final int positionOfRadioGroupView = 2;
+        LinearLayout linearLayout = addStopPoints();
+        addAutoCompleteTextViewToLinkedList((ClearableAutoCompleteTextView) linearLayout.getChildAt(positionOfAutoCompleteTextView));
+        initializeAutoCompleteTextViews((ClearableAutoCompleteTextView)linearLayout.getChildAt(positionOfAutoCompleteTextView));
+        addRadioGroupToList((RadioGroup)linearLayout.getChildAt(positionOfRadioGroupView));
+        initializeRadioButton((RadioGroup)linearLayout.getChildAt(positionOfRadioGroupView));
+    }
+
+    private void setUpTourGuide(final ImageView imageView){
+        TypefaceTextView origin = (TypefaceTextView)findViewById(R.id.origin);
+        final TypefaceTextView destination = (TypefaceTextView)findViewById(R.id.destination);
+        final RadioButton driveMode = (RadioButton)findViewById(R.id.drive_mode);
+        final RadioButton walkMode = (RadioButton)findViewById(R.id.walk_mode);
+        final RadioButton bikeMode = (RadioButton)findViewById(R.id.bike_mode);
+        final RadioButton transitMode = (RadioButton)findViewById(R.id.transit_mode);
+
+        mTutorialHandler = TourGuide.init(this).with(TourGuide.Technique.Click)
+                .setPointer(new Pointer())
+                .setToolTip(new ToolTip()
+                        .setTitle("Origin")
+                        .setDescription("Give us your starting place")
+                        .setShadow(true)
+                        .setGravity(Gravity.BOTTOM | Gravity.RIGHT)
+                        .setBackgroundColor(getResources().getColor(R.color.indigo_600)))
+                .setOverlay(new Overlay().setEnterAnimation(getEnterAnimation()).setExitAnimation(getExitAnimation()))
+                .playOn(origin);
+        origin.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                mTutorialHandler.cleanUp();
+                mTutorialHandler
+                        .setToolTip(new ToolTip()
+                                .setTitle("Transport Mode")
+                                .setDescription("Give us your preferred mode\nof transport from origin to\nthe next location. Either Drive")
+                                .setGravity(Gravity.RIGHT|Gravity.BOTTOM)
+                                .setShadow(true)
+                                .setBackgroundColor(getResources().getColor(R.color.indigo_600)))
+                        .setOverlay(new Overlay()
+                                .setEnterAnimation(getEnterAnimation())
+                                .setExitAnimation(getExitAnimation())
+                                .setStyle(Overlay.Style.Rectangle))
+                        .playOn(driveMode);
+                view.setOnClickListener(null);
+            }
+        });
+
+        driveMode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mTutorialHandler.cleanUp();
+                mTutorialHandler.setToolTip(new ToolTip()
+                        .setShadow(true)
+                        .setTitle("Transport Mode")
+                        .setDescription("Or walk")
+                        .setBackgroundColor(getResources().getColor(R.color.indigo_600)))
+                        .setOverlay(new Overlay()
+                                .setEnterAnimation(getEnterAnimation())
+                                .setExitAnimation(getExitAnimation())
+                                .setStyle(Overlay.Style.Rectangle))
+                        .playOn(walkMode);
+
+                v.setOnClickListener(null);
+            }
+        });
+
+        walkMode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mTutorialHandler.cleanUp();
+                mTutorialHandler.motionType(TourGuide.MotionType.ClickOnly).setToolTip(new ToolTip()
+                        .setShadow(true)
+                        .setTitle("Transport Mode")
+                        .setDescription("Or cycling")
+                        .setBackgroundColor(getResources().getColor(R.color.indigo_600)))
+                        .setOverlay(new Overlay()
+                                .setEnterAnimation(getEnterAnimation())
+                                .setExitAnimation(getExitAnimation())
+                                .setStyle(Overlay.Style.Rectangle))
+                        .playOn(bikeMode);
+
+                v.setOnClickListener(null);
+            }
+        });
+
+        bikeMode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mTutorialHandler.cleanUp();
+                mTutorialHandler.motionType(TourGuide.MotionType.ClickOnly).setToolTip(new ToolTip()
+                        .setShadow(true)
+                        .setTitle("Transport Mode")
+                        .setGravity(Gravity.LEFT)
+                        .setDescription("Or transit.\n Either train, bus or ferry.\n" +
+                                " We will find the earliest transit so\nyou would have minimal waiting time")
+                        .setBackgroundColor(getResources().getColor(R.color.indigo_600)))
+                        .setOverlay(new Overlay()
+                                .setEnterAnimation(getEnterAnimation())
+                                .setExitAnimation(getExitAnimation())
+                                .setStyle(Overlay.Style.Rectangle))
+                        .playOn(transitMode);
+
+                v.setOnClickListener(null);
+            }
+        });
+
+        transitMode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mTutorialHandler.cleanUp();
+                mTutorialHandler.motionType(TourGuide.MotionType.ClickOnly)
+                        .setToolTip(new ToolTip()
+                                .setShadow(true)
+                                .setTitle("Destination")
+                                .setDescription("Give us your last stop of your journey")
+                                .setGravity(Gravity.RIGHT)
+                                .setBackgroundColor(getResources().getColor(R.color.indigo_600)))
+                        .setOverlay(new Overlay()
+                                .setEnterAnimation(getEnterAnimation())
+                                .setExitAnimation(getExitAnimation())
+                                .setStyle(Overlay.Style.Rectangle))
+                        .playOn(destination);
+
+                v.setOnClickListener(null);
+            }
+        });
+
+        destination.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                mTutorialHandler.cleanUp();
+                mTutorialHandler.motionType(TourGuide.MotionType.ClickOnly)
+                        .setToolTip(new ToolTip()
+                                .setShadow(true)
+                                .setTitle("Stop Point")
+                                .setDescription("Click to add locations between origin and destination")
+                                .setGravity(Gravity.BOTTOM)
+                                .setBackgroundColor(getResources().getColor(R.color.indigo_600)))
+                        .setOverlay(new Overlay()
+                                .setEnterAnimation(getEnterAnimation())
+                                .setExitAnimation(getExitAnimation()))
+                        .playOn(imageView);
+                view.setOnClickListener(null);
+            }
+        });
+
+        imageView.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                mTutorialHandler.cleanUp();
+                setUpActionBarMenu();
+                TypefaceTextView stopPoint = (TypefaceTextView)findViewById(R.id.add_point);
+                if(!isAlreadyDoTutorial()) {
+                    mTutorialHandler.setToolTip(new ToolTip()
+                            .setTitle("Stop Point")
+                            .setDescription("Give us locations between origin and destination")
+                            .setGravity(Gravity.RIGHT)
+                            .setBackgroundColor(getResources().getColor(R.color.indigo_600)))
+                            .setOverlay(new Overlay()
+                                    .setEnterAnimation(getEnterAnimation())
+                                    .setExitAnimation(getExitAnimation())
+                                    .setStyle(Overlay.Style.Rectangle))
+                            .playOn(stopPoint);
+                    stopPoint.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            mTutorialHandler.cleanUp();
+                            v.setOnClickListener(null);
+                            checkAlreadyDoTutorial();
+                        }
+                    });
+                }
+            }
+        });
+        _preferences.setDonePlacesTutorial();
+    }
+
+    private boolean isAlreadyDoTutorial(){
+        return isAlreadyDoTutorial;
+    }
+
+    private void checkAlreadyDoTutorial() {
+        isAlreadyDoTutorial = true;
+    }
+
+    private Animation getEnterAnimation(){
+        Animation enterAnimation = new AlphaAnimation(0f, 0.5f);
+        enterAnimation.setDuration(600);
+        enterAnimation.setFillAfter(true);
+        return enterAnimation;
+    }
+
+    private Animation getExitAnimation(){
+        Animation exitAnimation = new AlphaAnimation(0.5f, 0f);
+        exitAnimation.setDuration(600);
+        exitAnimation.setFillAfter(true);
+        return exitAnimation;
     }
 
     @Override
@@ -228,13 +477,13 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
             case R.id.action_settings:
                 return true;
             case R.id.action_add_stops:
-                final int positionOfAutoCompleteTextView = 1;
-                final int positionOfRadioGroupView = 2;
-                LinearLayout linearLayout = addStopPoints();
-                addAutoCompleteTextViewToLinkedList((ClearableAutoCompleteTextView) linearLayout.getChildAt(positionOfAutoCompleteTextView));
-                initializeAutoCompleteTextViews((ClearableAutoCompleteTextView)linearLayout.getChildAt(positionOfAutoCompleteTextView));
-                addRadioGroupToList((RadioGroup)linearLayout.getChildAt(positionOfRadioGroupView));
-                initializeRadioButton((RadioGroup)linearLayout.getChildAt(positionOfRadioGroupView));
+                return true;
+            case R.id.save:
+                // May be a race condition here
+                _loadAndSaveItineraryHelper.showSaveDialogue();
+                return true;
+            case R.id.load:
+                _loadAndSaveItineraryHelper.showLoadDialogue();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -333,7 +582,6 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         new GeoCode(_autoCompleteTextViewLinkedList, _transportModeViewList, this).execute();
     }
 
-
     private void mergeDateAndTimeToDateTime(){
         if (_dateStartJourney == null)
             _dateStartJourney = _dateFormat.format(new Date());
@@ -366,5 +614,31 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     protected void createToast(String name, int duration){
         Toast.makeText(this, name, duration).show();
+    }
+
+    /**
+     * Called when itinerary is loaded so that the text fields reflect the stop points.
+     */
+    public void updateFieldsFromItinerary(List<UserItem> items) {
+        View mainActivityLayout = findViewById(R.id.place_activity_layout); // Will this be null?
+        ClearableAutoCompleteTextView originTextField =
+                (ClearableAutoCompleteTextView) mainActivityLayout.findViewById(R.id.autocomplete_origin);
+        ClearableAutoCompleteTextView destinationTextField =
+                (ClearableAutoCompleteTextView) mainActivityLayout.findViewById(R.id.autocomplete_destination);
+
+        // Set origin and destination text from the first and last items in the list
+        int nItems = items.size();
+        UserItem origin = items.get(0);
+        UserItem destination = items.get(nItems - 1);
+        originTextField.setText(origin.getName());
+        destinationTextField.setText(destination.getName());
+
+        // Go through the rest of the list, adding 'stop point' views for each item
+        for (int i=1; i<nItems-1; i++) {
+            LinearLayout stopPointLayout = addStopPoints(); // Layout with an empty text field
+            ClearableAutoCompleteTextView stopPointNameView = (ClearableAutoCompleteTextView)
+                    stopPointLayout.findViewById(R.id.stop_point_name);
+            stopPointNameView.setText(items.get(i).getName());
+        }
     }
 }

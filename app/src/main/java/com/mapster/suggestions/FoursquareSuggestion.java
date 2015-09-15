@@ -3,7 +3,7 @@ package com.mapster.suggestions;
 import android.content.Context;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.mapster.foursquare.FoursquareVenue;
+import com.mapster.api.foursquare.FoursquareVenue;
 import com.mapster.priceestimation.MealPriceEstimate;
 
 /**
@@ -38,14 +38,29 @@ public class FoursquareSuggestion extends Suggestion {
     }
 
     @Override
+    public String getWebsite() {
+        return _venue.getWebsite();
+    }
+
+    @Override
+    public String getPhoneNumber() {
+        return _venue.getPhoneNumber();
+    }
+
+    @Override
     public void requestSuggestionInfo(Context context) {
         // Not necessary at the moment (don't need more detailed information)
     }
 
     @Override
+    public String getCurrencySymbol() {
+        return _priceEstimator.getCurrencySymbol(_venue.getCountryCode());
+    }
+
+    @Override
     public String getInfoWindowString() {
         String info = _venue.toString();
-        info += String.format("\n~$%.2f per person", getCostPerPerson());
+        info += String.format("\n~%s%.2f per person", getCurrencySymbol(), getCostPerPerson());
         return info;
     }
 

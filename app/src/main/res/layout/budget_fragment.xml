@@ -5,21 +5,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/indigo_50">
+    android:background="@color/white">
 
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/budget_layout"
-        android:background="@color/indigo_50">
+        android:id="@+id/budget_layout">
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:paddingBottom="1dp"
             android:paddingTop="1dp"
-            android:layout_height="wrap_content"
-            android:background="@color/indigo_50">
+            android:layout_height="wrap_content">
             <TextView
                 android:paddingRight="2dp"
                 android:paddingLeft="2dp"
@@ -61,21 +59,18 @@
         android:layout_width="wrap_content"
         android:orientation="vertical">
         <TextView
-            android:background="@android:color/darker_gray"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingLeft="10dp"
             android:paddingBottom="3dp"
             android:paddingTop="3dp"
             android:textAllCaps="true"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"
+            android:textColor="#287AA9"
             android:text="@string/total"/>
         <ListView
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
-            android:id="@+id/budget_totals_list"
-            android:background="@color/indigo_50">
+            android:id="@+id/budget_totals_list">
             <!-- List will contain totals for each currency/country -->
         </ListView>
     </LinearLayout>

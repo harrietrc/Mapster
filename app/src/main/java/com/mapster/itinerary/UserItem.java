@@ -45,7 +45,7 @@ public class UserItem extends ItineraryItem implements Parcelable {
         _latitude = source.readDouble();
         _longitude = source.readDouble();
         _travelMode = source.readString();
-        _suggestionItems = new ArrayList<>();
+        _suggestionItems = new LinkedList<>();
     }
 
     public void removeSuggestionItem(SuggestionItem item) {
@@ -66,6 +66,7 @@ public class UserItem extends ItineraryItem implements Parcelable {
         return _name;
     }
 
+    @Override
     public LatLng getLocation() {
         return new LatLng(_latitude, _longitude);
     }

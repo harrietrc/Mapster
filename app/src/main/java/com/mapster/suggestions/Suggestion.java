@@ -24,6 +24,10 @@ public abstract class Suggestion {
 
     public abstract String getCurrencyCode();
 
+    public abstract String getWebsite();
+
+    public abstract String getPhoneNumber();
+
     /**
      * Returns the currency symbol that corresponds to the currency code, if it is non-null and
      * valid

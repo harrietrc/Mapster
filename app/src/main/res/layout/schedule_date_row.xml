@@ -9,8 +9,8 @@
         android:paddingLeft="10dp"
         android:paddingBottom="3dp"
         android:paddingTop="3dp"
-        android:textColor="@android:color/black"
         android:textAllCaps="true"
+        android:textColor="#287AA9"
         android:textSize="15sp"
         android:ellipsize="end"
         android:id="@+id/date"/>

@@ -1,5 +1,6 @@
 package com.mapster.itinerary;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.mapster.itinerary.utils.ItineraryItemTimeComparator;
 
 import org.joda.time.DateTime;
@@ -58,9 +59,23 @@ public abstract class ItineraryItem implements Comparable<ItineraryItem> {
         }
     }
 
+    /**
+     * Extracts time values from the DateTime object, essentially to simplify serialisation.
+     * @param time A date and time for the item. Not all properties are necessarily non-null
+     */
+    public void setDateTime(DateTime time) {
+        _year = time.getYear();
+        _month = time.getMonthOfYear();
+        _day = time.getDayOfMonth();
+        _hour = time.getHourOfDay();
+        _minute = time.getMinuteOfHour();
+    }
+
     public long getId() {
         return _id;
     }
 
     public abstract String getName();
+
+    public abstract LatLng getLocation();
 }

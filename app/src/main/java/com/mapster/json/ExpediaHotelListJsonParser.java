@@ -1,7 +1,7 @@
 package com.mapster.json;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.mapster.expedia.ExpediaHotel;
+import com.mapster.api.expedia.ExpediaHotel;
 
 import org.json.JSONArray;
 import org.json.JSONException;

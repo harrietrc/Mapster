@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/actionbar"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <ImageButton
+        android:id="@+id/filter"
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:layout_gravity="left"
+        android:scaleY="0.5"
+        android:scaleX="0.7"
+        android:paddingRight="0dp"
+        android:paddingLeft="0dp"
+        android:layout_marginRight="0dp"
+        android:layout_marginLeft="0dp"
+        android:background="@drawable/filter"/>
+
+    <ImageButton
+        android:id="@+id/clear"
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:layout_gravity="left"
+        android:paddingRight="0dp"
+        android:paddingLeft="0dp"
+        android:scaleY="0.8"
+        android:scaleX="0.7"
+        android:layout_marginRight="0dp"
+        android:layout_marginLeft="0dp"
+        android:background="@drawable/sweep"/>
+
+    <ImageButton
+        android:id="@+id/budget"
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:layout_gravity="left"
+        android:paddingRight="0dp"
+        android:paddingLeft="0dp"
+        android:layout_marginRight="0dp"
+        android:layout_marginLeft="0dp"
+        android:scaleY="0.55"
+        android:scaleX="0.9"
+        android:background="@drawable/itinerary"/>
+</LinearLayout>

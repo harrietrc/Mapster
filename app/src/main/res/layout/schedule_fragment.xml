@@ -4,12 +4,12 @@
     android:id="@+id/schedule_fragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/white">
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/schedule_layout"
-        android:background="@color/indigo_50">
+        android:id="@+id/schedule_layout">
     </LinearLayout>
 </LinearLayout>

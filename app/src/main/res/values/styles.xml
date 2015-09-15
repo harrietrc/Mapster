@@ -44,4 +44,5 @@
         <item name="android:state_pressed">@color/indigo_300</item>
         <item name="android:state_active">@color/indigo_300</item>
     </style>
+
 </resources>

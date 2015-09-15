@@ -58,11 +58,28 @@ public class JSONParser {
             for (int i = 0; i < jRoutes.length(); i++) {
                 jLegs = ((JSONObject) jRoutes.get(i)).getJSONArray("legs");
                 List<HashMap<String, String>> path = new ArrayList<HashMap<String, String>>();
+
+                // Date/time of the start of the journey - added to with each leg
+                CustomDate currentDate = new CustomDate(mapInformation.getStartDate().getDateTime());
+
                 /** Traversing all legs */
                 for (int j = 0; j < jLegs.length(); j++) {
                     parseTotalDistance(jLegs.getJSONObject(j), "distance");
-                    jSteps = ((JSONObject) jLegs.get(j)).getJSONArray("steps");
+                    JSONObject jLeg = (JSONObject) jLegs.get(j);
+                    jSteps = jLeg.getJSONArray("steps");
                     boolean isGetDuration = false;
+
+                    // Add the leg duration to the date/time and copy it to the map data
+                    if (jLeg.has("duration") && !jLeg.isNull("duration")) {
+                        JSONObject jLegDuration = jLeg.getJSONObject("duration");
+                        if (jLegDuration.has("value") && !jLegDuration.isNull("value")) {
+                            // Google returns durations in seconds
+                            int duration = jLegDuration.getInt("value");
+                            currentDate.addSeconds(duration);
+                            // Copy the updated date/time to the list of times for the journey waypoints
+                            mapInformation.addDate(new CustomDate(currentDate.getDateTime()));
+                        }
+                    }
 
                     /** Traversing all steps */
                     for (int k = 0; k < jSteps.length(); k++) {

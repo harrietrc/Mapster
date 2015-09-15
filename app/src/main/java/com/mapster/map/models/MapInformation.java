@@ -22,6 +22,9 @@ public class MapInformation{
     private List<CustomDate> _timeReachEachLocation;
     private CustomDate _dateToCalculate;
 
+    // List of dates/times for all waypoints
+    private List<CustomDate> _dates;
+
     public MapInformation(CustomDate date){
         _paths = new ArrayList<>();
         _routes = new ArrayList<>();
@@ -29,6 +32,22 @@ public class MapInformation{
         _totalDistance = new Distance();
         _date = new CustomDate(date.toString());
         _dateToCalculate = new CustomDate(date.toString());
+
+        // TODO Don't need both _dates and _dates, but just getting this working first
+        _dates = new ArrayList<>();
+        _dates.add(new CustomDate(date.getDateTime())); // Constructor call to break reference to _date obj
+    }
+
+    public CustomDate getStartDate() {
+        return _dates.get(0);
+    }
+
+    public List<CustomDate> getDates() {
+        return _dates;
+    }
+
+    public void addDate(CustomDate date) {
+        _dates.add(date);
     }
 
     public void setStatus(StatusCode code){
