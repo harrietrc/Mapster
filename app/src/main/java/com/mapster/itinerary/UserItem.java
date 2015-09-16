@@ -53,6 +53,10 @@ public class UserItem extends ItineraryItem implements Parcelable {
             item.setIsInItinerary(false);
     }
 
+    public void setTravelMode(String mode){
+        _travelMode = mode;
+    }
+
     public List<SuggestionItem> getSuggestionItems() {
         return _suggestionItems;
     }
