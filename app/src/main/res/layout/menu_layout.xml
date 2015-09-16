@@ -19,7 +19,7 @@
         android:background="@drawable/filter"/>
 
     <ImageButton
-        android:id="@+id/clear"
+        android:id="@+id/clear_suggestions"
         android:layout_width="wrap_content"
         android:layout_height="fill_parent"
         android:layout_gravity="left"

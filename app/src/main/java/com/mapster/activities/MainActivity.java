@@ -921,6 +921,15 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                 item.setTitle(R.string.action_hide);
             }
         }
+
+        // TODO Shouldn't we use IDs rather than relying on order in the layout? Pretty fragile
+        clear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClearClick(v);
+            }
+        });
+
         return true;
     }
 

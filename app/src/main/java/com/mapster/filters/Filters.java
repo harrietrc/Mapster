@@ -35,16 +35,6 @@ public class Filters {
         // Adapter to allow expandable list behaviour
         _adapter = new ExpandableFilterListAdapter(context, _filterTitles, _filterOptions);
         _filterList.setAdapter(_adapter);
-
-        _filterList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
-            // TODO There might be a more appropriate place to put this
-            @Override
-            public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
-                if (groupPosition == (_adapter.getGroupCount()-1))
-                    ((MainActivity) context).onClearClick(v);
-                return false;
-            }
-        });
     }
 
     public void refreshFilterRadioButtons() {
@@ -84,7 +74,6 @@ public class Filters {
         // Filter names
         _filterTitles.add("Category");
         _filterTitles.add("Price level");
-        _filterTitles.add("Clear suggestions");
 
         // Filter options - category
         List<String> categories = new ArrayList<>();
@@ -101,6 +90,5 @@ public class Filters {
         // Associate filter titles with filter options
         _filterOptions.put(_filterTitles.get(0), categories);
         _filterOptions.put(_filterTitles.get(1), priceLevels);
-        _filterOptions.put(_filterTitles.get(2), new ArrayList<String>());
     }
 }
