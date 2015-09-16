@@ -120,15 +120,18 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                 DateTime time = item.getTime();
                 if (time != null)
                     existingItem.setDateTime(time);
+                String modeTransport = item.getTravelMode();
+                if (modeTransport != null && !modeTransport.equals(existingItem.getTravelMode())){
+                    existingItem.setTravelMode(modeTransport);
+                }
                 updatedItems.add(existingItem);
             } else {
                 updatedItems.add(item);
             }
         }
-
         return updatedItems;
     }
-
+    
     @Override
     protected void onPause() {
         _itineraryDataSource.close();
