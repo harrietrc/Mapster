@@ -23,7 +23,6 @@ import com.mapster.itinerary.UserItem;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by Harriet on 9/08/2015. Access this to display save/load itinerary dialogues (which also
@@ -40,8 +39,6 @@ public class LoadAndSaveHelper {
     // after the user chooses an itinerary name.
     LinkedList<ClearableAutoCompleteTextView> _autoCompleteTextViews;
     List<RadioGroup> _transportModes;
-
-    private String _selectedItineraryName; // Non-null when user selects an itinerary to load
 
     public LoadAndSaveHelper(Context context, LayoutInflater inflater, ItineraryDataSource datasource,
                              LinkedList<ClearableAutoCompleteTextView> autoCompleteTextViewLinkedList,
@@ -104,8 +101,6 @@ public class LoadAndSaveHelper {
     }
 
     public void showLoadDialogue() {
-        _selectedItineraryName = null;
-
         AlertDialog.Builder builder = new AlertDialog.Builder(_context);
         builder.setTitle(R.string.load_itinerary);
         builder.setCancelable(true);
@@ -116,24 +111,18 @@ public class LoadAndSaveHelper {
         builder.setView(content);
         ListView loadList = (ListView) l.findViewById(R.id.saved_itinerary_list);
 
-        builder.setPositiveButton(R.string.load, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                loadItinerary();
-            }
-        });
+        AlertDialog loadDialogue = builder.create();
 
         // Get itinerary names from the database and update the list view
-        loadItineraryList(loadList);
+        loadItineraryList(loadList, loadDialogue);
 
-        AlertDialog loadDialogue = builder.create();
         loadDialogue.show();
     }
 
     /**
      * Loads up a list of itinerary names from the database into the provided ListView
      */
-    private void loadItineraryList(final ListView listView) {
+    private void loadItineraryList(final ListView listView, final AlertDialog dialogueToDismiss) {
         List<String> itineraryNames = _datasource.getAllNames();
         ArrayAdapter<String> listAdapter = new ArrayAdapter<>(_context,
                 android.R.layout.simple_list_item_1, itineraryNames);
@@ -141,29 +130,26 @@ public class LoadAndSaveHelper {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                _selectedItineraryName = (String) listView.getItemAtPosition(position);
-                view.setSelected(true);
+                String itineraryName = (String) listView.getItemAtPosition(position);
+                loadItinerary(itineraryName);
+                dialogueToDismiss.dismiss();
             }
         });
     }
 
-    private void loadItinerary() {
-        List<ItineraryItem> itineraryItems;
+    private void loadItinerary(String itineraryName) {
+        List<ItineraryItem> itineraryItems = _datasource.getItemsByItineraryName(itineraryName);
 
-        if (_selectedItineraryName != null) {
-            itineraryItems = _datasource.getItemsByItineraryName(_selectedItineraryName);
+        // TODO Might want to change the DB to only store UserItems so this isn't necessary
+        ArrayList<UserItem> userItems = new ArrayList<>();
+        for (ItineraryItem item : itineraryItems)
+            userItems.add((UserItem) item);
 
-            // TODO Might want to change the DB to only store UserItems so this isn't necessary
-            ArrayList<UserItem> userItems = new ArrayList<>();
-            for (ItineraryItem item : itineraryItems)
-                userItems.add((UserItem) item);
+        // Update itinerary name
+        writeItineraryNameToSettings(itineraryName);
 
-            // Update itinerary name
-            writeItineraryNameToSettings(_selectedItineraryName);
-
-            ((PlacesActivity) _context).updateFieldsFromItinerary(userItems); // Updates the UI
-            ((PlacesActivity) _context).callback(userItems);
-        }
+        ((PlacesActivity) _context).updateFieldsFromItinerary(userItems); // Updates the UI
+        ((PlacesActivity) _context).callback(userItems);
     }
 
     // TODO Duplicated from ItineraryActivity - refactor.
