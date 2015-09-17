@@ -15,7 +15,8 @@ import java.util.Currency;
 public abstract class Suggestion {
     protected transient Marker _marker;
     protected boolean _isClicked;
-    protected SuggestionItem _item; // These references are getting messy
+
+    protected transient SuggestionItem _item; // These references are getting messy
 
     // Budgeting
     protected String _currencySymbol;

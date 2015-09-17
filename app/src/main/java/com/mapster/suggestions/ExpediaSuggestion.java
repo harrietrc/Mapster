@@ -36,7 +36,9 @@ public class ExpediaSuggestion extends Suggestion {
 
     @Override
     public String getCurrencyCode() {
-        String countryCode = getItem().getCountryCode();
+        String countryCode = "NZ";
+        if (getItem() != null)
+            countryCode = getItem().getCountryCode();
         Locale locale = new Locale("", countryCode);
         Currency currency = Currency.getInstance(locale);
         String currencyCode = currency.getCurrencyCode();
