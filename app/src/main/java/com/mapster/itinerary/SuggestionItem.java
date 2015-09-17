@@ -18,6 +18,8 @@ public class SuggestionItem extends ItineraryItem {
     private Double _actualCost; // Entered by the user
     private boolean _isInItinerary;
 
+    private String _countryCode;
+
     // The user-defined place this suggestion is associated with. Could move to Suggestion?
     // This means that there is a bidirectional aggregation relationship between every UserItem
     // object and the SuggestionItems associated with it - which does not seem brilliant.
