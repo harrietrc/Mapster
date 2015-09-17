@@ -142,7 +142,7 @@ public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
                 }
 
                 // Create a parcelable representation of the user-defined destination
-                UserItem item = new UserItem(placeName, location, transportMode, countryCode);
+                UserItem item = new UserItem(placeName, location, transportMode, countryCode, text);
                 userItemList.add(item);
                 position++;
             }

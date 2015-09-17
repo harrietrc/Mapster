@@ -641,8 +641,8 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         int nItems = items.size();
         UserItem origin = items.get(0);
         UserItem destination = items.get(nItems - 1);
-        originTextField.setText(origin.getName());
-        destinationTextField.setText(destination.getName());
+        originTextField.setText(origin.getFullAddress());
+        destinationTextField.setText(destination.getFullAddress());
 
         // Go through the rest of the list, adding 'stop point' views for each item
         for (int i=1; i<nItems-1; i++) {
@@ -654,7 +654,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
             initializeAutoCompleteTextViews((ClearableAutoCompleteTextView)stopPointLayout.getChildAt(i));
             addRadioGroupToList((RadioGroup)stopPointLayout.getChildAt(positionOfRadioGroupView));
             initializeRadioButton((RadioGroup)stopPointLayout.getChildAt(positionOfRadioGroupView));
-            stopPointNameView.setText(items.get(i).getName());
+            stopPointNameView.setText(items.get(i).getFullAddress());
         }
     }
 
