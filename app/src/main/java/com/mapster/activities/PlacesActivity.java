@@ -280,8 +280,9 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     }
 
     private void setUpActionBarMenu(){
-        final int positionOfAutoCompleteTextView = 1;
+
         final int positionOfRadioGroupView = 2;
+        final int positionOfAutoCompleteTextView = 1;
         LinearLayout linearLayout = addStopPoints();
         addAutoCompleteTextViewToLinkedList((ClearableAutoCompleteTextView) linearLayout.getChildAt(positionOfAutoCompleteTextView));
         initializeAutoCompleteTextViews((ClearableAutoCompleteTextView)linearLayout.getChildAt(positionOfAutoCompleteTextView));
@@ -551,7 +552,6 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                 (ClearableAutoCompleteTextView) findViewById(R.id.autocomplete_origin);
         ClearableAutoCompleteTextView destinationInLayout =
                 (ClearableAutoCompleteTextView) findViewById(R.id.autocomplete_destination);
-        assertTrue(originInLayout.equals(originInList) && destinationInLayout.equals(destinationInList));
         if(originInList.getText().toString().isEmpty()
                 || destinationInLayout.getText().toString().isEmpty()){
             return false;
@@ -629,6 +629,9 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
      */
     public void updateFieldsFromItinerary(List<UserItem> items) {
         View mainActivityLayout = findViewById(R.id.place_activity_layout); // Will this be null?
+        addViewsInLayoutToArrayList((LinearLayout) findViewById(R.id.place_activity_layout));
+        initializeAutoCompleteTextViewInArrayList();
+        initializeRadioButton(_transportModeViewList.get(0));
         ClearableAutoCompleteTextView originTextField =
                 (ClearableAutoCompleteTextView) mainActivityLayout.findViewById(R.id.autocomplete_origin);
         ClearableAutoCompleteTextView destinationTextField =
@@ -643,10 +646,23 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
         // Go through the rest of the list, adding 'stop point' views for each item
         for (int i=1; i<nItems-1; i++) {
+            final int positionOfRadioGroupView = 2;
             LinearLayout stopPointLayout = addStopPoints(); // Layout with an empty text field
             ClearableAutoCompleteTextView stopPointNameView = (ClearableAutoCompleteTextView)
                     stopPointLayout.findViewById(R.id.stop_point_name);
+            addAutoCompleteTextViewToLinkedList((ClearableAutoCompleteTextView) stopPointLayout.getChildAt(i));
+            initializeAutoCompleteTextViews((ClearableAutoCompleteTextView)stopPointLayout.getChildAt(i));
+            addRadioGroupToList((RadioGroup)stopPointLayout.getChildAt(positionOfRadioGroupView));
+            initializeRadioButton((RadioGroup)stopPointLayout.getChildAt(positionOfRadioGroupView));
             stopPointNameView.setText(items.get(i).getName());
         }
     }
+
+//    final int positionOfAutoCompleteTextView = 1;
+//    final int positionOfRadioGroupView = 2;
+//    LinearLayout linearLayout = addStopPoints();
+//    addAutoCompleteTextViewToLinkedList((ClearableAutoCompleteTextView) linearLayout.getChildAt(positionOfAutoCompleteTextView));
+//    initializeAutoCompleteTextViews((ClearableAutoCompleteTextView)linearLayout.getChildAt(positionOfAutoCompleteTextView));
+//    addRadioGroupToList((RadioGroup)linearLayout.getChildAt(positionOfRadioGroupView));
+//    initializeRadioButton((RadioGroup)linearLayout.getChildAt(positionOfRadioGroupView));
 }
