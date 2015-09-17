@@ -15,56 +15,68 @@ public class AppPreferences {
     public static final String PLACES_TUTORIAL = "PlacesTutorial";
     public static final String ITINERARY_TUTORIAL = "ItineraryTutorial";
 
-    private SharedPreferences mShared;
-    private SharedPreferences.Editor prefEditor;
+    public static final String USER_CURRENCY = "UserCurrency";
+    // TODO I should move my other ones in here too
+
+    private SharedPreferences _shared;
+    private SharedPreferences.Editor _prefEditor;
 
     public AppPreferences(Context context) {
-        this.mShared = context.getSharedPreferences(TUTORIAL_PREFERENCES, Activity.MODE_PRIVATE);
-        this.prefEditor = mShared.edit();
+        _shared = context.getSharedPreferences(TUTORIAL_PREFERENCES, Activity.MODE_PRIVATE);
+        _prefEditor = _shared.edit();
+    }
+
+    public String getUserCurrency() {
+        return _shared.getString(USER_CURRENCY, "NZD");
     }
 
     public boolean isDoneInstructionTutorial(){
-        return mShared.getBoolean(INSTRUCTION_TUTORIAL, false);
+        return _shared.getBoolean(INSTRUCTION_TUTORIAL, false);
     }
 
     public boolean isDoneSuggestionTutorial(){
-        return mShared.getBoolean(SUGGESTION_TUTORIAL, false);
+        return _shared.getBoolean(SUGGESTION_TUTORIAL, false);
     }
 
     public boolean isDoneActionBarMainTutorial(){
-        return mShared.getBoolean(ACTION_BAR_MAIN_TUTORIAL, false);
+        return _shared.getBoolean(ACTION_BAR_MAIN_TUTORIAL, false);
     }
 
     public boolean isDonePlacesTutorial(){
-        return mShared.getBoolean(PLACES_TUTORIAL, false);
+        return _shared.getBoolean(PLACES_TUTORIAL, false);
     }
 
     public boolean isDoneItineraryTutorial() {
-        return mShared.getBoolean(ITINERARY_TUTORIAL, false);
+        return _shared.getBoolean(ITINERARY_TUTORIAL, false);
     }
 
     public void setDoneInstructionTutorial(){
-        prefEditor.putBoolean(INSTRUCTION_TUTORIAL, true);
-        prefEditor.commit();
+        _prefEditor.putBoolean(INSTRUCTION_TUTORIAL, true);
+        _prefEditor.commit();
     }
 
     public void setDoneSuggestionTutorial(){
-        prefEditor.putBoolean(SUGGESTION_TUTORIAL, true);
-        prefEditor.commit();
+        _prefEditor.putBoolean(SUGGESTION_TUTORIAL, true);
+        _prefEditor.commit();
     }
 
     public void setDoneActionBarMainTutorial(){
-        prefEditor.putBoolean(ACTION_BAR_MAIN_TUTORIAL, true);
-        prefEditor.commit();
+        _prefEditor.putBoolean(ACTION_BAR_MAIN_TUTORIAL, true);
+        _prefEditor.commit();
     }
 
     public void setDonePlacesTutorial(){
-        prefEditor.putBoolean(PLACES_TUTORIAL, true);
-        prefEditor.commit();
+        _prefEditor.putBoolean(PLACES_TUTORIAL, true);
+        _prefEditor.commit();
     }
 
     public void setDoneItineraryTutorial(){
-        prefEditor.putBoolean(ITINERARY_TUTORIAL, true);
-        prefEditor.commit();
+        _prefEditor.putBoolean(ITINERARY_TUTORIAL, true);
+        _prefEditor.commit();
+    }
+
+    public void setUserCurrency(String userCurrency) {
+        _prefEditor.putString(USER_CURRENCY, userCurrency);
+        _prefEditor.commit();
     }
 }

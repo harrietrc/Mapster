@@ -11,6 +11,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 import com.mapster.R;
 import com.mapster.activities.MainActivity;
+import com.mapster.api.fixerio.FixerIoRateTask;
+import com.mapster.apppreferences.AppPreferences;
 import com.mapster.infowindow.dialogues.SuggestionDateDialogue;
 import com.mapster.infowindow.dialogues.SuggestionOptionsDialogue;
 import com.mapster.infowindow.dialogues.SuggestionTimeDialogue;
@@ -18,6 +20,8 @@ import com.mapster.itinerary.SuggestionItem;
 import com.mapster.suggestions.Suggestion;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
+
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by Harriet on 5/24/2015.
@@ -52,6 +56,21 @@ public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
         // Ignore all this if the marker is user-defined
         if (item == null)
             return;
+
+        // TEST CODE PLEASE IGNORE
+        // Test for currency conversion
+        AppPreferences prefs = new AppPreferences(_activity);
+        String userCurrency = prefs.getUserCurrency();
+        String suggestionCurrency = item.getCurrencyCode();
+        FixerIoRateTask task = new FixerIoRateTask(10, userCurrency, suggestionCurrency, null);
+        double converted = 0;
+        try {
+            converted = task.execute().get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
 
         // Create the chain of dialogues that is initiated when the user adds an item to the itinerary
         // Not really sure whether this should go here or in the dialogue class itself

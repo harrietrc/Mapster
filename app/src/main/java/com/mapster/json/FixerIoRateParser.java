@@ -1,6 +1,5 @@
 package com.mapster.json;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -9,10 +8,24 @@ import org.json.JSONObject;
  */
 public class FixerIoRateParser {
 
-    public double getRate(JSONObject rateData) throws JSONException {
-        JSONArray rates = rateData.getJSONArray("rates");
-        double toRate = rates.getDouble(1);
-        double fromRate = rates.getDouble(0);
+    public double getRate(JSONObject rateData, String fromCurrencyCode, String toCurrencyCode) throws JSONException {
+        JSONObject rates = rateData.getJSONObject("rates");
+
+        // These rates may not exist if one of the currencies is Fixer.io's base currency (EUR)
+        double toRate, fromRate;
+
+        if (rates.has(toCurrencyCode)) {
+            toRate = rates.getDouble(toCurrencyCode);
+        } else {
+            toRate = 1;
+        }
+
+        if (rates.has(fromCurrencyCode)) {
+            fromRate = rates.getDouble(fromCurrencyCode);
+        } else {
+            fromRate = 1;
+        }
+
         return  toRate / fromRate;
     }
 }

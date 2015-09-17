@@ -43,7 +43,7 @@ public class FixerIoRateTask extends AsyncTask<Void, Void, Double> {
         // Extract the conversion rate from the JSON
         try {
             JSONObject jsonResponse = new JSONObject(response);
-            rate = parser.getRate(jsonResponse);
+            rate = parser.getRate(jsonResponse, _fromCurrencyCode, _toCurrencyCode);
         } catch (JSONException e) {
             rate = DEFAULT_CURRENCY_RATE;
         }

@@ -50,22 +50,18 @@ import org.joda.time.LocalTime;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import tourguide.tourguide.Overlay;
 import tourguide.tourguide.Pointer;
 import tourguide.tourguide.ToolTip;
 import tourguide.tourguide.TourGuide;
 
-import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 
 public class PlacesActivity extends ActionBarActivity implements OnItemClickListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener, GeoCodeListener {
@@ -184,7 +180,6 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         _autoCompleteTextViewLinkedList = new LinkedList<>();
         _transportModeViewList = new ArrayList<>();
         _autoCompAdapter = new PlacesAutoCompleteAdapter(this, R.layout.list_item);
