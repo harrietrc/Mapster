@@ -12,7 +12,7 @@
     <string name="action_show">Show Panel</string>
     <string name="action_anchor_enable">Enable Anchor Point</string>
     <string name="action_anchor_disable">Disable Anchor Point</string>
-    <!--<string name="API_KEY">AIzaSyBM7NSP59Z4Lhfk975jtoMR2O1g4BPTos4</string>-->
+    <string name="API_KEY">AIzaSyBM7NSP59Z4Lhfk975jtoMR2O1g4BPTos4</string>
     <!--<string name="API_KEY">AIzaSyDGbryAn8AT_UliJQk6OnCQ0b-CMLJhNFw</string>-->
 
     <!-- Alternative API Key - use if we reach the request limit (or use the one commented out above) -->
@@ -20,7 +20,7 @@
     <!--<string name="API_KEY">AIzaSyAh-GF9VWptgEAzMjr7drnNMCRHOHM0Lps</string>-->
 
     <!-- Third account: mapsterv2@gmail.com password: mappy123 -->
-    <string name="API_KEY">AIzaSyAsAoeJ4krpDFlz5_W9pjyUVCmjR90Nbi0</string>
+    <!--<string name="API_KEY">AIzaSyAsAoeJ4krpDFlz5_W9pjyUVCmjR90Nbi0</string>-->
 
     <string name="yes">Yes</string>
     <string name="no">No</string>

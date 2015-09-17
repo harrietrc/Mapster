@@ -52,7 +52,7 @@ public class FoursquareSuggestion extends Suggestion {
 
     @Override
     public String getPriceString(Context context) {
-        return String.format("\n~%s%.2f per person", getCurrencySymbol(), getCostPerPerson());
+        return String.format("~%s%.2f per person", getCurrencySymbol(), getCostPerPerson());
     }
 
     @Override

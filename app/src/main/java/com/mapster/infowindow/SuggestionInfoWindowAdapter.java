@@ -1,9 +1,13 @@
 package com.mapster.infowindow;
 
 import android.app.Activity;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
@@ -141,7 +145,8 @@ public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
 
                 // Asynchronously convert the cost
                 // TODO Not a fan of having this method in the superclass
-                if (localCost.getText().equals("") && !userCurrency.equals(localCurrency))
+                String localCostText = localCost.getText().toString();
+                if (localCostText.equals("") && !userCurrency.equals(localCurrency))
                     suggestion.convertCost(userCurrency, localCurrency, localCost, marker);
             }
         }
