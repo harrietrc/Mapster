@@ -37,6 +37,9 @@ public class UserItem extends ItineraryItem implements Parcelable {
         _travelMode = travelMode;
         // Linked list to speed up removals a little
         _suggestionItems = new LinkedList<>();
+
+        if (countryCode == null)
+            throw new IllegalArgumentException("Something is up with GeoCode - no country code.");
         _countryCode = countryCode;
     }
 
@@ -48,6 +51,16 @@ public class UserItem extends ItineraryItem implements Parcelable {
         _longitude = source.readDouble();
         _travelMode = source.readString();
         _suggestionItems = new LinkedList<>();
+        _countryCode = source.readString();
+    }
+
+    @Override
+    public String getCountryCode() {
+        return _countryCode == null ? "NZ" : _countryCode;
+    }
+
+    public void setCountryCode(String countryCode) {
+        _countryCode = countryCode;
     }
 
     public void removeSuggestionItem(SuggestionItem item) {
@@ -93,6 +106,7 @@ public class UserItem extends ItineraryItem implements Parcelable {
         dest.writeDouble(_latitude);
         dest.writeDouble(_longitude);
         dest.writeString(_travelMode);
+        dest.writeString(_countryCode);
     }
 
     public transient static final Parcelable.Creator<UserItem> CREATOR = new Parcelable.Creator<UserItem>() {

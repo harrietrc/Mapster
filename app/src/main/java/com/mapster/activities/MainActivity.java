@@ -210,6 +210,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private void getDataFromPlaceActivity(){
         Intent i = getIntent();
         _startDateTime = i.getStringExtra(PlacesActivity.START_DATETIME);
+        // TODO Should probably come from DB
         _userItemList = i.getParcelableArrayListExtra(USER_ITEM_LIST);
     }
 

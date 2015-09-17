@@ -5,6 +5,8 @@ import com.mapster.itinerary.utils.ItineraryItemTimeComparator;
 
 import org.joda.time.DateTime;
 
+import java.util.Currency;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -31,6 +33,16 @@ public abstract class ItineraryItem implements Comparable<ItineraryItem> {
     public int compareTo(ItineraryItem another) {
         ItineraryItemTimeComparator c = new ItineraryItemTimeComparator();
         return c.compare(this, another);
+    }
+
+    public abstract String getCountryCode();
+
+    public String getCurrencyCode() {
+        String countryCode = getCountryCode();
+        Locale locale = new Locale("", countryCode);
+        Currency currency = Currency.getInstance(locale);
+        String currencyCode = currency.getCurrencyCode();
+        return currencyCode == null ? "NZD" : currencyCode;
     }
 
     /**

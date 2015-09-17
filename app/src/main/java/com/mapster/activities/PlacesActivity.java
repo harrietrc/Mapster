@@ -118,12 +118,22 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
             UserItem existingItem = existingItemsByName.get(item.getName());
             if (existingItem != null) {
                 DateTime time = item.getTime();
+
+                // Copy time
                 if (time != null)
                     existingItem.setDateTime(time);
+
+                // Copy transport mode
                 String modeTransport = item.getTravelMode();
                 if (modeTransport != null && !modeTransport.equals(existingItem.getTravelMode())){
                     existingItem.setTravelMode(modeTransport);
                 }
+
+                // Copy country code
+                String countryCode = item.getCountryCode();
+                if (countryCode != null)
+                    existingItem.setCountryCode(countryCode);
+
                 updatedItems.add(existingItem);
             } else {
                 updatedItems.add(item);
