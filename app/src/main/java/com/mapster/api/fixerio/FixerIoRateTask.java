@@ -1,8 +1,10 @@
 package com.mapster.api.fixerio;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.widget.TextView;
 
+import com.mapster.apppreferences.AppPreferences;
 import com.mapster.json.FixerIoRateParser;
 
 import org.json.JSONException;
@@ -23,6 +25,14 @@ public class FixerIoRateTask extends AsyncTask<Void, Void, Double> {
     private String _toCurrencyCode;
     private TextView _conversionView;
     private double _valueToConvert;
+
+    public FixerIoRateTask(double valueToConvert, Context context, String toCurrencyCode,
+                           TextView viewToPopulate) {
+        _fromCurrencyCode = new AppPreferences(context).getUserCurrency();
+        _toCurrencyCode = toCurrencyCode;
+        _conversionView = viewToPopulate;
+        _valueToConvert = valueToConvert;
+    }
 
     public FixerIoRateTask(double valueToConvert, String fromCurrencyCode, String toCurrencyCode,
                            TextView viewToPopulate) {
@@ -62,9 +72,9 @@ public class FixerIoRateTask extends AsyncTask<Void, Void, Double> {
     }
 
     private String formatMoney(double convertedValue) {
-        String formattedValue = String.format("%.2f", convertedValue);
+        String formattedValue = String.format("%.2f)", convertedValue);
         String currencySymbol = getCurrencySymbolFromCode(_toCurrencyCode);
-        return currencySymbol + formattedValue;
+        return "(" + currencySymbol + formattedValue;
     }
 
     private String getCurrencySymbolFromCode(String currencyCode) {

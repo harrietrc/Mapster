@@ -6,6 +6,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.mapster.R;
 import com.mapster.api.Api;
 import com.mapster.api.ApiRequest;
+import com.mapster.apppreferences.AppPreferences;
 import com.mapster.webutils.Md5Hash;
 
 import java.security.NoSuchAlgorithmException;
@@ -21,6 +22,9 @@ public class Expedia extends Api {
     private String _secretKey;
     private String _apiKey;
 
+
+    private String _currencyCode;
+
     // Signature includes timestamp, and hence should be hashed at the time of the request
     private Md5Hash _signatureHasher;
 
@@ -34,11 +38,13 @@ public class Expedia extends Api {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
+
+        _currencyCode = new AppPreferences(context).getUserCurrency();
     }
 
     public ApiRequest hotelListRequest(LatLng location, int radius) {
         String sig = _signatureHasher.calculateExpediaSignature(_apiKey, _secretKey);
-        ExpediaRequest request = new ExpediaRequest(_cid, _apiKey, sig, location, radius);
+        ExpediaRequest request = new ExpediaRequest(_cid, _apiKey, sig, _currencyCode, location, radius);
         return getRequest(request);
     }
 }

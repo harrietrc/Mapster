@@ -36,10 +36,12 @@ public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
     // set, and the image returned by Picasso displayed. Ignore the warning!
     private ImageView _currentInfoWindowImage;
     private Activity _activity; // Not great TODO Separate Marker state into a class
+    private AppPreferences _prefs;
 
     public SuggestionInfoWindowAdapter(LayoutInflater inflater, Activity activity) {
         _inflater = inflater;
         _activity = activity;
+        _prefs = new AppPreferences(_activity);
     }
 
     /**
@@ -124,6 +126,27 @@ public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
             ratingBar.setVisibility(View.GONE);
         } else {
             ratingBar.setRating(rating);
+        }
+
+        // Set price, if available
+        // TODO Null checks not necessary
+        if (suggestion != null) {
+            Double cost = suggestion.getCostPerPerson();
+
+            if (cost != null) {
+                TextView userCost = (TextView) info.findViewById(R.id.user_cost);
+                TextView localCost = (TextView) info.findViewById(R.id.converted_cost);
+
+                String userCurrency = _prefs.getUserCurrency();
+                String localCurrency = suggestion.getCurrencyCode();
+
+                userCost.setText(suggestion.getPriceString());
+
+                // Asynchronously convert the cost
+                // TODO Not a fan of having this method in the superclass
+                if (!userCurrency.equals(localCurrency))
+                    suggestion.convertCost(userCurrency, localCurrency, localCost);
+            }
         }
 
         ImageView image = (ImageView) info.findViewById(R.id.image);

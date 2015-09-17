@@ -1,6 +1,7 @@
 package com.mapster.suggestions;
 
 import android.content.Context;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -27,6 +28,10 @@ public abstract class Suggestion {
     public abstract String getWebsite();
 
     public abstract String getPhoneNumber();
+
+    public abstract String getPriceString();
+
+    public abstract void convertCost(String userCurrencyCode, String localCurrencyCode, TextView conversionView);
 
     /**
      * Returns the currency symbol that corresponds to the currency code, if it is non-null and

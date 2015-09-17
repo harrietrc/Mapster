@@ -1,8 +1,10 @@
 package com.mapster.suggestions;
 
 import android.content.Context;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.mapster.api.fixerio.FixerIoRateTask;
 import com.mapster.api.foursquare.FoursquareVenue;
 import com.mapster.priceestimation.MealPriceEstimate;
 
@@ -48,6 +50,18 @@ public class FoursquareSuggestion extends Suggestion {
     }
 
     @Override
+    public String getPriceString() {
+        return String.format("\n~%s%.2f per person", getCurrencySymbol(), getCostPerPerson());
+    }
+
+    @Override
+    public void convertCost(String userCurrencyCode, String localCurrencyCode, TextView conversionView) {
+        // Want to convert from local currency to user currency - can't specify currency with foursquare
+        FixerIoRateTask task = new FixerIoRateTask(getCostPerPerson(), localCurrencyCode, userCurrencyCode, conversionView);
+        task.execute();
+    }
+
+    @Override
     public void requestSuggestionInfo(Context context) {
         // Not necessary at the moment (don't need more detailed information)
     }
@@ -59,9 +73,7 @@ public class FoursquareSuggestion extends Suggestion {
 
     @Override
     public String getInfoWindowString() {
-        String info = _venue.toString();
-        info += String.format("\n~%s%.2f per person", getCurrencySymbol(), getCostPerPerson());
-        return info;
+        return _venue.toString();
     }
 
     @Override

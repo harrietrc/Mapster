@@ -1,10 +1,12 @@
 package com.mapster.suggestions;
 
 import android.content.Context;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.mapster.api.expedia.ExpediaHotel;
 import com.mapster.api.expedia.ExpediaHotelInfoTask;
+import com.mapster.api.fixerio.FixerIoRateTask;
 
 /**
  * Created by Harriet on 5/25/2015.
@@ -42,6 +44,18 @@ public class ExpediaSuggestion extends Suggestion {
     }
 
     @Override
+    public String getPriceString() {
+        return priceRangeToString();
+    }
+
+    @Override
+    public void convertCost(String userCurrencyCode, String localCurrencyCode, TextView conversionView) {
+        // Want to convert from user to local, as user currency is specified in the request
+        FixerIoRateTask task = new FixerIoRateTask(getCostPerPerson(), userCurrencyCode, localCurrencyCode, conversionView);
+        task.execute();
+    }
+
+    @Override
     public void requestSuggestionInfo(Context context) {
         ExpediaHotelInfoTask task = new ExpediaHotelInfoTask(context);
         task.execute(this);
@@ -54,11 +68,7 @@ public class ExpediaSuggestion extends Suggestion {
      */
     @Override
     public String getInfoWindowString() {
-        StringBuilder sb = new StringBuilder(_hotel.toString());
-        String priceRange = priceRangeToString();
-        if (priceRange != null)
-            sb.append("\n" + priceRange);
-        return sb.toString();
+        return _hotel.toString();
     }
 
     /**
