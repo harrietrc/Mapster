@@ -10,7 +10,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.mapster.R;
 import com.mapster.activities.PlacesActivity;
 import com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoCompleteTextView;
+import com.mapster.connectivities.HttpConnection;
 import com.mapster.itinerary.UserItem;
+import com.mapster.json.GeocodeParser;
 import com.mapster.json.StatusCode;
 
 import org.json.JSONArray;
@@ -18,11 +20,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -35,7 +34,6 @@ public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
     private static final String GEOCODE_API_BASE = "https://maps.google.com/maps/api/geocode";
     private static final String LOG_TAG = "Mapster";
     private static final String OUT_JSON = "/json";
-    private HttpURLConnection conn;
     private LinkedList<ClearableAutoCompleteTextView> _autoCompleteTextViewLinkedList;
     private List<RadioGroup> _transportModeViewList;
     private PlacesActivity _activity;
@@ -56,38 +54,15 @@ public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
         }
     }
 
-
-    private String[] convertAddressToLatLng(String address){
-        StringBuilder jsonResults;
-        URL url = null;
-        InputStreamReader in = null;
-        String[] coordinate = null;
+    private String getRequestWithAddress(String address) {
+        String response = null;
+        StringBuilder sb = formURLString(address);
         try {
-            StringBuilder sb = formURLString(address);
-            try {
-                url = new URL(sb.toString());
-                System.out.println(url.toString());
-                conn = (HttpURLConnection) url.openConnection();
-                in = new InputStreamReader(conn.getInputStream());
-            } catch (MalformedURLException e){
-                e.printStackTrace();
-            } catch(IOException e){
-                e.printStackTrace();
-            }
-            jsonResults = convertJsonResultsToStringBuilder(in);
-            coordinate = extractLatLngFromResults(jsonResults);
-        } catch (MalformedURLException e) {
-            Log.e(LOG_TAG, "Error processing GeoCode API URL", e);
-            return coordinate;
+            response = new HttpConnection().readUrl(sb.toString());
         } catch (IOException e) {
-            Log.e(LOG_TAG, "Error connecting to GeoCode API", e);
-            return coordinate;
-        } finally {
-            if (conn != null) {
-                conn.disconnect();
-            }
+            e.printStackTrace();
         }
-        return coordinate;
+        return response;
     }
 
     private StringBuilder formURLString(String input){
@@ -102,21 +77,11 @@ public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
         return sb;
     }
 
-    private StringBuilder convertJsonResultsToStringBuilder(InputStreamReader in) throws IOException {
-        StringBuilder jsonResults = new StringBuilder();
-        int read;
-        char[] buff = new char[1024];
-        while ((read = in.read(buff)) != -1) {
-            jsonResults.append(buff, 0, read);
-        }
-        return jsonResults;
-    }
-
-    private String[] extractLatLngFromResults(StringBuilder jsonResults) {
+    private String[] extractLatLngFromResults(String response) {
         String[] coordinate = new String[2];
         try {
             // Create a JSON object hierarchy from the results
-            JSONObject jsonObj = new JSONObject(jsonResults.toString());
+            JSONObject jsonObj = new JSONObject(response);
             if (!StatusCode.valueOf(jsonObj.getString("status")).equals(StatusCode.OK)){
                 Log.d("GEOCODE", "not ok");
                 return null;
@@ -138,8 +103,23 @@ public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
         int position = 0;
         for (ClearableAutoCompleteTextView acTextView : _autoCompleteTextViewLinkedList){
             if(!acTextView.getText().toString().isEmpty()) {
+                String countryCode;
                 String text = acTextView.getText().toString();
-                String[] coordinate = convertAddressToLatLng(text);
+
+                // TODO Might want to make the rest of the parsing for GeoCode consistent with this
+                String response = getRequestWithAddress(text);
+                JSONObject jsonResponse = null;
+                try {
+                    jsonResponse = new JSONObject(response);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                // Get the country code from the results
+                GeocodeParser geocodeParser = new GeocodeParser();
+                countryCode = geocodeParser.getCountryCode(jsonResponse);
+
+                String[] coordinate = extractLatLngFromResults(response);
                 if (coordinate == null){
                     userItemList = null;
                     return userItemList;
@@ -160,10 +140,10 @@ public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
                         }
                     }
                 }
+
                 // Create a parcelable representation of the user-defined destination
-                UserItem item = new UserItem(placeName, location, transportMode);
+                UserItem item = new UserItem(placeName, location, transportMode, countryCode);
                 userItemList.add(item);
-                System.out.println(item.getName() + " " + item.getTravelMode());
                 position++;
             }
         }

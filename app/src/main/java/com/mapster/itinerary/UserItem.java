@@ -25,17 +25,19 @@ public class UserItem extends ItineraryItem implements Parcelable {
     private double _latitude;
     private double _longitude;
     private String _travelMode;
+    private String _countryCode; // ISO 3166-1
 
     // Represents any saved suggestions that were suggested from this destination
     private List<SuggestionItem> _suggestionItems;
 
-    public UserItem(String name, LatLng latLng, String travelMode) {
+    public UserItem(String name, LatLng latLng, String travelMode, String countryCode) {
         _name = name;
         _latitude = latLng.latitude;
         _longitude = latLng.longitude;
         _travelMode = travelMode;
         // Linked list to speed up removals a little
         _suggestionItems = new LinkedList<>();
+        _countryCode = countryCode;
     }
 
     public UserItem(Parcel source) {
