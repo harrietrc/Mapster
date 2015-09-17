@@ -89,15 +89,19 @@ public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
     @Override
     public View getInfoContents(Marker marker) {
         View oldView = _windowsByMarkerId.get(marker.getId());
-        if (oldView != null)
-            return oldView;
 
         MainActivity activity = (MainActivity) _activity;
 
         SuggestionItem item = activity.getSuggestionItemByMarker(marker);
         Suggestion suggestion = item == null ? null : item.getSuggestion();
 
-        View info = _inflater.inflate(R.layout.suggestion_info_window, null);
+        View info;
+
+        if (oldView == null) {
+            info = _inflater.inflate(R.layout.suggestion_info_window, null);
+        } else {
+            info = oldView;
+        }
 
         TextView title = (TextView) info.findViewById(R.id.title);
         title.setText(marker.getTitle());
@@ -168,8 +172,11 @@ public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
         }
 
         // Hide the ImageView if it has no image
-        if (image.getDrawable() == null)
+        if (image.getDrawable() == null) {
             image.setVisibility(View.GONE);
+        } else {
+            image.setVisibility(View.VISIBLE);
+        }
 
         _windowsByMarkerId.put(marker.getId(), info);
 
