@@ -37,14 +37,6 @@ public abstract class ItineraryItem implements Comparable<ItineraryItem> {
 
     public abstract String getCountryCode();
 
-    public String getCurrencyCode() {
-        String countryCode = getCountryCode();
-        Locale locale = new Locale("", countryCode);
-        Currency currency = Currency.getInstance(locale);
-        String currencyCode = currency.getCurrencyCode();
-        return currencyCode == null ? "NZD" : currencyCode;
-    }
-
     /**
      * Time fields are kept primitive/separate rather than saving as a DateTime field in order to
      * make serialisation easier. An alternative is to use something like this

@@ -5,6 +5,7 @@ import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.mapster.itinerary.SuggestionItem;
 
 import java.util.Currency;
 
@@ -14,9 +15,18 @@ import java.util.Currency;
 public abstract class Suggestion {
     protected transient Marker _marker;
     protected boolean _isClicked;
+    protected SuggestionItem _item; // These references are getting messy
 
     // Budgeting
     protected String _currencySymbol;
+
+    public SuggestionItem getItem() {
+        return _item;
+    }
+
+    public void setItem(SuggestionItem item) {
+        _item = item;
+    }
 
     // TODO!! The Context arg was a quick fix for something that should have been dealt with in
     // itinerary.serialisation.FoursquareSuggestionAdapter. It was taking too long to fix but the
@@ -29,9 +39,10 @@ public abstract class Suggestion {
 
     public abstract String getPhoneNumber();
 
-    public abstract String getPriceString();
+    public abstract String getPriceString(Context context);
 
-    public abstract void convertCost(String userCurrencyCode, String localCurrencyCode, TextView conversionView);
+    public abstract void convertCost(String userCurrencyCode, String localCurrencyCode,
+                                     TextView conversionView, Marker markerToRefresh);
 
     /**
      * Returns the currency symbol that corresponds to the currency code, if it is non-null and

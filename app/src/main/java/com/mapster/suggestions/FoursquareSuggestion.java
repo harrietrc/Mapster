@@ -4,6 +4,7 @@ import android.content.Context;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.mapster.api.fixerio.FixerIoRateTask;
 import com.mapster.api.foursquare.FoursquareVenue;
 import com.mapster.priceestimation.MealPriceEstimate;
@@ -50,14 +51,16 @@ public class FoursquareSuggestion extends Suggestion {
     }
 
     @Override
-    public String getPriceString() {
+    public String getPriceString(Context context) {
         return String.format("\n~%s%.2f per person", getCurrencySymbol(), getCostPerPerson());
     }
 
     @Override
-    public void convertCost(String userCurrencyCode, String localCurrencyCode, TextView conversionView) {
+    public void convertCost(String userCurrencyCode, String localCurrencyCode,
+                            TextView conversionView, Marker markerToRefresh) {
         // Want to convert from local currency to user currency - can't specify currency with foursquare
-        FixerIoRateTask task = new FixerIoRateTask(getCostPerPerson(), localCurrencyCode, userCurrencyCode, conversionView);
+        FixerIoRateTask task = new FixerIoRateTask(getCostPerPerson(), localCurrencyCode,
+                userCurrencyCode, conversionView, markerToRefresh);
         task.execute();
     }
 

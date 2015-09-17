@@ -26,6 +26,7 @@ public class SuggestionItem extends ItineraryItem {
     public SuggestionItem(Suggestion suggestion, UserItem userItem) {
         _isInItinerary = false;
         _suggestion = suggestion;
+        suggestion.setItem(this);
         _userItem = userItem;
         _multiplier = 1;
     }

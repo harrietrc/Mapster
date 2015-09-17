@@ -2,8 +2,10 @@ package com.mapster.api.fixerio;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.view.View;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.model.Marker;
 import com.mapster.apppreferences.AppPreferences;
 import com.mapster.json.FixerIoRateParser;
 
@@ -22,24 +24,29 @@ public class FixerIoRateTask extends AsyncTask<Void, Void, Double> {
     private static String DEFAULT_CURRENCY_SYMBOL = "$";
 
     private String _fromCurrencyCode;
-    private String _toCurrencyCode;
-    private TextView _conversionView;
+    protected String _toCurrencyCode;
+    protected TextView _conversionView;
     private double _valueToConvert;
+    protected Marker _markerToRefresh;
+
+    protected double _rate;
 
     public FixerIoRateTask(double valueToConvert, Context context, String toCurrencyCode,
-                           TextView viewToPopulate) {
+                           TextView viewToPopulate, Marker markerToRefresh) {
         _fromCurrencyCode = new AppPreferences(context).getUserCurrency();
         _toCurrencyCode = toCurrencyCode;
         _conversionView = viewToPopulate;
         _valueToConvert = valueToConvert;
+        _markerToRefresh = markerToRefresh;
     }
 
     public FixerIoRateTask(double valueToConvert, String fromCurrencyCode, String toCurrencyCode,
-                           TextView viewToPopulate) {
+                           TextView viewToPopulate, Marker markerToRefresh) {
         _fromCurrencyCode = fromCurrencyCode;
         _toCurrencyCode = toCurrencyCode;
         _conversionView = viewToPopulate;
         _valueToConvert = valueToConvert;
+        _markerToRefresh = markerToRefresh;
     }
 
     @Override
@@ -48,18 +55,17 @@ public class FixerIoRateTask extends AsyncTask<Void, Void, Double> {
         FixerIo api = new FixerIo();
         String response = api.getConversionRate(_fromCurrencyCode, _toCurrencyCode).getResponse();
         FixerIoRateParser parser = new FixerIoRateParser();
-        double rate;
 
         // Extract the conversion rate from the JSON
         try {
             JSONObject jsonResponse = new JSONObject(response);
-            rate = parser.getRate(jsonResponse, _fromCurrencyCode, _toCurrencyCode);
+            _rate = parser.getRate(jsonResponse, _fromCurrencyCode, _toCurrencyCode);
         } catch (JSONException e) {
-            rate = DEFAULT_CURRENCY_RATE;
+            _rate = DEFAULT_CURRENCY_RATE;
         }
 
         // Apply the conversion rate to the value supplied for conversion
-        return rate * _valueToConvert;
+        return _rate * _valueToConvert;
     }
 
     @Override
@@ -68,16 +74,19 @@ public class FixerIoRateTask extends AsyncTask<Void, Void, Double> {
         if (_conversionView != null) {
             String formattedValue = formatMoney(convertedValue);
             _conversionView.setText(formattedValue);
+            _conversionView.setVisibility(View.VISIBLE);
+            if (_markerToRefresh.isInfoWindowShown())
+                _markerToRefresh.showInfoWindow();
         }
     }
 
-    private String formatMoney(double convertedValue) {
+    protected String formatMoney(double convertedValue) {
         String formattedValue = String.format("%.2f)", convertedValue);
         String currencySymbol = getCurrencySymbolFromCode(_toCurrencyCode);
         return "(" + currencySymbol + formattedValue;
     }
 
-    private String getCurrencySymbolFromCode(String currencyCode) {
+    protected String getCurrencySymbolFromCode(String currencyCode) {
         String currencySymbol;
 
         try {

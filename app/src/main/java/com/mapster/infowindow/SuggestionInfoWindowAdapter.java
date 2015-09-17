@@ -21,6 +21,8 @@ import com.mapster.suggestions.Suggestion;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -37,11 +39,13 @@ public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
     private ImageView _currentInfoWindowImage;
     private Activity _activity; // Not great TODO Separate Marker state into a class
     private AppPreferences _prefs;
+    private Map<String, View> _windowsByMarkerId;
 
     public SuggestionInfoWindowAdapter(LayoutInflater inflater, Activity activity) {
         _inflater = inflater;
         _activity = activity;
         _prefs = new AppPreferences(_activity);
+        _windowsByMarkerId = new HashMap<>();
     }
 
     /**
@@ -58,21 +62,6 @@ public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
         // Ignore all this if the marker is user-defined
         if (item == null)
             return;
-
-        // TEST CODE PLEASE IGNORE
-        // Test for currency conversion
-        AppPreferences prefs = new AppPreferences(_activity);
-        String userCurrency = prefs.getUserCurrency();
-        String suggestionCurrency = item.getCurrencyCode();
-        FixerIoRateTask task = new FixerIoRateTask(10, userCurrency, suggestionCurrency, null);
-        double converted = 0;
-        try {
-            converted = task.execute().get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
 
         // Create the chain of dialogues that is initiated when the user adds an item to the itinerary
         // Not really sure whether this should go here or in the dialogue class itself
@@ -99,6 +88,10 @@ public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
      */
     @Override
     public View getInfoContents(Marker marker) {
+        View oldView = _windowsByMarkerId.get(marker.getId());
+        if (oldView != null)
+            return oldView;
+
         MainActivity activity = (MainActivity) _activity;
 
         SuggestionItem item = activity.getSuggestionItemByMarker(marker);
@@ -128,26 +121,31 @@ public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
             ratingBar.setRating(rating);
         }
 
+        TextView userCost = (TextView) info.findViewById(R.id.user_cost);
+        TextView localCost = (TextView) info.findViewById(R.id.converted_cost);
+
         // Set price, if available
         // TODO Null checks not necessary
         if (suggestion != null) {
             Double cost = suggestion.getCostPerPerson();
 
             if (cost != null) {
-                TextView userCost = (TextView) info.findViewById(R.id.user_cost);
-                TextView localCost = (TextView) info.findViewById(R.id.converted_cost);
-
                 String userCurrency = _prefs.getUserCurrency();
                 String localCurrency = suggestion.getCurrencyCode();
 
-                userCost.setText(suggestion.getPriceString());
+                userCost.setText(suggestion.getPriceString(_activity));
 
                 // Asynchronously convert the cost
                 // TODO Not a fan of having this method in the superclass
-                if (!userCurrency.equals(localCurrency))
-                    suggestion.convertCost(userCurrency, localCurrency, localCost);
+                if (localCost.getText().equals("") && !userCurrency.equals(localCurrency))
+                    suggestion.convertCost(userCurrency, localCurrency, localCost, marker);
             }
         }
+
+        int userCostVis = userCost.getText().equals("") ? View.GONE : View.VISIBLE;
+        userCost.setVisibility(userCostVis);
+        int localCostVis = localCost.getText().equals("") ? View.GONE : View.VISIBLE;
+        localCost.setVisibility(localCostVis);
 
         ImageView image = (ImageView) info.findViewById(R.id.image);
 
@@ -172,6 +170,8 @@ public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
         // Hide the ImageView if it has no image
         if (image.getDrawable() == null)
             image.setVisibility(View.GONE);
+
+        _windowsByMarkerId.put(marker.getId(), info);
 
         return info;
     }
