@@ -109,7 +109,7 @@ public class ItineraryActivity extends ActionBarActivity {
         String sharedPrefsName = getResources().getString(R.string.shared_prefs);
         String itineraryNamePrefs = getResources().getString(R.string.itinerary_name_prefs);
         SharedPreferences settings = getSharedPreferences(sharedPrefsName, 0);
-        String currentItineraryName = settings.getString(itineraryNamePrefs, null);
+        String currentItineraryName = null;//settings.getString(itineraryNamePrefs, null);
         return _itineraryDataSource.getItemsByItineraryName(currentItineraryName);
     }
 }
