@@ -615,6 +615,8 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         for (int i = 0; i < llParent.getChildCount(); i++){
             if (ll == llParent.getChildAt(i)){
                 _autoCompleteTextViewLinkedList.remove(i + 1);
+                _transportModeViewList.remove(i + 1);
+
             }
         }
         llParent.removeView(ll);
@@ -628,6 +630,14 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
      * Called when itinerary is loaded so that the text fields reflect the stop points.
      */
     public void updateFieldsFromItinerary(List<UserItem> items) {
+        LinearLayout ll = (LinearLayout)findViewById(R.id.add_stop_points);
+        final int positionOfRadioGroupView = 2;
+        for (int i = 0; i < ll.getChildCount(); i ++){
+            View child = ll.getChildAt(i);
+            ll.removeView(child);
+        }
+        _autoCompleteTextViewLinkedList  = new LinkedList<>();
+        _transportModeViewList = new ArrayList<>();
         View mainActivityLayout = findViewById(R.id.place_activity_layout); // Will this be null?
         addViewsInLayoutToArrayList((LinearLayout) findViewById(R.id.place_activity_layout));
         initializeAutoCompleteTextViewInArrayList();
@@ -643,10 +653,24 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         UserItem destination = items.get(nItems - 1);
         originTextField.setText(origin.getFullAddress());
         destinationTextField.setText(destination.getFullAddress());
+        String modeTransport = origin.getTravelMode();
+        if (modeTransport.equals(GeoCode.TravelMode.DRIVING.name().toLowerCase())){
+            RadioButton rb = (RadioButton) _transportModeViewList.get(0).getChildAt(0);
+            rb.setChecked(true);
+        } else if (modeTransport.equals(GeoCode.TravelMode.WALKING.name().toLowerCase())){
+            RadioButton rb = (RadioButton) _transportModeViewList.get(0).getChildAt(1);
+            rb.setChecked(true);
+        }else if (modeTransport.equals(GeoCode.TravelMode.BICYCLING.name().toLowerCase())){
+            RadioButton rb = (RadioButton) _transportModeViewList.get(0).getChildAt(2);
+            rb.setChecked(true);
+        }
+        else if (modeTransport.equals(GeoCode.TravelMode.TRANSIT.name().toLowerCase())){
+            RadioButton rb = (RadioButton) _transportModeViewList.get(0).getChildAt(3);
+            rb.setChecked(true);
+        }
 
         // Go through the rest of the list, adding 'stop point' views for each item
         for (int i=1; i<nItems-1; i++) {
-            final int positionOfRadioGroupView = 2;
             LinearLayout stopPointLayout = addStopPoints(); // Layout with an empty text field
             ClearableAutoCompleteTextView stopPointNameView = (ClearableAutoCompleteTextView)
                     stopPointLayout.findViewById(R.id.stop_point_name);
@@ -655,6 +679,22 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
             addRadioGroupToList((RadioGroup)stopPointLayout.getChildAt(positionOfRadioGroupView));
             initializeRadioButton((RadioGroup)stopPointLayout.getChildAt(positionOfRadioGroupView));
             stopPointNameView.setText(items.get(i).getFullAddress());
+            modeTransport = items.get(i).getTravelMode();
+
+            if (GeoCode.TravelMode.DRIVING.name().toLowerCase().equals(modeTransport)){
+                RadioButton rb = (RadioButton) _transportModeViewList.get(0).getChildAt(0);
+                rb.setChecked(true);
+            } else if (GeoCode.TravelMode.WALKING.name().toLowerCase().equals(modeTransport)){
+                RadioButton rb = (RadioButton) _transportModeViewList.get(0).getChildAt(1);
+                rb.setChecked(true);
+            }else if (GeoCode.TravelMode.BICYCLING.name().toLowerCase().equals(modeTransport)){
+                RadioButton rb = (RadioButton) _transportModeViewList.get(0).getChildAt(2);
+                rb.setChecked(true);
+            }
+            else if (GeoCode.TravelMode.TRANSIT.name().toLowerCase().equals(modeTransport)){
+                RadioButton rb = (RadioButton) _transportModeViewList.get(0).getChildAt(3);
+                rb.setChecked(true);
+            }
         }
     }
 
