@@ -1,10 +1,18 @@
 package com.mapster.suggestions;
 
 import android.content.Context;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.mapster.api.expedia.ExpediaHotel;
 import com.mapster.api.expedia.ExpediaHotelInfoTask;
+import com.mapster.api.fixerio.FixerIoRangeTask;
+import com.mapster.api.fixerio.FixerIoRateTask;
+import com.mapster.apppreferences.AppPreferences;
+
+import java.util.Currency;
+import java.util.Locale;
 
 /**
  * Created by Harriet on 5/25/2015.
@@ -28,7 +36,11 @@ public class ExpediaSuggestion extends Suggestion {
 
     @Override
     public String getCurrencyCode() {
-        return _hotel.getCurrencyCode();
+        String countryCode = getItem().getCountryCode();
+        Locale locale = new Locale("", countryCode);
+        Currency currency = Currency.getInstance(locale);
+        String currencyCode = currency.getCurrencyCode();
+        return currencyCode == null ? "NZD" : currencyCode;
     }
 
     @Override
@@ -39,6 +51,20 @@ public class ExpediaSuggestion extends Suggestion {
     @Override
     public String getPhoneNumber() {
         return null; // TODO Same as above
+    }
+
+    @Override
+    public String getPriceString(Context context) {
+        return priceRangeToString(context);
+    }
+
+    @Override
+    public void convertCost(String userCurrencyCode, String localCurrencyCode,
+                            TextView conversionView, Marker markerToRefresh) {
+        // Want to convert from user to local, as user currency is specified in the request
+        FixerIoRangeTask task = new FixerIoRangeTask(_hotel.getLowRate(), _hotel.getHighRate(),
+                userCurrencyCode, localCurrencyCode, conversionView, markerToRefresh);
+        task.execute();
     }
 
     @Override
@@ -54,11 +80,7 @@ public class ExpediaSuggestion extends Suggestion {
      */
     @Override
     public String getInfoWindowString() {
-        StringBuilder sb = new StringBuilder(_hotel.toString());
-        String priceRange = priceRangeToString();
-        if (priceRange != null)
-            sb.append("\n" + priceRange);
-        return sb.toString();
+        return _hotel.toString();
     }
 
     /**
@@ -66,11 +88,19 @@ public class ExpediaSuggestion extends Suggestion {
      * displayed in a marker's infowindow.
      * @return
      */
-    public String priceRangeToString() {
+    public String priceRangeToString(Context context) {
         StringBuilder sb = new StringBuilder();
         Double lowRate = _hotel.getLowRate();
         Double highRate = _hotel.getHighRate();
-        String currencySymbol = getCurrencySymbol();
+
+        AppPreferences prefs = new AppPreferences(context);
+        String currencyCode = prefs.getUserCurrency();
+        String currencySymbol = "$";
+        try {
+            currencySymbol = Currency.getInstance(currencyCode).getSymbol();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
 
         sb.append(lowRate == null ? "" : currencySymbol + lowRate.intValue());
 

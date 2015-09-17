@@ -1,8 +1,10 @@
 package com.mapster.suggestions;
 
 import android.content.Context;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.mapster.api.googleplaces.GooglePlaceDetailTask;
 import com.mapster.places.GooglePlace;
 import com.mapster.places.GooglePlaceDetail;
@@ -71,6 +73,17 @@ public class GooglePlaceSuggestion extends Suggestion {
     @Override
     public String getPhoneNumber() {
         return _place.getPhoneNumber();
+    }
+
+    @Override
+    public String getPriceString(Context context) {
+        return null;
+    }
+
+    @Override
+    public void convertCost(String userCurrencyCode, String localCurrencyCode,
+                            TextView conversionView, Marker markerToRefresh) {
+        // TODO Bad practice
     }
 
     @Override

@@ -50,22 +50,18 @@ import org.joda.time.LocalTime;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import tourguide.tourguide.Overlay;
 import tourguide.tourguide.Pointer;
 import tourguide.tourguide.ToolTip;
 import tourguide.tourguide.TourGuide;
 
-import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 
 public class PlacesActivity extends ActionBarActivity implements OnItemClickListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener, GeoCodeListener {
@@ -118,12 +114,22 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
             UserItem existingItem = existingItemsByName.get(item.getName());
             if (existingItem != null) {
                 DateTime time = item.getTime();
+
+                // Copy time
                 if (time != null)
                     existingItem.setDateTime(time);
+
+                // Copy transport mode
                 String modeTransport = item.getTravelMode();
                 if (modeTransport != null && !modeTransport.equals(existingItem.getTravelMode())){
                     existingItem.setTravelMode(modeTransport);
                 }
+
+                // Copy country code
+                String countryCode = item.getCountryCode();
+                if (countryCode != null)
+                    existingItem.setCountryCode(countryCode);
+
                 updatedItems.add(existingItem);
             } else {
                 updatedItems.add(item);
@@ -174,7 +180,6 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         _autoCompleteTextViewLinkedList = new LinkedList<>();
         _transportModeViewList = new ArrayList<>();
         _autoCompAdapter = new PlacesAutoCompleteAdapter(this, R.layout.list_item);

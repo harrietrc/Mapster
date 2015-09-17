@@ -2,6 +2,7 @@ package com.mapster.priceestimation;
 
 import android.content.Context;
 
+import com.mapster.apppreferences.AppPreferences;
 import com.mapster.priceestimation.data.City;
 import com.mapster.priceestimation.data.Country;
 import com.mapster.priceestimation.data.MealPriceDataSource;
@@ -21,10 +22,12 @@ public class MealPriceEstimate {
     public static final String DEFAULT_CURRENCY_CODE = "NZD";
 
     private MealPriceDataSource _dataSource;
+    private AppPreferences _prefs;
 
     public MealPriceEstimate(Context context) {
         _dataSource = new MealPriceDataSource(context);
         _dataSource.open();
+        _prefs = new AppPreferences(context);
     }
 
     public String getCurrencyCode(String countryCode) {

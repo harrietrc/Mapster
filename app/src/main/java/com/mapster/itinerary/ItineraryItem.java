@@ -5,6 +5,8 @@ import com.mapster.itinerary.utils.ItineraryItemTimeComparator;
 
 import org.joda.time.DateTime;
 
+import java.util.Currency;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -32,6 +34,8 @@ public abstract class ItineraryItem implements Comparable<ItineraryItem> {
         ItineraryItemTimeComparator c = new ItineraryItemTimeComparator();
         return c.compare(this, another);
     }
+
+    public abstract String getCountryCode();
 
     /**
      * Time fields are kept primitive/separate rather than saving as a DateTime field in order to

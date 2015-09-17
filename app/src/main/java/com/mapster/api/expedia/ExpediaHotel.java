@@ -42,7 +42,8 @@ public class ExpediaHotel {
 
     public Double estimateAverageRate() {
         // Might want to refine this
-        return (_lowRate + _highRate) / 2;
+//        return (_lowRate + _highRate) / 2;
+        return _lowRate;
     }
 
     public String getThumbnailUrl() {

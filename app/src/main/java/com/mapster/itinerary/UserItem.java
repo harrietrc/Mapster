@@ -25,17 +25,22 @@ public class UserItem extends ItineraryItem implements Parcelable {
     private double _latitude;
     private double _longitude;
     private String _travelMode;
+    private String _countryCode; // ISO 3166-1
 
     // Represents any saved suggestions that were suggested from this destination
     private List<SuggestionItem> _suggestionItems;
 
-    public UserItem(String name, LatLng latLng, String travelMode) {
+    public UserItem(String name, LatLng latLng, String travelMode, String countryCode) {
         _name = name;
         _latitude = latLng.latitude;
         _longitude = latLng.longitude;
         _travelMode = travelMode;
         // Linked list to speed up removals a little
         _suggestionItems = new LinkedList<>();
+
+        if (countryCode == null)
+            throw new IllegalArgumentException("Something is up with GeoCode - no country code.");
+        _countryCode = countryCode;
     }
 
     public UserItem(Parcel source) {
@@ -46,6 +51,16 @@ public class UserItem extends ItineraryItem implements Parcelable {
         _longitude = source.readDouble();
         _travelMode = source.readString();
         _suggestionItems = new LinkedList<>();
+        _countryCode = source.readString();
+    }
+
+    @Override
+    public String getCountryCode() {
+        return _countryCode == null ? "NZ" : _countryCode;
+    }
+
+    public void setCountryCode(String countryCode) {
+        _countryCode = countryCode;
     }
 
     public void removeSuggestionItem(SuggestionItem item) {
@@ -91,6 +106,7 @@ public class UserItem extends ItineraryItem implements Parcelable {
         dest.writeDouble(_latitude);
         dest.writeDouble(_longitude);
         dest.writeString(_travelMode);
+        dest.writeString(_countryCode);
     }
 
     public transient static final Parcelable.Creator<UserItem> CREATOR = new Parcelable.Creator<UserItem>() {
