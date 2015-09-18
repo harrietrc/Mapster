@@ -18,11 +18,14 @@ import com.mapster.activities.PlacesActivity;
 import com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoCompleteTextView;
 import com.mapster.geocode.GeocodeAndSaveItineraryTask;
 import com.mapster.itinerary.ItineraryItem;
+import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Harriet on 9/08/2015. Access this to display save/load itinerary dialogues (which also
@@ -48,6 +51,7 @@ public class LoadAndSaveHelper {
         _datasource = datasource;
         _autoCompleteTextViews = autoCompleteTextViewLinkedList;
         _transportModes = transportModeViewList;
+
     }
 
     /**
@@ -158,7 +162,23 @@ public class LoadAndSaveHelper {
         String sharedPrefsName = _context.getResources().getString(R.string.shared_prefs);
         String itineraryNamePrefs = _context.getResources().getString(R.string.itinerary_name_prefs);
         SharedPreferences settings = _context.getSharedPreferences(sharedPrefsName, 0);
-        String currentItineraryName = settings.getString(itineraryNamePrefs, null);
-        return _datasource.getItemsByItineraryName(currentItineraryName);
+        List<ItineraryItem> unsavedItems = _datasource.getItemsByItineraryName(null);
+        String itineraryName = settings.getString(itineraryNamePrefs, null);
+        List<ItineraryItem> savedItems = _datasource.getItemsByItineraryName(itineraryName);
+
+        Map<String, ItineraryItem> savedItemsMap = new HashMap<>();
+        for (ItineraryItem item : savedItems)
+            savedItemsMap.put(item.getName(), item);
+        for (ItineraryItem unsavedItem : unsavedItems) {
+            ItineraryItem savedItem = savedItemsMap.get(unsavedItem.getName());
+            if (savedItem != null) {
+                List<SuggestionItem> suggestions = ((UserItem) unsavedItem).getSuggestionItems();
+                ((UserItem) savedItem).addSuggestionItems(suggestions);
+                if (unsavedItem.getTime() != null)
+                    savedItem.setDateTime(unsavedItem.getTime());
+            }
+        }
+
+        return savedItems;
     }
 }

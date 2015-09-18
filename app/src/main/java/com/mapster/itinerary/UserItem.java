@@ -32,6 +32,10 @@ public class UserItem extends ItineraryItem implements Parcelable {
     // Represents any saved suggestions that were suggested from this destination
     private List<SuggestionItem> _suggestionItems;
 
+    public void addSuggestionItems(List<SuggestionItem> items) {
+        _suggestionItems.addAll(items);
+    }
+
     public UserItem(String name, LatLng latLng, String travelMode, String countryCode, String fullAddress) {
         _name = name;
         _latitude = latLng.latitude;

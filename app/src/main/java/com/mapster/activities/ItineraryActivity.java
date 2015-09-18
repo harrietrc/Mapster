@@ -18,8 +18,12 @@ import com.mapster.persistence.ItineraryDataSource;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by Harriet on 6/16/2015.
@@ -109,7 +113,25 @@ public class ItineraryActivity extends ActionBarActivity {
         String sharedPrefsName = getResources().getString(R.string.shared_prefs);
         String itineraryNamePrefs = getResources().getString(R.string.itinerary_name_prefs);
         SharedPreferences settings = getSharedPreferences(sharedPrefsName, 0);
-        String currentItineraryName = null;//settings.getString(itineraryNamePrefs, null);
-        return _itineraryDataSource.getItemsByItineraryName(currentItineraryName);
+        String itineraryName = settings.getString(itineraryNamePrefs, null);
+        List<ItineraryItem> unsavedItems = _itineraryDataSource.getItemsByItineraryName(null);
+        List<ItineraryItem> savedItems = _itineraryDataSource.getItemsByItineraryName(itineraryName);
+
+        // TODO Hacky -
+        Map<String, ItineraryItem> savedItemsMap = new HashMap<>();
+        for (ItineraryItem item : savedItems)
+            savedItemsMap.put(item.getName(), item);
+        for (ItineraryItem unsavedItem : unsavedItems) {
+            ItineraryItem savedItem = savedItemsMap.get(unsavedItem.getName());
+            if (savedItem != null) {
+                List<SuggestionItem> suggestions = ((UserItem) unsavedItem).getSuggestionItems();
+                ((UserItem) savedItem).addSuggestionItems(suggestions);
+                if (unsavedItem.getTime() != null)
+                    savedItem.setDateTime(unsavedItem.getTime());
+            }
+        }
+
+
+        return savedItems;
     }
 }

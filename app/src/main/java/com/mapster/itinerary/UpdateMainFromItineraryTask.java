@@ -36,16 +36,33 @@ public class UpdateMainFromItineraryTask extends AsyncTask<Void, Void, Collectio
         ItineraryDataSource itineraryDataSource = _activity.getItineraryDatasource();
 
         // 'items' is a list of itinerary items from the DB - may be left over from last app run.
-        if (suggestionItemsByMarkerId.isEmpty()) {
-            // Don't try to load itinerary state from the DB - just return.
-            return null;
-        }
+//        if (suggestionItemsByMarkerId.isEmpty()) {
+//            // Don't try to load itinerary state from the DB - just return.
+//            return null;
+//        }
 
         String sharedPrefsName = _activity.getResources().getString(R.string.shared_prefs);
         String itineraryNamePrefs = _activity.getResources().getString(R.string.itinerary_name_prefs);
         SharedPreferences settings = _activity.getSharedPreferences(sharedPrefsName, 0);
         String currentItineraryName = settings.getString(itineraryNamePrefs, null);
-        List<ItineraryItem> dbItems = itineraryDataSource.getItemsByItineraryName(currentItineraryName);
+        List<ItineraryItem> unsavedItems = itineraryDataSource.getItemsByItineraryName(null);
+        List<ItineraryItem> savedItems = itineraryDataSource.getItemsByItineraryName(currentItineraryName);
+
+        // TODO Hacky -
+        Map<String, ItineraryItem> savedItemsMap = new HashMap<>();
+        for (ItineraryItem item : savedItems)
+            savedItemsMap.put(item.getName(), item);
+        for (ItineraryItem unsavedItem : unsavedItems) {
+            ItineraryItem savedItem = savedItemsMap.get(unsavedItem.getName());
+            if (savedItem != null) {
+                List<SuggestionItem> suggestions = ((UserItem) unsavedItem).getSuggestionItems();
+                ((UserItem) savedItem).addSuggestionItems(suggestions);
+                if (unsavedItem.getTime() != null)
+                    savedItem.setDateTime(unsavedItem.getTime());
+            }
+        }
+
+
         Collection<UserItem> existingItems = userItemsByMarkerId.values();
 
         // Sets of suggestion IDs so that we can tell which ones were deleted from the itinerary
@@ -73,7 +90,7 @@ public class UpdateMainFromItineraryTask extends AsyncTask<Void, Void, Collectio
         gradually updating the map of ItineraryItems to the updated items. Suggestions are not
         expected to be modified outside this activity (although any ItineraryItems may be)
         */
-        for (ItineraryItem item: dbItems) {
+        for (ItineraryItem item: savedItems) {
             if (item instanceof UserItem) {
                 UserItem userItem = (UserItem) item;
                 for (SuggestionItem s : userItem.getSuggestionItems()) {
