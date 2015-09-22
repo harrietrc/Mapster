@@ -125,7 +125,10 @@ public class ItineraryActivity extends ActionBarActivity {
             ItineraryItem savedItem = savedItemsMap.get(unsavedItem.getName());
             if (savedItem != null) {
                 List<SuggestionItem> suggestions = ((UserItem) unsavedItem).getSuggestionItems();
-                ((UserItem) savedItem).addSuggestionItems(suggestions);
+                List<SuggestionItem> savedSuggestions = ((UserItem) savedItem).getSuggestionItems();
+                Set<SuggestionItem> combinedItems = new HashSet<>();
+                combinedItems.addAll(suggestions); combinedItems.addAll(savedSuggestions);
+                ((UserItem) savedItem).replaceSuggestionItems(combinedItems);
                 if (unsavedItem.getTime() != null)
                     savedItem.setDateTime(unsavedItem.getTime());
             }

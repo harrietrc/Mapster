@@ -6,6 +6,7 @@ import android.os.Parcelable;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -32,7 +33,12 @@ public class UserItem extends ItineraryItem implements Parcelable {
     // Represents any saved suggestions that were suggested from this destination
     private List<SuggestionItem> _suggestionItems;
 
-    public void addSuggestionItems(List<SuggestionItem> items) {
+    public void addSuggestionItems(Collection<SuggestionItem> items) {
+        _suggestionItems.addAll(items);
+    }
+
+    public void replaceSuggestionItems(Collection<SuggestionItem> items) {
+        _suggestionItems = new ArrayList<>();
         _suggestionItems.addAll(items);
     }
 

@@ -23,9 +23,11 @@ import com.mapster.itinerary.UserItem;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by Harriet on 9/08/2015. Access this to display save/load itinerary dialogues (which also
@@ -173,7 +175,10 @@ public class LoadAndSaveHelper {
             ItineraryItem savedItem = savedItemsMap.get(unsavedItem.getName());
             if (savedItem != null) {
                 List<SuggestionItem> suggestions = ((UserItem) unsavedItem).getSuggestionItems();
-                ((UserItem) savedItem).addSuggestionItems(suggestions);
+                List<SuggestionItem> savedSuggestions = ((UserItem) savedItem).getSuggestionItems();
+                Set<SuggestionItem> combinedItems = new HashSet<>();
+                combinedItems.addAll(suggestions); combinedItems.addAll(savedSuggestions);
+                ((UserItem) savedItem).replaceSuggestionItems(combinedItems);
                 if (unsavedItem.getTime() != null)
                     savedItem.setDateTime(unsavedItem.getTime());
             }

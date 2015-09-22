@@ -3,6 +3,7 @@ package com.mapster.itinerary;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 
+import com.annimon.stream.Stream;
 import com.mapster.R;
 import com.mapster.activities.MainActivity;
 import com.mapster.persistence.ItineraryDataSource;
@@ -48,7 +49,7 @@ public class UpdateMainFromItineraryTask extends AsyncTask<Void, Void, Collectio
         List<ItineraryItem> unsavedItems = itineraryDataSource.getItemsByItineraryName(null);
         List<ItineraryItem> savedItems = itineraryDataSource.getItemsByItineraryName(currentItineraryName);
 
-        // TODO Hacky -
+        // TODO Hacky - Gets items from database, combining 'null' itinerary and current named one
         Map<String, ItineraryItem> savedItemsMap = new HashMap<>();
         for (ItineraryItem item : savedItems)
             savedItemsMap.put(item.getName(), item);
@@ -56,53 +57,52 @@ public class UpdateMainFromItineraryTask extends AsyncTask<Void, Void, Collectio
             ItineraryItem savedItem = savedItemsMap.get(unsavedItem.getName());
             if (savedItem != null) {
                 List<SuggestionItem> suggestions = ((UserItem) unsavedItem).getSuggestionItems();
-                ((UserItem) savedItem).addSuggestionItems(suggestions);
+                List<SuggestionItem> savedSuggestions = ((UserItem) savedItem).getSuggestionItems();
+                Set<SuggestionItem> combinedItems = new HashSet<>();
+                combinedItems.addAll(suggestions); combinedItems.addAll(savedSuggestions);
+                ((UserItem) savedItem).replaceSuggestionItems(combinedItems);
                 if (unsavedItem.getTime() != null)
                     savedItem.setDateTime(unsavedItem.getTime());
             }
         }
 
-
         Collection<UserItem> existingItems = userItemsByMarkerId.values();
 
         // Sets of suggestion IDs so that we can tell which ones were deleted from the itinerary
-        Set<Long> oldSuggestionIds = new HashSet<>();
         Set<Long> updatedSuggestionIds = new HashSet<>();
 
-        // Make a map where existing ItineraryItems are keyed by ID (row ID from database)
-        Map<Long, ItineraryItem> allItems = new HashMap<>();
+        // Make a set of existing ItineraryItems (from MainActivity) - both SuggestionItems and UserItems
+        Set<ItineraryItem> allItems = new HashSet<>();
         for (UserItem oldItem: existingItems) {
-            allItems.put(oldItem.getId(), oldItem);
-            for (SuggestionItem s : oldItem.getSuggestionItems()) {
-                long id = s.getId();
-                allItems.put(id, s);
-                oldSuggestionIds.add(id);
-            }
+            allItems.add(oldItem);
+            allItems.addAll(oldItem.getSuggestionItems());
         }
 
+
         // Make a copy of the old ItineraryItems - quickfix for deserialisation issues (_userItem
-        // field of Suggestionitem isn't deserialised - will look into fixing this)
-        Map<Long, ItineraryItem> oldItems = new HashMap<>();
-        oldItems.putAll(allItems);
+        // field of Suggestionitem isn't deserialised - will look into fixing this) TODO
+        Set<ItineraryItem> oldItems = new HashSet<>();
+        oldItems.addAll(allItems);
 
         /*
         Swap out suggestions in deserialised UserItems for those here (which have markers),
         gradually updating the map of ItineraryItems to the updated items. Suggestions are not
         expected to be modified outside this activity (although any ItineraryItems may be)
         */
+        // Goes through saved itinerary items in DB
         for (ItineraryItem item: savedItems) {
             if (item instanceof UserItem) {
                 UserItem userItem = (UserItem) item;
+                // userItem is a UserItems retrieved from the DB
                 for (SuggestionItem s : userItem.getSuggestionItems()) {
-                    Long id = s.getId();
-                    SuggestionItem old = (SuggestionItem) allItems.get(id);
-                    if (old != null) {
-                        s.setSuggestion(old.getSuggestion());
-                        allItems.put(id, s);
-                        updatedSuggestionIds.add(id);
-                    }
+                    for (ItineraryItem old : oldItems)
+                        if (old.equals(s)) { // Compares type, name, location
+                            s.setSuggestion(((SuggestionItem) old).getSuggestion());
+                            allItems.add(s);
+                            break;
+                        }
                 }
-                allItems.put(item.getId(), item);
+                allItems.add(item);
             }
         }
 
