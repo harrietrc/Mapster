@@ -15,9 +15,9 @@ Please visit our [Wiki](https://github.com/harrietrc/Mapster/wiki) for more info
 
 ## Usage guide
 You must have:
- - Java installed in your machine. Guide to install Java: [click here](https://www.java.com/en/download/help/index_installing.xml)
- - Android studio installed in your machine. Guide to install Android Studio: [click here](https://developer.android.com/sdk/index.html).
- - After installing Android Studio, you must add SDK package. Preferably, Android 4.4.4 KitKat (or API level 19) or above. Guide to add SDK package: [click here](https://developer.android.com/sdk/installing/adding-packages.html).
+ - Java installed in your machine. [Guide to install Java](https://www.java.com/en/download/help/index_installing.xml)
+ - Android studio installed in your machine. [Guide to install Android Studio](https://developer.android.com/sdk/index.html).
+ - After installing Android Studio, you must add SDK package. Preferably, Android 4.4.4 KitKat (or API level 19) or above. [Guide to add SDK package](https://developer.android.com/sdk/installing/adding-packages.html).
  - An Android mobile. The device must have Android version 4.4.4 KitKat (or API level 19) or above.
  
 Download this project and import the whole project into Android Studio. Then compile and run the app to export the APK to your mobile and enjoy
