@@ -13,7 +13,6 @@ import android.widget.ListView;
 /**
  * Nifty code 'borrowed' from StackOverflow (http://stackoverflow.com/a/4842390/2175846). Magic!
  * Seems to be based off this: http://tokudu.com/post/50023900640/android-checkable-linear-layout
- * TODO The coding style doesn't match ours (need to fix field names, etc.)
  */
 public class CheckableLinearLayout extends LinearLayout implements Checkable {
 

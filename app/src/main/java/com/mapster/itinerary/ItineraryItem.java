@@ -1,6 +1,8 @@
 package com.mapster.itinerary;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.mapster.activities.MainActivity;
 import com.mapster.itinerary.utils.ItineraryItemTimeComparator;
 
 import org.joda.time.DateTime;
@@ -17,6 +19,10 @@ public abstract class ItineraryItem implements Comparable<ItineraryItem> {
 
     // Time stuff (could encapsulate in a separate class)
     private Integer _year, _month, _day, _hour, _minute;
+
+    public abstract String getMarkerId();
+
+    public abstract void setMarkerId(String markerId);
 
     @Override
     public boolean equals(Object o) {

@@ -13,13 +13,14 @@ import java.util.Currency;
  * Created by Harriet on 3/22/2015.
  */
 public abstract class Suggestion {
-    protected transient Marker _marker;
     protected boolean _isClicked;
 
     protected transient SuggestionItem _item; // These references are getting messy
 
     // Budgeting
     protected String _currencySymbol;
+
+    private String _markerId;
 
     public SuggestionItem getItem() {
         return _item;
@@ -29,9 +30,14 @@ public abstract class Suggestion {
         _item = item;
     }
 
-    // TODO!! The Context arg was a quick fix for something that should have been dealt with in
-    // itinerary.serialisation.FoursquareSuggestionAdapter. It was taking too long to fix but the
-    // argument should be removed later (after 18/06 due day)
+    public String getMarkerId() {
+        return _markerId;
+    }
+
+    public void setMarkerId(String markerId) {
+        _markerId = markerId;
+    }
+
     public abstract Double getCostPerPerson();
 
     public abstract String getCurrencyCode();
@@ -108,21 +114,12 @@ public abstract class Suggestion {
      */
     public abstract float getRating();
 
-    // TODO Change category to an enum
     public abstract String getCategory();
 
     /**
      * Stored in different places depending on the suggestion
      */
     public abstract LatLng getLocation();
-
-    public void setMarker(Marker marker) {
-        _marker = marker;
-    }
-
-    public Marker getMarker() {
-        return _marker;
-    }
 
     public boolean isClicked() {
         return _isClicked;

@@ -13,7 +13,6 @@ import java.util.Currency;
 
 /**
  * Created by Harriet on 6/12/2015.
- * TODO Database should be closed onPause and onResume
  */
 public class MealPriceEstimate {
 
@@ -74,7 +73,7 @@ public class MealPriceEstimate {
     public String findCountryCode(Suggestion suggestion) {
         // Should find the country code from the latitude and longitude (can't rely on the user's
         // marker in the case that this restaurant falls over the border of the country
-        return DEFAULT_COUNTRY_CODE; // TODO Temporary! Pass in country from user-defined stop
+        return DEFAULT_COUNTRY_CODE;
     }
 
     public double getAverageMealPrice(String countryCode) {

@@ -47,12 +47,12 @@ public class ExpediaSuggestion extends Suggestion {
 
     @Override
     public String getWebsite() {
-        return null; // TODO can we get a website? Most probably
+        return null;
     }
 
     @Override
     public String getPhoneNumber() {
-        return null; // TODO Same as above
+        return null;
     }
 
     @Override
@@ -139,7 +139,6 @@ public class ExpediaSuggestion extends Suggestion {
 
     @Override
     public Integer getPriceLevel() {
-        // Arbitrary! TODO In the future create a price slider that can also consider other currencies.
         Integer priceLevel;
 
         if (_hotel.getLowRate() == null) {

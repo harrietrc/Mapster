@@ -16,7 +16,6 @@ public class AppPreferences {
     public static final String ITINERARY_TUTORIAL = "ItineraryTutorial";
 
     public static final String USER_CURRENCY = "UserCurrency";
-    // TODO I should move my other ones in here too
 
     private SharedPreferences _shared;
     private SharedPreferences.Editor _prefEditor;

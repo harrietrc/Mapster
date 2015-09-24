@@ -70,7 +70,6 @@ public abstract class SequentialSuggestionItemDialogue {
             _nextInSequence.show();
     }
 
-    // TODO Temporary
     public View findViewById(int id) {
         return _dialogue.findViewById(id);
     }

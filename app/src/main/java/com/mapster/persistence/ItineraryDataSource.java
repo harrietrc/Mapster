@@ -2,13 +2,16 @@ package com.mapster.persistence;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mapster.R;
 import com.mapster.itinerary.ItineraryItem;
+import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
 import com.mapster.itinerary.serialisation.FoursquareSuggestionInstanceCreator;
 import com.mapster.itinerary.serialisation.ItineraryItemAdapter;
@@ -21,7 +24,11 @@ import org.apache.commons.lang3.StringUtils;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by Harriet on 6/16/2015.
@@ -41,6 +48,45 @@ public class ItineraryDataSource {
                 new SuggestionAdapter()).registerTypeAdapter(FoursquareSuggestion.class,
                 new FoursquareSuggestionInstanceCreator(context))
                 .excludeFieldsWithModifiers(Modifier.TRANSIENT, Modifier.STATIC).create();
+    }
+
+    public List<ItineraryItem> getUnsavedAndSavedItems(Context context) {
+
+        String sharedPrefsName = context.getResources().getString(R.string.shared_prefs);
+        String itineraryNamePrefs = context.getResources().getString(R.string.itinerary_name_prefs);
+        SharedPreferences settings = context.getSharedPreferences(sharedPrefsName, 0);
+        String currentItineraryName = settings.getString(itineraryNamePrefs, null);
+        List<ItineraryItem> unsavedItems = getItemsByItineraryName(null);
+        List<ItineraryItem> savedItems = getItemsByItineraryName(currentItineraryName);
+
+        Map<String, ItineraryItem> savedItemsMap = new HashMap<>();
+        for (ItineraryItem item : savedItems)
+            savedItemsMap.put(item.getName(), item);
+        for (ItineraryItem unsavedItem : unsavedItems) {
+            ItineraryItem savedItem = savedItemsMap.get(unsavedItem.getName());
+            if (savedItem != null) {
+                List<SuggestionItem> suggestions = ((UserItem) unsavedItem).getSuggestionItems();
+                List<SuggestionItem> savedSuggestions = ((UserItem) savedItem).getSuggestionItems();
+                Set<SuggestionItem> combinedItems = new HashSet<>();
+                combinedItems.addAll(suggestions); combinedItems.addAll(savedSuggestions);
+                ((UserItem) savedItem).replaceSuggestionItems(combinedItems);
+                if (unsavedItem.getTime() != null)
+                    savedItem.setDateTime(unsavedItem.getTime());
+            }
+        }
+
+        return savedItems;
+    }
+
+    public List<UserItem> getUnsavedAndSavedUserItems(Context context) {
+        List<ItineraryItem> databaseItems = getUnsavedAndSavedItems(context);
+
+        // Annoying cast - should really change schema
+        List<UserItem> databaseUserItems = new ArrayList<>();
+        for (ItineraryItem item : databaseItems)
+            databaseUserItems.add((UserItem) item);
+
+        return databaseUserItems;
     }
 
     public List<String> getAllNames() {

@@ -38,7 +38,7 @@ public class LoadAndSaveHelper {
 
     private Context _context;
     private LayoutInflater _inflater;
-    private ItineraryDataSource _datasource; // TODO Should be open - add check?
+    private ItineraryDataSource _datasource;
 
     // References to GUI elements that are populated with itinerary data. Data is grabbed from here
     // after the user chooses an itinerary name.
@@ -65,7 +65,6 @@ public class LoadAndSaveHelper {
         builder.setCancelable(true);
         builder.setNegativeButton(R.string.cancel, null);
 
-        // TODO Probably don't need to reinflate each time this is called
         final LinearLayout l = new LinearLayout(_context);
         View content = _inflater.inflate(R.layout.save_itinerary_dialogue, l);
         builder.setView(content);
@@ -146,7 +145,6 @@ public class LoadAndSaveHelper {
     private void loadItinerary(String itineraryName) {
         List<ItineraryItem> itineraryItems = _datasource.getItemsByItineraryName(itineraryName);
 
-        // TODO Might want to change the DB to only store UserItems so this isn't necessary
         ArrayList<UserItem> userItems = new ArrayList<>();
         for (ItineraryItem item : itineraryItems)
             userItems.add((UserItem) item);
@@ -158,7 +156,6 @@ public class LoadAndSaveHelper {
         ((PlacesActivity) _context).callback(userItems);
     }
 
-    // TODO Duplicated from ItineraryActivity - refactor.
     public List<ItineraryItem> getItemsFromDatabase() {
         // Get itinerary items that match current itinerary name (stored in shared prefs)
         String sharedPrefsName = _context.getResources().getString(R.string.shared_prefs);

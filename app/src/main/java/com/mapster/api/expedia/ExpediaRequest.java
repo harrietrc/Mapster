@@ -44,7 +44,7 @@ public class ExpediaRequest extends ApiRequest {
         _radius = radius;
         _location = location;
         _currencyCode = currencyCode;
-        _radiusUnit = "KM"; // TODO User should be able to set to MI or KM
+        _radiusUnit = "KM";
     }
 
     public String constructBaseUrl() {

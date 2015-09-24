@@ -40,8 +40,6 @@ public class ItineraryActivity extends ActionBarActivity {
         // Set up the data - accessed and shared by both fragments
         _itineraryDataSource = new ItineraryDataSource(this);
         _itineraryDataSource.open();
-        // Note that for whatever reason, SuggestionItem._userItem is set to null when deserialised
-        // - possibly because it was a bidirectional relationship? Will look into it. TODO!
 
         // Set layout
         super.onCreate(savedInstanceState);
@@ -110,31 +108,6 @@ public class ItineraryActivity extends ActionBarActivity {
 
     public List<ItineraryItem> getItemsFromDatabase() {
         // Get itinerary items that match current itinerary name (stored in shared prefs)
-        String sharedPrefsName = getResources().getString(R.string.shared_prefs);
-        String itineraryNamePrefs = getResources().getString(R.string.itinerary_name_prefs);
-        SharedPreferences settings = getSharedPreferences(sharedPrefsName, 0);
-        String itineraryName = settings.getString(itineraryNamePrefs, null);
-        List<ItineraryItem> unsavedItems = _itineraryDataSource.getItemsByItineraryName(null);
-        List<ItineraryItem> savedItems = _itineraryDataSource.getItemsByItineraryName(itineraryName);
-
-        // TODO Hacky -
-        Map<String, ItineraryItem> savedItemsMap = new HashMap<>();
-        for (ItineraryItem item : savedItems)
-            savedItemsMap.put(item.getName(), item);
-        for (ItineraryItem unsavedItem : unsavedItems) {
-            ItineraryItem savedItem = savedItemsMap.get(unsavedItem.getName());
-            if (savedItem != null) {
-                List<SuggestionItem> suggestions = ((UserItem) unsavedItem).getSuggestionItems();
-                List<SuggestionItem> savedSuggestions = ((UserItem) savedItem).getSuggestionItems();
-                Set<SuggestionItem> combinedItems = new HashSet<>();
-                combinedItems.addAll(suggestions); combinedItems.addAll(savedSuggestions);
-                ((UserItem) savedItem).replaceSuggestionItems(combinedItems);
-                if (unsavedItem.getTime() != null)
-                    savedItem.setDateTime(unsavedItem.getTime());
-            }
-        }
-
-
-        return savedItems;
+        return _itineraryDataSource.getUnsavedAndSavedItems(this);
     }
 }

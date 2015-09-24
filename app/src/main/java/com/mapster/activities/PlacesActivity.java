@@ -236,9 +236,9 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         acTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-            if (hasFocus == false) {  // lost focus
-                acTextView.setSelection(0,0);
-            }
+                if (hasFocus == false) {  // lost focus
+                    acTextView.setSelection(0, 0);
+                }
             }
         });
     }
@@ -265,7 +265,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         int padding = (int)(2 * density);
         button.setScaleX(0.8f);
         button.setScaleY(0.8f);
-        button.setPadding(padding,padding,padding,padding);
+        button.setPadding(padding, padding, padding, padding);
         button.setImageDrawable(this.getResources().getDrawable(R.drawable.map_marker_green));
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -285,9 +285,9 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         final int positionOfAutoCompleteTextView = 1;
         LinearLayout linearLayout = addStopPoints();
         addAutoCompleteTextViewToLinkedList((ClearableAutoCompleteTextView) linearLayout.getChildAt(positionOfAutoCompleteTextView));
-        initializeAutoCompleteTextViews((ClearableAutoCompleteTextView)linearLayout.getChildAt(positionOfAutoCompleteTextView));
-        addRadioGroupToList((RadioGroup)linearLayout.getChildAt(positionOfRadioGroupView));
-        initializeRadioButton((RadioGroup)linearLayout.getChildAt(positionOfRadioGroupView));
+        initializeAutoCompleteTextViews((ClearableAutoCompleteTextView) linearLayout.getChildAt(positionOfAutoCompleteTextView));
+        addRadioGroupToList((RadioGroup) linearLayout.getChildAt(positionOfRadioGroupView));
+        initializeRadioButton((RadioGroup) linearLayout.getChildAt(positionOfRadioGroupView));
     }
 
     private void setUpTourGuide(final ImageView imageView){
@@ -408,7 +408,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
             }
         });
 
-        destination.setOnClickListener(new View.OnClickListener(){
+        destination.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mTutorialHandler.cleanUp();
@@ -427,13 +427,13 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
             }
         });
 
-        imageView.setOnClickListener(new View.OnClickListener(){
+        imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mTutorialHandler.cleanUp();
                 setUpActionBarMenu();
-                TypefaceTextView stopPoint = (TypefaceTextView)findViewById(R.id.add_point);
-                if(!isAlreadyDoTutorial()) {
+                TypefaceTextView stopPoint = (TypefaceTextView) findViewById(R.id.add_point);
+                if (!isAlreadyDoTutorial()) {
                     mTutorialHandler.setToolTip(new ToolTip()
                             .setTitle("Stop Point")
                             .setDescription("Give us locations between origin and destination")
@@ -505,7 +505,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                                       this, R.layout.add_stop_points, null);
         layoutToAddPoint.addView(inflateLayout);
         layoutToAddPoint.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT));
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         return inflateLayout;
     }
 
@@ -582,7 +582,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
                 this, R.layout.add_date, null);
         layoutToAddDate.addView(inflateLayout);
         layoutToAddDate.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT));
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         return inflateLayout;
     }
 
@@ -602,11 +602,40 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         if (_userItemList != null) {
             Intent intent = new Intent(this, MainActivity.class);
             intent.putExtra(START_DATETIME, _dateTimeStartJourney);
-            intent.putParcelableArrayListExtra("USER_ITEM_LIST", _userItemList);
+            intent.putExtra("MOVED_FROM_PLACES", true);
+            updateDatabaseWithItems();
             startActivity(intent);
         } else {
             createToast("One of the addresses or addresses you passed is non-exist. Please select from the suggested list", Toast.LENGTH_LONG);
         }
+    }
+
+    private void updateDatabaseWithItems() {
+        List<UserItem> databaseUserItems = _itineraryDataSource.getUnsavedAndSavedUserItems(this);
+
+        // Key user items by name
+        Map<String, UserItem> itemsByName = new HashMap<>();
+        for (ItineraryItem item : databaseUserItems)
+            itemsByName.put(item.getName(), (UserItem) item);
+
+        // Swap out suggestions in the user item list for those from the database. Keep the times.
+        List<UserItem> updatedItems = new ArrayList<>();
+        for (UserItem item : _userItemList) {
+            UserItem oldItem = itemsByName.get(item.getName());
+            if (oldItem != null && oldItem.equals(item)) { // Compares location and name
+                // Item was already in the database - update with new time / transport mode
+                if (item.getTime() != null)
+                    oldItem.setDateTime(item.getTime());
+                oldItem.setTravelMode(item.getTravelMode());
+                updatedItems.add(oldItem);
+            } else {
+                // Itinerary item is new
+                updatedItems.add(item);
+            }
+        }
+
+        _itineraryDataSource.deleteUnsavedItineraryItems();
+        _itineraryDataSource.insertMultipleItineraryItems(updatedItems);
     }
 
     public void removeStopPoint(View view){
@@ -675,9 +704,9 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
             ClearableAutoCompleteTextView stopPointNameView = (ClearableAutoCompleteTextView)
                     stopPointLayout.findViewById(R.id.stop_point_name);
             addAutoCompleteTextViewToLinkedList((ClearableAutoCompleteTextView) stopPointLayout.getChildAt(i));
-            initializeAutoCompleteTextViews((ClearableAutoCompleteTextView)stopPointLayout.getChildAt(i));
-            addRadioGroupToList((RadioGroup)stopPointLayout.getChildAt(positionOfRadioGroupView));
-            initializeRadioButton((RadioGroup)stopPointLayout.getChildAt(positionOfRadioGroupView));
+            initializeAutoCompleteTextViews((ClearableAutoCompleteTextView) stopPointLayout.getChildAt(i));
+            addRadioGroupToList((RadioGroup) stopPointLayout.getChildAt(positionOfRadioGroupView));
+            initializeRadioButton((RadioGroup) stopPointLayout.getChildAt(positionOfRadioGroupView));
             stopPointNameView.setText(items.get(i).getFullAddress());
             modeTransport = items.get(i).getTravelMode();
 

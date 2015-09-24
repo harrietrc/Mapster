@@ -33,7 +33,6 @@ public class MapInformation{
         _date = new CustomDate(date.toString());
         _dateToCalculate = new CustomDate(date.toString());
 
-        // TODO Don't need both _dates and _dates, but just getting this working first
         _dates = new ArrayList<>();
         _dates.add(new CustomDate(date.getDateTime())); // Constructor call to break reference to _date obj
     }

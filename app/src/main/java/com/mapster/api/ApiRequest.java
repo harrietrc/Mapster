@@ -26,7 +26,6 @@ public abstract class ApiRequest {
         return _url;
     }
 
-    // TODO Add checks for error response code (500s, etc.)
     public String getResponse() {
         if (_response == null) {
             throw new InvalidResponseException("No response saved. Has a request been made?");

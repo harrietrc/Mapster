@@ -106,7 +106,6 @@ public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
                 String countryCode;
                 String text = acTextView.getText().toString();
 
-                // TODO Might want to make the rest of the parsing for GeoCode consistent with this
                 String response = getRequestWithAddress(text);
                 JSONObject jsonResponse = null;
                 try {
