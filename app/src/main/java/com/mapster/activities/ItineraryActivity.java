@@ -1,29 +1,18 @@
 package com.mapster.activities;
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+
 import com.mapster.R;
 import com.mapster.itinerary.ItineraryItem;
-
-import com.mapster.itinerary.SuggestionItem;
-import com.mapster.itinerary.UserItem;
 import com.mapster.persistence.ItineraryDataSource;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by Harriet on 6/16/2015.

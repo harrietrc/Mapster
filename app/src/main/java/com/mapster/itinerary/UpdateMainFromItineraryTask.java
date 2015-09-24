@@ -3,7 +3,6 @@ package com.mapster.itinerary;
 import android.os.AsyncTask;
 
 import com.mapster.activities.MainActivity;
-import com.mapster.activities.PlacesActivity;
 import com.mapster.persistence.ItineraryDataSource;
 
 import java.util.ArrayList;

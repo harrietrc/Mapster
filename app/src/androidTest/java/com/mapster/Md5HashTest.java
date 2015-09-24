@@ -6,7 +6,8 @@ import com.mapster.webutils.Md5Hash;
 
 import java.security.NoSuchAlgorithmException;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 /**

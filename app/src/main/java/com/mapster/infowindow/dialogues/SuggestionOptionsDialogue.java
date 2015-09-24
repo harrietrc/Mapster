@@ -11,11 +11,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.mapster.R;
 import com.mapster.activities.MainActivity;
 import com.mapster.infowindow.listeners.AddToItineraryButtonListener;
-import com.mapster.infowindow.listeners.RemoveFromItineraryButtonListener;
-import com.mapster.itinerary.SuggestionItem;
 import com.mapster.infowindow.listeners.CallButtonListener;
 import com.mapster.infowindow.listeners.DirectionsButtonListener;
+import com.mapster.infowindow.listeners.RemoveFromItineraryButtonListener;
 import com.mapster.infowindow.listeners.WebsiteButtonListener;
+import com.mapster.itinerary.SuggestionItem;
 import com.mapster.suggestions.Suggestion;
 
 import org.apache.commons.lang3.StringUtils;

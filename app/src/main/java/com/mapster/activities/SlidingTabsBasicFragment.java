@@ -16,48 +16,19 @@ package com.mapster.activities;
  * limitations under the License.
  */
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
-import android.view.WindowManager;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import com.mapster.R;
 import com.mapster.itinerary.ItineraryItem;
-import com.mapster.itinerary.SuggestionItem;
-import com.mapster.itinerary.UserItem;
 import com.mapster.itinerary.ui.SamplePagerAdapter;
-import com.mapster.priceestimation.MealPriceEstimate;
-import com.mapster.suggestions.Suggestion;
 import com.mapster.view.SlidingTabLayout;
 
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Currency;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 
 /**

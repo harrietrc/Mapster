@@ -1,15 +1,9 @@
 package com.mapster.itinerary;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.mapster.activities.MainActivity;
 import com.mapster.itinerary.utils.ItineraryItemTimeComparator;
 
 import org.joda.time.DateTime;
-
-import java.util.Currency;
-import java.util.Locale;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by Harriet on 6/12/2015.

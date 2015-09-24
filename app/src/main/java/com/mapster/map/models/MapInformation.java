@@ -1,7 +1,5 @@
 package com.mapster.map.models;
 
-import android.util.Log;
-
 import com.mapster.date.CustomDate;
 import com.mapster.json.StatusCode;
 

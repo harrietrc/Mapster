@@ -62,8 +62,6 @@ import tourguide.tourguide.Pointer;
 import tourguide.tourguide.ToolTip;
 import tourguide.tourguide.TourGuide;
 
-import static junit.framework.Assert.assertTrue;
-
 public class PlacesActivity extends ActionBarActivity implements OnItemClickListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener, GeoCodeListener {
 
     public static final String START_DATETIME = "START_DATETIME";
