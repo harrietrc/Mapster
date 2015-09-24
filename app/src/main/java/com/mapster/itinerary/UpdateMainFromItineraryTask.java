@@ -25,6 +25,7 @@ public class UpdateMainFromItineraryTask extends AsyncTask<Void, Void, Collectio
 
     @Override
     protected Collection<SuggestionItem> doInBackground(Void... params) {
+
         _updateFromPlaces = _activity.getIntent().getBooleanExtra("MOVED_FROM_PLACES", false);
         _activity.getIntent().removeExtra("MOVED_FROM_PLACES");
 
@@ -38,6 +39,11 @@ public class UpdateMainFromItineraryTask extends AsyncTask<Void, Void, Collectio
 
         // Items from the database
         ItineraryDataSource itineraryDataSource = _activity.getItineraryDatasource();
+
+        // Must open the database if it isn't already open
+        if (!itineraryDataSource.isOpen())
+            itineraryDataSource.open();
+
         List<ItineraryItem> savedItems = itineraryDataSource.getUnsavedAndSavedItems(_activity);
 
         // Keeps track of SuggestionItems that have been deleted from the itinerary

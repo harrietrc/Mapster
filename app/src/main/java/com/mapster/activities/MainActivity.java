@@ -687,6 +687,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     public ItineraryDataSource getItineraryDatasource() {
+
         return _itineraryDataSource;
     }
 

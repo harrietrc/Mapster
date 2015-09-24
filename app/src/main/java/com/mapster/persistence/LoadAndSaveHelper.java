@@ -155,32 +155,4 @@ public class LoadAndSaveHelper {
         ((PlacesActivity) _context).updateFieldsFromItinerary(userItems); // Updates the UI
         ((PlacesActivity) _context).callback(userItems);
     }
-
-    public List<ItineraryItem> getItemsFromDatabase() {
-        // Get itinerary items that match current itinerary name (stored in shared prefs)
-        String sharedPrefsName = _context.getResources().getString(R.string.shared_prefs);
-        String itineraryNamePrefs = _context.getResources().getString(R.string.itinerary_name_prefs);
-        SharedPreferences settings = _context.getSharedPreferences(sharedPrefsName, 0);
-        List<ItineraryItem> unsavedItems = _datasource.getItemsByItineraryName(null);
-        String itineraryName = settings.getString(itineraryNamePrefs, null);
-        List<ItineraryItem> savedItems = _datasource.getItemsByItineraryName(itineraryName);
-
-        Map<String, ItineraryItem> savedItemsMap = new HashMap<>();
-        for (ItineraryItem item : savedItems)
-            savedItemsMap.put(item.getName(), item);
-        for (ItineraryItem unsavedItem : unsavedItems) {
-            ItineraryItem savedItem = savedItemsMap.get(unsavedItem.getName());
-            if (savedItem != null) {
-                List<SuggestionItem> suggestions = ((UserItem) unsavedItem).getSuggestionItems();
-                List<SuggestionItem> savedSuggestions = ((UserItem) savedItem).getSuggestionItems();
-                Set<SuggestionItem> combinedItems = new HashSet<>();
-                combinedItems.addAll(suggestions); combinedItems.addAll(savedSuggestions);
-                ((UserItem) savedItem).replaceSuggestionItems(combinedItems);
-                if (unsavedItem.getTime() != null)
-                    savedItem.setDateTime(unsavedItem.getTime());
-            }
-        }
-
-        return savedItems;
-    }
 }

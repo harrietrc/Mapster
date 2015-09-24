@@ -63,13 +63,17 @@ public class ItineraryDataSource {
         for (ItineraryItem item : savedItems)
             savedItemsMap.put(item.getName(), item);
         for (ItineraryItem unsavedItem : unsavedItems) {
-            ItineraryItem savedItem = savedItemsMap.get(unsavedItem.getName());
+            UserItem savedItem = (UserItem) savedItemsMap.get(unsavedItem.getName());
             if (savedItem != null) {
                 List<SuggestionItem> suggestions = ((UserItem) unsavedItem).getSuggestionItems();
-                List<SuggestionItem> savedSuggestions = ((UserItem) savedItem).getSuggestionItems();
+                List<SuggestionItem> savedSuggestions = savedItem.getSuggestionItems();
                 Set<SuggestionItem> combinedItems = new HashSet<>();
                 combinedItems.addAll(suggestions); combinedItems.addAll(savedSuggestions);
-                ((UserItem) savedItem).replaceSuggestionItems(combinedItems);
+
+                for (SuggestionItem s : combinedItems)
+                    s.setUserItem(savedItem);
+
+                savedItem.replaceSuggestionItems(combinedItems);
                 if (unsavedItem.getTime() != null)
                     savedItem.setDateTime(unsavedItem.getTime());
             }
@@ -259,6 +263,10 @@ public class ItineraryDataSource {
 
     public void open() throws SQLException {
         _database = _helper.getWritableDatabase();
+    }
+
+    public boolean isOpen() {
+        return _database != null && _database.isOpen();
     }
 
     public void close() {

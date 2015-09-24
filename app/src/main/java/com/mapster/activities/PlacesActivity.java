@@ -99,7 +99,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     }
 
     private ArrayList<UserItem> retainExistingItems(ArrayList<UserItem> items) {
-        List<ItineraryItem> existingItems = _loadAndSaveItineraryHelper.getItemsFromDatabase();
+        List<ItineraryItem> existingItems = _itineraryDataSource.getUnsavedAndSavedItems(this);
 
         // Make a set of all the destination names that already exist in the itinerary
         Map<String, UserItem> existingItemsByName = new HashMap<>();
