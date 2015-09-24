@@ -35,7 +35,7 @@ public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
     private static final String OUT_JSON = "/json";
     private LinkedList<ClearableAutoCompleteTextView> _autoCompleteTextViewLinkedList;
     private List<RadioGroup> _transportModeViewList;
-    private PlacesActivity _activity;
+    protected PlacesActivity _activity;
     private ProgressDialog _dialog;
 
     public GeoCode(LinkedList<ClearableAutoCompleteTextView> autoCompleteTextViewLinkedList,

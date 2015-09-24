@@ -152,6 +152,9 @@ public class LoadAndSaveHelper {
         // Update itinerary name
         writeItineraryNameToSettings(itineraryName);
 
+        // Gets rid of itinerary items that weren't part of the loaded itinerary
+        _datasource.deleteUnsavedItineraryItems();
+
         ((PlacesActivity) _context).updateFieldsFromItinerary(userItems); // Updates the UI
         ((PlacesActivity) _context).callback(userItems);
     }

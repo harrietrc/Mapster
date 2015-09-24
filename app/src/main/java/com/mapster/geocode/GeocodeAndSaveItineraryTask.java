@@ -36,6 +36,8 @@ public class GeocodeAndSaveItineraryTask extends GeoCode {
     @Override
     protected void callback(ArrayList<UserItem> userItems) {
         long id = _datasource.createAndGetItineraryId(_itineraryName);
-        _datasource.insertMultipleItineraryItems(userItems, id);
+        List<UserItem> placesUserItems = _activity.getUserItems();
+        List<UserItem> updatedItems = _activity.combineItemsWithUserItems(userItems, placesUserItems);
+        _datasource.insertMultipleItineraryItems(updatedItems, id);
     }
 }

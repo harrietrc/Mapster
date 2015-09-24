@@ -990,6 +990,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
     @Override
     public void onBackPressed() {
+        updateItineraryDatabase();
         if (_layout != null &&
                 (_layout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED || _layout.getPanelState() == SlidingUpPanelLayout.PanelState.ANCHORED)) {
             _layout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);

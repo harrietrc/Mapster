@@ -31,7 +31,7 @@ public class AddToItineraryButtonListener extends SequentialDialogueContentListe
         // Add the suggestion to the list for the UserItem it is associated with
         UserItem userItem = _itineraryItem.getUserItem();
         userItem.addSuggestionItem(_itineraryItem);
-        
+
         List<SuggestionItem> items = userItem.getSuggestionItems();
         List<SuggestionItem> mainItems = _activity.getUserItemByMarkerId(userItem.getMarkerId()).getSuggestionItems();
         Set<SuggestionItem> combinedItems = new HashSet<>();

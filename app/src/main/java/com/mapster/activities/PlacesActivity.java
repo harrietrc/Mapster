@@ -39,6 +39,7 @@ import com.mapster.fragment.TimePickerFragment;
 import com.mapster.geocode.GeoCode;
 import com.mapster.interfaces.GeoCodeListener;
 import com.mapster.itinerary.ItineraryItem;
+import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
 import com.mapster.persistence.ItineraryDataSource;
 import com.mapster.persistence.LoadAndSaveHelper;
@@ -85,6 +86,12 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     private TourGuide mTutorialHandler;
     private boolean isAlreadyDoTutorial = false;
     private AppPreferences _preferences;
+
+    @Override
+    protected void onDestroy() {
+        _itineraryDataSource.deleteUnsavedItineraryItems();
+        super.onDestroy();
+    }
 
     @Override
     public void callback(ArrayList<UserItem> userItems) {
@@ -145,6 +152,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
     @Override
     public void onResume() {
         _itineraryDataSource.open();
+        _userItemList = new ArrayList<>(_itineraryDataSource.getUnsavedAndSavedUserItems(this));
         super.onResume();
     }
 
@@ -588,6 +596,10 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         new GeoCode(_autoCompleteTextViewLinkedList, _transportModeViewList, this).execute();
     }
 
+    public List<UserItem> getUserItems() {
+        return _userItemList;
+    }
+
     private void mergeDateAndTimeToDateTime(){
         if (_dateStartJourney == null)
             _dateStartJourney = _dateFormat.format(new Date());
@@ -608,17 +620,22 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         }
     }
 
-    private void updateDatabaseWithItems() {
-        List<UserItem> databaseUserItems = _itineraryDataSource.getUnsavedAndSavedUserItems(this);
+    public void updateDatabaseWithItems() {
+        List<UserItem> items = _itineraryDataSource.getUnsavedAndSavedUserItems(this);
+        List<UserItem> updatedItems = combineItemsWithUserItems(_userItemList, items);
+        _itineraryDataSource.deleteUnsavedItineraryItems();
+        _itineraryDataSource.insertMultipleItineraryItems(updatedItems);
+    }
 
+    public List<UserItem> combineItemsWithUserItems(List<UserItem> items, List<UserItem> itemsToUpdateFrom) {
         // Key user items by name
         Map<String, UserItem> itemsByName = new HashMap<>();
-        for (ItineraryItem item : databaseUserItems)
+        for (ItineraryItem item : itemsToUpdateFrom)
             itemsByName.put(item.getName(), (UserItem) item);
 
         // Swap out suggestions in the user item list for those from the database. Keep the times.
         List<UserItem> updatedItems = new ArrayList<>();
-        for (UserItem item : _userItemList) {
+        for (UserItem item : items) {
             UserItem oldItem = itemsByName.get(item.getName());
             if (oldItem != null && oldItem.equals(item)) { // Compares location and name
                 // Item was already in the database - update with new time / transport mode
@@ -632,8 +649,7 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
             }
         }
 
-        _itineraryDataSource.deleteUnsavedItineraryItems();
-        _itineraryDataSource.insertMultipleItineraryItems(updatedItems);
+        return updatedItems;
     }
 
     public void removeStopPoint(View view){
