@@ -18,16 +18,11 @@ import com.mapster.activities.PlacesActivity;
 import com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoCompleteTextView;
 import com.mapster.geocode.GeocodeAndSaveItineraryTask;
 import com.mapster.itinerary.ItineraryItem;
-import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by Harriet on 9/08/2015. Access this to display save/load itinerary dialogues (which also
@@ -89,6 +84,7 @@ public class LoadAndSaveHelper {
      */
     private void saveItinerary(String itineraryName) {
         PlacesActivity activity = (PlacesActivity) _context;
+        activity.refreshViewLists();
         GeocodeAndSaveItineraryTask geocodeTask =
                 new GeocodeAndSaveItineraryTask(_autoCompleteTextViews, _transportModes, activity,
                         _datasource, itineraryName);

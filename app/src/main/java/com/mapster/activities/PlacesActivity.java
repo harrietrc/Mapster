@@ -184,14 +184,18 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
         _timeTextView.setText(_timeStartJourney);
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void refreshViewLists() {
         _autoCompleteTextViewLinkedList = new LinkedList<>();
         _transportModeViewList = new ArrayList<>();
+        addViewsInLayoutToArrayList((LinearLayout) findViewById(R.id.place_activity_layout));
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
         _autoCompAdapter = new PlacesAutoCompleteAdapter(this, R.layout.list_item);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_places);
-        addViewsInLayoutToArrayList((LinearLayout) findViewById(R.id.place_activity_layout));
+        refreshViewLists();
         initializeAutoCompleteTextViewInArrayList();
         initializeRadioButton(_transportModeViewList.get(0));
         _userItemList = new ArrayList<>();
