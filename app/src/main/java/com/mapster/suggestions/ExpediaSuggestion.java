@@ -8,7 +8,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.mapster.api.expedia.ExpediaHotel;
 import com.mapster.api.expedia.ExpediaHotelInfoTask;
 import com.mapster.api.fixerio.FixerIoRangeTask;
-import com.mapster.api.fixerio.FixerIoRateTask;
 import com.mapster.apppreferences.AppPreferences;
 
 import java.util.Currency;
@@ -108,7 +107,7 @@ public class ExpediaSuggestion extends Suggestion {
 
         if (highRate != null)
             sb.append(" - ");
-        // TODO This will misrepresent the currency! Need to deal with this. see rateCurrencyCode
+
         sb.append(highRate == null ? "" : currencySymbol + highRate.intValue());
 
         if (!(lowRate== null && highRate == null))

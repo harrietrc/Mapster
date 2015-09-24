@@ -1,13 +1,9 @@
 package com.mapster.infowindow;
 
 import android.app.Activity;
-import android.graphics.Paint;
-import android.graphics.Rect;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
@@ -15,7 +11,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 import com.mapster.R;
 import com.mapster.activities.MainActivity;
-import com.mapster.api.fixerio.FixerIoRateTask;
 import com.mapster.apppreferences.AppPreferences;
 import com.mapster.infowindow.dialogues.SuggestionDateDialogue;
 import com.mapster.infowindow.dialogues.SuggestionOptionsDialogue;
@@ -130,7 +125,6 @@ public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
         TextView localCost = (TextView) info.findViewById(R.id.converted_cost);
 
         // Set price, if available
-        // TODO Null checks not necessary
         if (suggestion != null) {
             Double cost = suggestion.getCostPerPerson();
 

@@ -157,8 +157,6 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
     /**
      * Gets rid of references to children that no longer refer t children - i.e. the view has
      * been reused for another group
-     * TODO This isn't great - try to think of an alternative. Perhaps keep all views in a single list.
-     * The parent/group name is being checked anyway so this is probably a better idea.
      */
     private void purgeFilterViews(String groupName) {
         HashSet<View> children = _filterChildViews.get(groupName);

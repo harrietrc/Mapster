@@ -1,4 +1,5 @@
 package com.mapster.itinerary.ui;
+
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.support.v4.app.FragmentActivity;
@@ -8,7 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -341,7 +341,7 @@ public class SamplePagerAdapter extends PagerAdapter {
 
     private void refreshScheduleRows() {
         _scheduleLayout.removeAllViews();
-        createRowsFromItemsSchedule(); // Unnecessary - see TODO above
+        createRowsFromItemsSchedule();
     }
 
     /**

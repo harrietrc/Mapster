@@ -36,27 +36,26 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
-import com.mapster.apppreferences.AppPreferences;
-import com.mapster.itinerary.ItineraryItem;
-import com.mapster.map.models.SortedCoordinate;
-import com.mapster.tutorial.Tutorial;
 import com.mapster.api.expedia.ExpediaHotelListTask;
 import com.mapster.api.foursquare.FoursquareExploreTask;
 import com.mapster.api.googleplaces.GooglePlacesTask;
+import com.mapster.apppreferences.AppPreferences;
 import com.mapster.date.CustomDate;
 import com.mapster.filters.Filters;
 import com.mapster.geocode.GeoCode;
 import com.mapster.infowindow.SuggestionInfoWindowAdapter;
 import com.mapster.itinerary.SuggestionItem;
-import com.mapster.itinerary.UserItem;
-import com.mapster.persistence.ItineraryDataSource;
 import com.mapster.itinerary.UpdateMainFromItineraryTask;
+import com.mapster.itinerary.UserItem;
 import com.mapster.json.JSONParser;
 import com.mapster.json.StatusCode;
 import com.mapster.map.models.MapInformation;
 import com.mapster.map.models.Path;
 import com.mapster.map.models.Routes;
+import com.mapster.map.models.SortedCoordinate;
+import com.mapster.persistence.ItineraryDataSource;
 import com.mapster.suggestions.Suggestion;
+import com.mapster.tutorial.Tutorial;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import org.joda.time.DateTime;
@@ -991,8 +990,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
     /**
      * Sets the visibility of markers, taking into account all applicable filters
-     * TODO Currently each filter needs to take into account previous ones - change this so it's
-     * less complicated and error prone.
      */
     public void setVisibilityByFilters() {
         setVisibilityByCategory();
