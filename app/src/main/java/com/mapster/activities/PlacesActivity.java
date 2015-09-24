@@ -703,8 +703,8 @@ public class PlacesActivity extends ActionBarActivity implements OnItemClickList
             LinearLayout stopPointLayout = addStopPoints(); // Layout with an empty text field
             ClearableAutoCompleteTextView stopPointNameView = (ClearableAutoCompleteTextView)
                     stopPointLayout.findViewById(R.id.stop_point_name);
-            addAutoCompleteTextViewToLinkedList((ClearableAutoCompleteTextView) stopPointLayout.getChildAt(i));
-            initializeAutoCompleteTextViews((ClearableAutoCompleteTextView) stopPointLayout.getChildAt(i));
+            addAutoCompleteTextViewToLinkedList((ClearableAutoCompleteTextView) stopPointLayout.getChildAt(1));
+            initializeAutoCompleteTextViews((ClearableAutoCompleteTextView) stopPointLayout.getChildAt(1));
             addRadioGroupToList((RadioGroup) stopPointLayout.getChildAt(positionOfRadioGroupView));
             initializeRadioButton((RadioGroup) stopPointLayout.getChildAt(positionOfRadioGroupView));
             stopPointNameView.setText(items.get(i).getFullAddress());
