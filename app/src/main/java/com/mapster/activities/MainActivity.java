@@ -123,6 +123,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private AppPreferences _preferences;
     private ImageButton _itineraryItem;
 
+    private Map<String, SuggestionItem> _savedSuggestionsByName;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -203,11 +205,18 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     public void getDataFromPlaceActivity(){
+        _savedSuggestionsByName = new HashMap<>();
         Intent i = getIntent();
         _startDateTime = i.getStringExtra(PlacesActivity.START_DATETIME);
         _userItemList = new ArrayList<>(_itineraryDataSource.getUnsavedAndSavedUserItems(this));
         sortCoordinateArrayList();
         _customDate = new CustomDate(_startDateTime);
+
+        for (UserItem item : _userItemList) {
+            List<SuggestionItem> suggestionItems = item.getSuggestionItems();
+            for (SuggestionItem suggestionItem : suggestionItems)
+                _savedSuggestionsByName.put(suggestionItem.getName(), suggestionItem);
+        }
     }
 
     private void sortCoordinateArrayList(){
@@ -422,14 +431,31 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         Marker marker = drawMarker(suggestion.getLocation(), icon);
         String markerId = marker.getId();
         marker.setTitle(title);
+
+        // If already there, put old one and swap out marker id. Also update the icon.
+        SuggestionItem oldItem = _savedSuggestionsByName.get(item.getName());
+        boolean itemWasSaved = false;
+        if (oldItem != null && oldItem.equals(item)) { // Name and location are the same
+            item = oldItem; // Does mean some data may not be up to date
+            itemWasSaved = true;
+        }
+
         item.setMarkerId(markerId);
         _suggestionItemsByMarkerId.put(markerId, item);
         String category = suggestion.getCategory();
         List<Marker> cat = _markersByCategory.get(category);
         cat.add(marker);
         _suggestedMarker = marker;
+
         // Refilter markers
         setVisibilityByFilters();
+
+        // If the item is already in the itinerary, change the marker colour and make it visible
+        if (itemWasSaved) {
+            updateSuggestionItem(item);
+            Marker m = _markersByMarkerId.get(item.getMarkerId());
+            m.setVisible(true);
+        }
     }
 
     public void moveCamera() {
