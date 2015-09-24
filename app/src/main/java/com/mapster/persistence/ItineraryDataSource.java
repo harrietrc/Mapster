@@ -69,10 +69,6 @@ public class ItineraryDataSource {
                 List<SuggestionItem> savedSuggestions = savedItem.getSuggestionItems();
                 Set<SuggestionItem> combinedItems = new HashSet<>();
                 combinedItems.addAll(suggestions); combinedItems.addAll(savedSuggestions);
-
-                for (SuggestionItem s : combinedItems)
-                    s.setUserItem(savedItem);
-
                 savedItem.replaceSuggestionItems(combinedItems);
                 if (unsavedItem.getTime() != null)
                     savedItem.setDateTime(unsavedItem.getTime());

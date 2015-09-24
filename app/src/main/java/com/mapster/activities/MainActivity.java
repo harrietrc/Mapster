@@ -695,6 +695,14 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         return _userItemsByMarkerId;
     }
 
+    public UserItem getUserItemByMarkerId(String markerId) {
+        return _userItemsByMarkerId.get(markerId);
+    }
+
+    public void addUserItem(UserItem userItem) {
+        _userItemsByMarkerId.put(userItem.getMarkerId(), userItem);
+    }
+
     public Map<String, SuggestionItem> getSuggestionItemsByMarkerId() {
         return _suggestionItemsByMarkerId;
     }

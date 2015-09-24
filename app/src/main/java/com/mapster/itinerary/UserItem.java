@@ -35,6 +35,9 @@ public class UserItem extends ItineraryItem implements Parcelable {
     }
 
     public void replaceSuggestionItems(Collection<SuggestionItem> items) {
+        for (SuggestionItem item : items)
+            item.setUserItem(this);
+
         _suggestionItems = new ArrayList<>();
         _suggestionItems.addAll(items);
     }
@@ -102,6 +105,7 @@ public class UserItem extends ItineraryItem implements Parcelable {
     }
 
     public void addSuggestionItem(SuggestionItem item) {
+        item.setUserItem(this);
         _suggestionItems.add(item);
     }
 

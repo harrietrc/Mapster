@@ -53,8 +53,14 @@ public class UpdateMainFromItineraryTask extends AsyncTask<Void, Void, Collectio
         for (ItineraryItem item : savedItems) {
             if (item instanceof UserItem) {
                 UserItem userItem = (UserItem) item;
-                if (userItem.getMarkerId() != null)
-                    userItemsByMarkerId.put(userItem.getMarkerId(), userItem);
+                String markerId = userItem.getMarkerId();
+                if (markerId != null) {
+                    UserItem oldUserItem = userItemsByMarkerId.get(markerId);
+                    if (oldUserItem != null)
+                        for (SuggestionItem s : oldUserItem.getSuggestionItems())
+                            s.setUserItem(userItem);
+                    userItemsByMarkerId.put(markerId, userItem);
+                }
 
                 for (SuggestionItem suggestionItem : userItem.getSuggestionItems()) {
                     if (!suggestionItem.isInItinerary())
