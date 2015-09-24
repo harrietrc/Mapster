@@ -72,6 +72,8 @@ public class ItineraryDataSource {
                 savedItem.replaceSuggestionItems(combinedItems);
                 if (unsavedItem.getTime() != null)
                     savedItem.setDateTime(unsavedItem.getTime());
+            } else {
+                savedItems.add(1, unsavedItem);
             }
         }
 
