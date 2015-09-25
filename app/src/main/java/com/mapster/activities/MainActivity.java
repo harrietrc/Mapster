@@ -36,26 +36,26 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.mapster.R;
-import com.mapster.apppreferences.AppPreferences;
-import com.mapster.map.models.SortedCoordinate;
-import com.mapster.tutorial.Tutorial;
 import com.mapster.api.expedia.ExpediaHotelListTask;
 import com.mapster.api.foursquare.FoursquareExploreTask;
 import com.mapster.api.googleplaces.GooglePlacesTask;
+import com.mapster.apppreferences.AppPreferences;
 import com.mapster.date.CustomDate;
 import com.mapster.filters.Filters;
 import com.mapster.geocode.GeoCode;
 import com.mapster.infowindow.SuggestionInfoWindowAdapter;
 import com.mapster.itinerary.SuggestionItem;
-import com.mapster.itinerary.UserItem;
-import com.mapster.persistence.ItineraryDataSource;
 import com.mapster.itinerary.UpdateMainFromItineraryTask;
+import com.mapster.itinerary.UserItem;
 import com.mapster.json.JSONParser;
 import com.mapster.json.StatusCode;
 import com.mapster.map.models.MapInformation;
 import com.mapster.map.models.Path;
 import com.mapster.map.models.Routes;
+import com.mapster.map.models.SortedCoordinate;
+import com.mapster.persistence.ItineraryDataSource;
 import com.mapster.suggestions.Suggestion;
+import com.mapster.tutorial.Tutorial;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import org.joda.time.DateTime;
@@ -67,7 +67,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -97,6 +96,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private HashMap<String, SuggestionItem> _suggestionItemsByMarkerId;
     // User items, keyed by marker ID
     private HashMap<String, UserItem> _userItemsByMarkerId;
+    // All markers by marker ID
+    private HashMap<String, Marker> _markersByMarkerId;
 
     // Contains marker ids and a boolean to indicate whether it has been clicked
     private HashMap<String, Boolean> _userMarkers;
@@ -106,9 +107,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     // The layout for this activity - used to listen for drawer state.
     private DrawerLayout _drawerLayout;
 
-    // TODO Issue with these is that with each new filter a new field will need to be added -
-    // consider changing to a HashMap of different filter values if enough filters are added for
-    // fields to be unwieldy
     private String _currentCategory;
     private Integer _priceLevel;
 
@@ -125,6 +123,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     private AppPreferences _preferences;
     private ImageButton _itineraryItem;
 
+    private Map<String, SuggestionItem> _savedSuggestionsByName;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -138,13 +138,11 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _layout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
         _tutorial = new Tutorial(this);
         initializeGoogleMap();
-        getDataFromPlaceActivity();
-        sortCoordinateArrayList();
-        _customDate = new CustomDate(_startDateTime);
         _userMarkers = new HashMap<>();
 
         _userItemsByMarkerId = new HashMap<>();
         _suggestionItemsByMarkerId = new HashMap<>();
+        _markersByMarkerId = new HashMap<>();
 
         // Populate the filters drawer/list
         ExpandableListView filters = (ExpandableListView) findViewById(R.id.filter_list);
@@ -180,7 +178,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     @Override
     public void onResume() {
         _itineraryDataSource.open();
-        // TODO Runs when it doesn't always need to - fix
         UpdateMainFromItineraryTask updateTask = new UpdateMainFromItineraryTask(this);
         updateTask.execute();
         super.onResume();
@@ -207,15 +204,22 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         fm.getMapAsync(this);
     }
 
-    private void getDataFromPlaceActivity(){
+    public void getDataFromPlaceActivity(){
+        _savedSuggestionsByName = new HashMap<>();
         Intent i = getIntent();
         _startDateTime = i.getStringExtra(PlacesActivity.START_DATETIME);
-        // TODO Should probably come from DB
-        _userItemList = i.getParcelableArrayListExtra(USER_ITEM_LIST);
+        _userItemList = new ArrayList<>(_itineraryDataSource.getUnsavedAndSavedUserItems(this));
+        sortCoordinateArrayList();
+        _customDate = new CustomDate(_startDateTime);
+
+        for (UserItem item : _userItemList) {
+            List<SuggestionItem> suggestionItems = item.getSuggestionItems();
+            for (SuggestionItem suggestionItem : suggestionItems)
+                _savedSuggestionsByName.put(suggestionItem.getName(), suggestionItem);
+        }
     }
 
     private void sortCoordinateArrayList(){
-        //TODO Refactor
         _sortedCoordinateList = new ArrayList<>();
         int posInCoordinateArrayList = 0;
         List<LatLng> helper = null;
@@ -330,7 +334,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             return false;
         } else {
             // User-defined marker has been clicked before. Display suggestions that aren't visible
-            setVisibilityByFilters(); // TODO fix so this takes multiple markers into account
+            setVisibilityByFilters();
             marker.showInfoWindow();
             _filterItem.setVisibility(View.VISIBLE);
             return false;
@@ -366,8 +370,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     private void addMarkers() {
-        // TODO Temporary fix, I'll need to go over your code properly and suss out what _sortedCoordinateList
-        // is (the 'helper' stuff up in sortCoordinateArrayList().
         Set<String> names = new HashSet<>();
 
         if (_map != null) {
@@ -384,15 +386,16 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
                         pos++;
                     }
 
-                    // See other TODO: Prevents duplicates in budget/schedule
-                    // TODO This is dodgy - fix.
                     if (name != null && !names.contains(name)) {
                         Marker m = _map.addMarker(new MarkerOptions().position(position).title(name));
+                        String markerId = m.getId();
+                        _markersByMarkerId.put(markerId, m);
                         if (pos <= 1) {
                             _firstMarker = m;
                         }
-                        _userMarkers.put(m.getId(), false);
-                        _userItemsByMarkerId.put(m.getId(), item);
+                        _userMarkers.put(markerId, false);
+                        item.setMarkerId(markerId);
+                        _userItemsByMarkerId.put(markerId, item);
                         names.add(name);
                     }
                 }
@@ -404,7 +407,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     private void updateItems() {
         if (_map != null) {
-            // TODO Not efficient - points at design issues
             Map<String, UserItem> itemsByName = new HashMap<>();
             for (UserItem item : _userItemList)
                 itemsByName.put(item.getName(), item);
@@ -427,23 +429,43 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     public void addSuggestionItem(SuggestionItem item, BitmapDescriptor icon, String title) {
         Suggestion suggestion = item.getSuggestion();
         Marker marker = drawMarker(suggestion.getLocation(), icon);
+        String markerId = marker.getId();
         marker.setTitle(title);
-        suggestion.setMarker(marker);
-        _suggestionItemsByMarkerId.put(marker.getId(), item);
+
+        // If already there, put old one and swap out marker id. Also update the icon.
+        SuggestionItem oldItem = _savedSuggestionsByName.get(item.getName());
+        boolean itemWasSaved = false;
+        if (oldItem != null && oldItem.equals(item)) { // Name and location are the same
+            item = oldItem; // Does mean some data may not be up to date
+            itemWasSaved = true;
+        }
+
+        item.setMarkerId(markerId);
+        _suggestionItemsByMarkerId.put(markerId, item);
         String category = suggestion.getCategory();
         List<Marker> cat = _markersByCategory.get(category);
         cat.add(marker);
         _suggestedMarker = marker;
+
         // Refilter markers
         setVisibilityByFilters();
+
+        // If the item is already in the itinerary, change the marker colour and make it visible
+        if (itemWasSaved) {
+            updateSuggestionItem(item);
+            Marker m = _markersByMarkerId.get(item.getMarkerId());
+            m.setVisible(true);
+        }
+    }
+
+    public void moveCamera() {
+        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(_sortedCoordinateList.get(0).getSortedCoordinateList().get(0),
+                15));
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         _map = googleMap;
-        _map.moveCamera(CameraUpdateFactory.newLatLngZoom(_sortedCoordinateList.get(0).getSortedCoordinateList().get(0),
-                15));
-        addMarkers();
         _map.setOnMarkerClickListener(this);
 
         // SuggestionInfoAdapter listens for and adapts all infowindow-related activity
@@ -453,6 +475,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
         _map.setMyLocationEnabled(true);
         initSuggestionMarkers();
+    }
+
+    public void setupMapFromItinerary() {
+        addMarkers();
         final View mapView =  getSupportFragmentManager()
                 .findFragmentById(R.id.map).getView();
         if (mapView.getViewTreeObserver().isAlive()) {
@@ -687,11 +713,20 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
 
     public ItineraryDataSource getItineraryDatasource() {
+
         return _itineraryDataSource;
     }
 
     public Map<String, UserItem> getUserItemsByMarkerId() {
         return _userItemsByMarkerId;
+    }
+
+    public UserItem getUserItemByMarkerId(String markerId) {
+        return _userItemsByMarkerId.get(markerId);
+    }
+
+    public void addUserItem(UserItem userItem) {
+        _userItemsByMarkerId.put(userItem.getMarkerId(), userItem);
     }
 
     public Map<String, SuggestionItem> getSuggestionItemsByMarkerId() {
@@ -708,6 +743,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         markerOptions.position(latLng);
         markerOptions.icon(bd);
         Marker m = _map.addMarker(markerOptions);
+        _markersByMarkerId.put(m.getId(), m);
         return m;
     }
 
@@ -923,7 +959,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
             }
         }
 
-        // TODO Shouldn't we use IDs rather than relying on order in the layout? Pretty fragile
         clear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -981,6 +1016,7 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
     @Override
     public void onBackPressed() {
+        updateItineraryDatabase();
         if (_layout != null &&
                 (_layout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED || _layout.getPanelState() == SlidingUpPanelLayout.PanelState.ANCHORED)) {
             _layout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
@@ -990,8 +1026,6 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     }
     /**
      * Sets the visibility of markers, taking into account all applicable filters
-     * TODO Currently each filter needs to take into account previous ones - change this so it's
-     * less complicated and error prone.
      */
     public void setVisibilityByFilters() {
         setVisibilityByCategory();
@@ -1033,18 +1067,22 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
             for (SuggestionItem suggestionItem : _suggestionItemsByMarkerId.values()) {
                 Suggestion s = suggestionItem.getSuggestion();
-                Marker m = s.getMarker();
+                String mId = suggestionItem.getMarkerId();
+                Marker m = _markersByMarkerId.get(mId);
 
                 Integer priceLevel = s.getParsedPriceLevel();
-                boolean markerIsVisible = m.isVisible();
 
-                // getPriceLevel will return null if there was no price level provided
-                if (priceLevel == null || ((priceLevel > _priceLevel) && markerIsVisible)) {
-                    m.setVisible(false);
-                } else {
-                    if (!markerIsVisible && (categorySet == null || categorySet.contains(m))) {
-                        // Marker was turned off because it didn't meet a lower price bracket
-                        m.setVisible(true);
+                if (m != null) {
+                    boolean markerIsVisible = m.isVisible();
+
+                    // getPriceLevel will return null if there was no price level provided
+                    if (priceLevel == null || ((priceLevel > _priceLevel) && markerIsVisible)) {
+                        m.setVisible(false);
+                    } else {
+                        if (!markerIsVisible && (categorySet == null || categorySet.contains(m))) {
+                            // Marker was turned off because it didn't meet a lower price bracket
+                            m.setVisible(true);
+                        }
                     }
                 }
             }
@@ -1053,7 +1091,8 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
 
     public void updateSuggestionItem(SuggestionItem item) {
         Suggestion suggestion = item.getSuggestion();
-        Marker marker = suggestion.getMarker();
+        String markerId = item.getMarkerId();
+        Marker marker = _markersByMarkerId.get(markerId);
         int iconId = 0;
         BitmapDescriptor icon;
         boolean isInItinerary = item.isInItinerary();
@@ -1085,14 +1124,9 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
      * @param layout Contains a checkbox/radiobutton and option text.
      */
     public void onFilterItemClick(View layout) {
-        // TODO Error checking - assumes a certain structure
         TextView filterOption = (TextView) layout.findViewById(R.id.filter_option_text);
         String filterOptionName = filterOption.getText().toString();
         String filterName = null;
-
-        // TODO If necessary, check which filter the item belongs to. Worth refactoring.
-        // TODO Refactor - too dependent on filter names.
-        // The giant switch statement isn't ideal.
 
         switch (filterOptionName) {
             // Categories
@@ -1134,9 +1168,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
     /**
      * Called when the 'clear' button on a single filter is clicked. Clears/resets that filter.
      * @param view
+     * TODO can use this
      */
     public void onFilterClearClick(View view) {
-        // TODO Makes a bunch of assumptions that need to be checked.
+
         RelativeLayout parent = (RelativeLayout) view.getParent();
         TextView filterTitle = (TextView) parent.findViewById(R.id.filter_title);
         String filterTitleString = filterTitle.getText().toString();
@@ -1180,6 +1215,10 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
         _priceLevel = null;
     }
 
+    public Marker getMarkerById(String markerId) {
+        return _markersByMarkerId.get(markerId);
+    }
+
     private void setMarkerListVisible(boolean isVisible, List<Marker> markers) {
         if (markers != null)
             for (Marker m: markers)
@@ -1193,18 +1232,22 @@ public class MainActivity extends ActionBarActivity implements GoogleMap.OnMarke
      */
     private void setSuggestionMarkersVisible(boolean isVisible) {
         for (SuggestionItem item: _suggestionItemsByMarkerId.values())
-            if (!item.isInItinerary())
-                item.getSuggestion().getMarker().setVisible(isVisible);
+            if (!item.isInItinerary()) {
+                String markerId = item.getMarkerId();
+                Marker marker = _markersByMarkerId.get(markerId);
+                marker.setVisible(isVisible);
+            }
     }
 
     private void startItineraryActivity() {
         updateItems();
         updateItineraryDatabase();
         Intent intent = new Intent(this, ItineraryActivity.class);
+        intent.putExtra("MOVED_FROM_PLACES", false);
         startActivity(intent);
     }
 
-    private void updateItineraryDatabase() {
+    public void updateItineraryDatabase() {
         Collection<UserItem> userItems = _userItemsByMarkerId.values();
         _itineraryDataSource.deleteUnsavedItineraryItems();
         _itineraryDataSource.insertMultipleItineraryItems(userItems);

@@ -1,10 +1,7 @@
 package com.mapster.filters;
 
 import android.content.Context;
-import android.view.View;
 import android.widget.ExpandableListView;
-
-import com.mapster.activities.MainActivity;
 
 import java.util.ArrayList;
 import java.util.HashMap;

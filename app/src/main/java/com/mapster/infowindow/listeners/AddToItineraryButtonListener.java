@@ -7,6 +7,10 @@ import com.mapster.infowindow.dialogues.SequentialSuggestionItemDialogue;
 import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 /**
  * Created by Harriet on 7/29/2015.
  */
@@ -27,6 +31,13 @@ public class AddToItineraryButtonListener extends SequentialDialogueContentListe
         // Add the suggestion to the list for the UserItem it is associated with
         UserItem userItem = _itineraryItem.getUserItem();
         userItem.addSuggestionItem(_itineraryItem);
+
+        List<SuggestionItem> items = userItem.getSuggestionItems();
+        List<SuggestionItem> mainItems = _activity.getUserItemByMarkerId(userItem.getMarkerId()).getSuggestionItems();
+        Set<SuggestionItem> combinedItems = new HashSet<>();
+        combinedItems.addAll(items); combinedItems.addAll(mainItems);
+        userItem.replaceSuggestionItems(combinedItems);
+        _activity.addUserItem(userItem);
 
         // Flag this to not issue this prompt next time
         _itineraryItem.setIsInItinerary(true);

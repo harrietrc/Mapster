@@ -43,7 +43,6 @@ public class LoadItineraryTask extends AsyncTask<Void, Void, List<ItineraryItem>
     protected void onPostExecute(List<ItineraryItem> items) {
         ArrayList<UserItem> userItems = new ArrayList<>();
 
-        // TODO That cast/instanceof check shouldn't be necessary - fiddle with generics?
         for (ItineraryItem item : items)
             if (item instanceof UserItem) // Inelegant
                 userItems.add((UserItem) item);

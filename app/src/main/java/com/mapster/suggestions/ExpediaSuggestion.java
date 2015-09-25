@@ -8,7 +8,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.mapster.api.expedia.ExpediaHotel;
 import com.mapster.api.expedia.ExpediaHotelInfoTask;
 import com.mapster.api.fixerio.FixerIoRangeTask;
-import com.mapster.api.fixerio.FixerIoRateTask;
 import com.mapster.apppreferences.AppPreferences;
 
 import java.util.Currency;
@@ -47,12 +46,12 @@ public class ExpediaSuggestion extends Suggestion {
 
     @Override
     public String getWebsite() {
-        return null; // TODO can we get a website? Most probably
+        return null;
     }
 
     @Override
     public String getPhoneNumber() {
-        return null; // TODO Same as above
+        return null;
     }
 
     @Override
@@ -108,7 +107,7 @@ public class ExpediaSuggestion extends Suggestion {
 
         if (highRate != null)
             sb.append(" - ");
-        // TODO This will misrepresent the currency! Need to deal with this. see rateCurrencyCode
+
         sb.append(highRate == null ? "" : currencySymbol + highRate.intValue());
 
         if (!(lowRate== null && highRate == null))
@@ -139,7 +138,6 @@ public class ExpediaSuggestion extends Suggestion {
 
     @Override
     public Integer getPriceLevel() {
-        // Arbitrary! TODO In the future create a price slider that can also consider other currencies.
         Integer priceLevel;
 
         if (_hotel.getLowRate() == null) {

@@ -21,7 +21,6 @@ public class WebsiteButtonListener implements View.OnClickListener {
     @Override
     public void onClick(View websiteButton) {
         Intent webIntent = new Intent(Intent.ACTION_VIEW);
-        // TODO Did I mean that it doesn't work with https? Can probably ignore ftp etc.
         webIntent.setData(Uri.parse(_url)); // Assume it starts with http://
         _context.startActivity(webIntent);
     }

@@ -1,13 +1,9 @@
 package com.mapster.infowindow;
 
 import android.app.Activity;
-import android.graphics.Paint;
-import android.graphics.Rect;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
@@ -15,7 +11,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 import com.mapster.R;
 import com.mapster.activities.MainActivity;
-import com.mapster.api.fixerio.FixerIoRateTask;
 import com.mapster.apppreferences.AppPreferences;
 import com.mapster.infowindow.dialogues.SuggestionDateDialogue;
 import com.mapster.infowindow.dialogues.SuggestionOptionsDialogue;
@@ -27,7 +22,6 @@ import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Created by Harriet on 5/24/2015.
@@ -41,7 +35,7 @@ public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
     // This field prevents the ImageView from being garbage collected before its drawable can be
     // set, and the image returned by Picasso displayed. Ignore the warning!
     private ImageView _currentInfoWindowImage;
-    private Activity _activity; // Not great TODO Separate Marker state into a class
+    private Activity _activity;
     private AppPreferences _prefs;
     private Map<String, View> _windowsByMarkerId;
 
@@ -69,7 +63,6 @@ public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
 
         // Create the chain of dialogues that is initiated when the user adds an item to the itinerary
         // Not really sure whether this should go here or in the dialogue class itself
-        // TODO Probably move this; class should be responsible for InfoWindow only (no subsequent dialogues)
         SuggestionOptionsDialogue optionsDialogue = new SuggestionOptionsDialogue(_activity, _inflater, item);
         SuggestionDateDialogue dateDialogue = new SuggestionDateDialogue(_activity, _inflater, item);
         SuggestionTimeDialogue timeDialogue = new SuggestionTimeDialogue(_activity, _inflater, item);
@@ -88,7 +81,6 @@ public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
     /**
      * This is only called if getInfoWindow() returns null. If this returns null, the default info
      * window will be displayed.
-     * TODO Refactor; too long and doing too much.
      */
     @Override
     public View getInfoContents(Marker marker) {
@@ -133,7 +125,6 @@ public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
         TextView localCost = (TextView) info.findViewById(R.id.converted_cost);
 
         // Set price, if available
-        // TODO Null checks not necessary
         if (suggestion != null) {
             Double cost = suggestion.getCostPerPerson();
 
@@ -144,7 +135,6 @@ public class SuggestionInfoWindowAdapter implements GoogleMap.InfoWindowAdapter,
                 userCost.setText(suggestion.getPriceString(_activity));
 
                 // Asynchronously convert the cost
-                // TODO Not a fan of having this method in the superclass
                 String localCostText = localCost.getText().toString();
                 if (localCostText.equals("") && !userCurrency.equals(localCurrency))
                     suggestion.convertCost(userCurrency, localCurrency, localCost, marker);

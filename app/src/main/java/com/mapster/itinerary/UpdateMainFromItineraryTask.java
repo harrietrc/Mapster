@@ -1,19 +1,14 @@
 package com.mapster.itinerary;
 
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 
-import com.mapster.R;
 import com.mapster.activities.MainActivity;
 import com.mapster.persistence.ItineraryDataSource;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by Harriet on 6/22/2015. Updates data structures of ItineraryItems in the MainActivity
@@ -21,7 +16,8 @@ import java.util.Set;
  */
 public class UpdateMainFromItineraryTask extends AsyncTask<Void, Void, Collection<SuggestionItem>> {
 
-    private MainActivity _activity; // Dodgy as hell
+    private MainActivity _activity;
+    private boolean _updateFromPlaces;
 
     public UpdateMainFromItineraryTask(MainActivity activity) {
         _activity = activity;
@@ -29,122 +25,53 @@ public class UpdateMainFromItineraryTask extends AsyncTask<Void, Void, Collectio
 
     @Override
     protected Collection<SuggestionItem> doInBackground(Void... params) {
-        // TODO Improve this; it's very heavy-handed and messy.
+
+        _updateFromPlaces = _activity.getIntent().getBooleanExtra("MOVED_FROM_PLACES", false);
+        _activity.getIntent().removeExtra("MOVED_FROM_PLACES");
+
+        // If moved from PlacesActivity, populate the ItineraryItem lists
+        if (_updateFromPlaces)
+            _activity.getDataFromPlaceActivity();
+
         // Get the itinerary from the database and update the Activity's items here with any changes
         Map<String, SuggestionItem> suggestionItemsByMarkerId = _activity.getSuggestionItemsByMarkerId();
         Map<String, UserItem> userItemsByMarkerId = _activity.getUserItemsByMarkerId();
+
+        // Items from the database
         ItineraryDataSource itineraryDataSource = _activity.getItineraryDatasource();
 
-        // 'items' is a list of itinerary items from the DB - may be left over from last app run.
-//        if (suggestionItemsByMarkerId.isEmpty()) {
-//            // Don't try to load itinerary state from the DB - just return.
-//            return null;
-//        }
+        // Must open the database if it isn't already open
+        if (!itineraryDataSource.isOpen())
+            itineraryDataSource.open();
 
-        String sharedPrefsName = _activity.getResources().getString(R.string.shared_prefs);
-        String itineraryNamePrefs = _activity.getResources().getString(R.string.itinerary_name_prefs);
-        SharedPreferences settings = _activity.getSharedPreferences(sharedPrefsName, 0);
-        String currentItineraryName = settings.getString(itineraryNamePrefs, null);
-        List<ItineraryItem> unsavedItems = itineraryDataSource.getItemsByItineraryName(null);
-        List<ItineraryItem> savedItems = itineraryDataSource.getItemsByItineraryName(currentItineraryName);
+        List<ItineraryItem> savedItems = itineraryDataSource.getUnsavedAndSavedItems(_activity);
 
-        // TODO Hacky -
-        Map<String, ItineraryItem> savedItemsMap = new HashMap<>();
-        for (ItineraryItem item : savedItems)
-            savedItemsMap.put(item.getName(), item);
-        for (ItineraryItem unsavedItem : unsavedItems) {
-            ItineraryItem savedItem = savedItemsMap.get(unsavedItem.getName());
-            if (savedItem != null) {
-                List<SuggestionItem> suggestions = ((UserItem) unsavedItem).getSuggestionItems();
-                ((UserItem) savedItem).addSuggestionItems(suggestions);
-                if (unsavedItem.getTime() != null)
-                    savedItem.setDateTime(unsavedItem.getTime());
-            }
-        }
+        // Keeps track of SuggestionItems that have been deleted from the itinerary
+        List<SuggestionItem> deletedItems = new ArrayList<>();
 
-
-        Collection<UserItem> existingItems = userItemsByMarkerId.values();
-
-        // Sets of suggestion IDs so that we can tell which ones were deleted from the itinerary
-        Set<Long> oldSuggestionIds = new HashSet<>();
-        Set<Long> updatedSuggestionIds = new HashSet<>();
-
-        // Make a map where existing ItineraryItems are keyed by ID (row ID from database)
-        Map<Long, ItineraryItem> allItems = new HashMap<>();
-        for (UserItem oldItem: existingItems) {
-            allItems.put(oldItem.getId(), oldItem);
-            for (SuggestionItem s : oldItem.getSuggestionItems()) {
-                long id = s.getId();
-                allItems.put(id, s);
-                oldSuggestionIds.add(id);
-            }
-        }
-
-        // Make a copy of the old ItineraryItems - quickfix for deserialisation issues (_userItem
-        // field of Suggestionitem isn't deserialised - will look into fixing this)
-        Map<Long, ItineraryItem> oldItems = new HashMap<>();
-        oldItems.putAll(allItems);
-
-        /*
-        Swap out suggestions in deserialised UserItems for those here (which have markers),
-        gradually updating the map of ItineraryItems to the updated items. Suggestions are not
-        expected to be modified outside this activity (although any ItineraryItems may be)
-        */
-        for (ItineraryItem item: savedItems) {
+        // Update MainActivity's collections of user and suggestion items
+        for (ItineraryItem item : savedItems) {
             if (item instanceof UserItem) {
                 UserItem userItem = (UserItem) item;
-                for (SuggestionItem s : userItem.getSuggestionItems()) {
-                    Long id = s.getId();
-                    SuggestionItem old = (SuggestionItem) allItems.get(id);
-                    if (old != null) {
-                        s.setSuggestion(old.getSuggestion());
-                        allItems.put(id, s);
-                        updatedSuggestionIds.add(id);
-                    }
+                String markerId = userItem.getMarkerId();
+                if (markerId != null) {
+                    UserItem oldUserItem = userItemsByMarkerId.get(markerId);
+                    if (oldUserItem != null)
+                        for (SuggestionItem s : oldUserItem.getSuggestionItems())
+                            s.setUserItem(userItem);
+                    userItemsByMarkerId.put(markerId, userItem);
                 }
-                allItems.put(item.getId(), item);
+
+                for (SuggestionItem suggestionItem : userItem.getSuggestionItems()) {
+                    if (!suggestionItem.isInItinerary())
+                        deletedItems.add(suggestionItem);
+                    if (suggestionItem.getMarkerId() != null)
+                        suggestionItemsByMarkerId.put(suggestionItem.getMarkerId(), suggestionItem);
+                }
             }
         }
 
-        // Figure out which suggestions were removed from the itinerary and re-flag them
-        oldSuggestionIds.removeAll(updatedSuggestionIds);
-        List<SuggestionItem> removedItems = new ArrayList<>();
-        for (Long id: oldSuggestionIds) {
-            SuggestionItem item = (SuggestionItem) allItems.get(id);
-            item.setIsInItinerary(false);
-            removedItems.add(item);
-        }
-
-        // Update UserItem map
-        for (Map.Entry pair : userItemsByMarkerId.entrySet()) {
-            Long id = ((UserItem) pair.getValue()).getId();
-            userItemsByMarkerId.put((String) pair.getKey(), (UserItem) allItems.get(id));
-        }
-
-        // Update SuggestionItem map
-        for (Map.Entry pair : suggestionItemsByMarkerId.entrySet()) {
-            Long id = ((SuggestionItem) pair.getValue()).getId();
-            SuggestionItem dbItem = (SuggestionItem) allItems.get(id);
-
-            // Get the updated item from the DB if available, else use the item that's already there
-            SuggestionItem item = dbItem == null ? (SuggestionItem) pair.getValue() : dbItem;
-
-            // For some reason the nested UserItem isn't deserialised. Temporary work-around
-            // TODO Consider removing that bidirectional relationship so this isn't necessary
-            SuggestionItem oldSuggestion = (SuggestionItem) oldItems.get(item.getId());
-            if (oldSuggestion == null)
-                oldSuggestion = item;
-
-            UserItem u = oldSuggestion.getUserItem();
-
-            if (u != null) {
-                long oldUserItemId = u.getId();
-                item.setUserItem((UserItem) allItems.get(oldUserItemId));
-                suggestionItemsByMarkerId.put((String) pair.getKey(), item);
-            }
-        }
-
-        return removedItems;
+        return deletedItems;
     }
 
     @Override
@@ -153,5 +80,9 @@ public class UpdateMainFromItineraryTask extends AsyncTask<Void, Void, Collectio
         if (items != null)
             for (SuggestionItem s : items)
                 _activity.updateSuggestionItem(s);
+        if (_updateFromPlaces) {
+            _activity.moveCamera();
+            _activity.setupMapFromItinerary();
+        }
     }
 }

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 
 import com.google.android.gms.maps.model.Marker;
+import com.mapster.activities.MainActivity;
 import com.mapster.json.GooglePlaceDetailJsonParser;
 import com.mapster.places.GooglePlaceDetail;
 import com.mapster.suggestions.GooglePlaceSuggestion;
@@ -63,7 +64,7 @@ public class GooglePlaceDetailTask extends AsyncTask<GooglePlaceSuggestion, Void
      */
     @Override
     protected void onPostExecute(GooglePlaceSuggestion suggestion) {
-        Marker marker = suggestion.getMarker();
+        Marker marker = ((MainActivity) _context).getMarkerById(suggestion.getMarkerId());
         String info = suggestion.getInfoWindowString();
         marker.setSnippet(info);
         _dialog.dismiss();

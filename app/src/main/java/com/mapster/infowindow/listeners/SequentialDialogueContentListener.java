@@ -1,6 +1,5 @@
 package com.mapster.infowindow.listeners;
 
-import android.content.DialogInterface;
 import android.view.View;
 
 import com.mapster.infowindow.dialogues.SequentialSuggestionItemDialogue;

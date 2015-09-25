@@ -1,4 +1,5 @@
 package com.mapster.itinerary.ui;
+
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.support.v4.app.FragmentActivity;
@@ -8,7 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -105,7 +105,7 @@ public class SamplePagerAdapter extends PagerAdapter {
             _scheduleLayout = (LinearLayout) view.findViewById(R.id.schedule_layout);
 
             // Formats arrival time for the UI
-            _dateFormatter = DateTimeFormat.mediumDate(); // TODO Fiddle with this
+            _dateFormatter = DateTimeFormat.mediumDate();
             _timeFormatter = DateTimeFormat.shortTime();
 
             _items = ((ItineraryActivity) _activity).getItemsFromDatabase();
@@ -151,7 +151,6 @@ public class SamplePagerAdapter extends PagerAdapter {
         _totalsList.clear();
         System.out.println(_totalsMap);
         for (Map.Entry pair : _totalsMap.entrySet()) {
-            //TODO FIX THIS
             if (pair.getKey() == null)
                 break;
             String currencySymbol = Currency.getInstance((String) pair.getKey()).getSymbol();
@@ -172,7 +171,6 @@ public class SamplePagerAdapter extends PagerAdapter {
 
                 // 'Child' suggestions that the user added to the itinerary for their destination
                 for (SuggestionItem s: u.getSuggestionItems()) {
-                    // TODO Hack until I figure out why _userItem isn't getting deserialised
                     s.setUserItem(u);
                     createSuggestionRow(s);
                 }
@@ -288,12 +286,11 @@ public class SamplePagerAdapter extends PagerAdapter {
             public void onClick(DialogInterface dialog, int which) {
                 UserItem userItem = item.getUserItem();
                 userItem.removeSuggestionItem(item);
-                _items.remove(item); // TODO probably not efficient - this whole thing needs a redesign
+                _items.remove(item);
 
                 // Update the list of totals
                 updateTotals();
 
-                // TODO Budget and schedule layout should really be associated with each other
                 // Delete the row in the table and hide the dialogue
                 _budgetLayout.removeView(row);
                 refreshScheduleRows();
@@ -344,7 +341,7 @@ public class SamplePagerAdapter extends PagerAdapter {
 
     private void refreshScheduleRows() {
         _scheduleLayout.removeAllViews();
-        createRowsFromItemsSchedule(); // Unnecessary - see TODO above
+        createRowsFromItemsSchedule();
     }
 
     /**
@@ -387,7 +384,6 @@ public class SamplePagerAdapter extends PagerAdapter {
                 UserItem u = (UserItem) item;
                 sortedItems.add(u);
                 for (SuggestionItem s : u.getSuggestionItems()) {
-                    // TODO Hack until I figure out why userItems aren't deserialised
                     s.setUserItem(u);
                     sortedItems.add(s);
                 }
@@ -463,7 +459,7 @@ public class SamplePagerAdapter extends PagerAdapter {
         TextView timeView = (TextView) v.findViewById(R.id.time);
         DateTime time = item.getTime();
         if (time != null) // Set to null if the date is missing
-            timeView.setText(_timeFormatter.print(time)); // TODO Change to only display time
+            timeView.setText(_timeFormatter.print(time));
 
         _scheduleLayout.addView(v);
     }

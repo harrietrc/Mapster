@@ -5,7 +5,6 @@ import android.view.View;
 import com.mapster.activities.MainActivity;
 import com.mapster.infowindow.dialogues.SequentialSuggestionItemDialogue;
 import com.mapster.itinerary.SuggestionItem;
-import com.mapster.itinerary.UserItem;
 
 /**
  * Created by Harriet on 6/09/2015.

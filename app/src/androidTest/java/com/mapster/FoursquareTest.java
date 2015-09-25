@@ -1,20 +1,20 @@
 package com.mapster;
 
 import android.content.Context;
-import android.test.AndroidTestCase;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.mapster.api.ApiRequest;
 import com.mapster.api.foursquare.Foursquare;
 
-import static org.junit.Assert.assertThat;
-import static org.hamcrest.CoreMatchers.*;
-import static org.mockito.Mockito.*;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by Harriet on 7/27/2015. Warning/possible flaw: assumes that the format for URLs stays

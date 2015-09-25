@@ -83,7 +83,6 @@ public class GooglePlaceSuggestion extends Suggestion {
     @Override
     public void convertCost(String userCurrencyCode, String localCurrencyCode,
                             TextView conversionView, Marker markerToRefresh) {
-        // TODO Bad practice
     }
 
     @Override

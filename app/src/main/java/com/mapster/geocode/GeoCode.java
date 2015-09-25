@@ -21,7 +21,6 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -36,7 +35,7 @@ public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
     private static final String OUT_JSON = "/json";
     private LinkedList<ClearableAutoCompleteTextView> _autoCompleteTextViewLinkedList;
     private List<RadioGroup> _transportModeViewList;
-    private PlacesActivity _activity;
+    protected PlacesActivity _activity;
     private ProgressDialog _dialog;
 
     public GeoCode(LinkedList<ClearableAutoCompleteTextView> autoCompleteTextViewLinkedList,
@@ -106,7 +105,6 @@ public class GeoCode extends AsyncTask<Void, Void, ArrayList<UserItem>> {
                 String countryCode;
                 String text = acTextView.getText().toString();
 
-                // TODO Might want to make the rest of the parsing for GeoCode consistent with this
                 String response = getRequestWithAddress(text);
                 JSONObject jsonResponse = null;
                 try {

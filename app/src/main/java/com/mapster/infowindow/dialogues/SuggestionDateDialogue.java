@@ -43,7 +43,6 @@ public class SuggestionDateDialogue extends SequentialSuggestionItemDialogue {
         return content;
     }
 
-    // TODO Beware this not getting called - add exceptions or move to constructor.
     @Override
     protected void processItem() {
         // Nothing to do - no dialogue state to be set from item

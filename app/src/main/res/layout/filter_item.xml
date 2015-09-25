@@ -7,7 +7,6 @@
               android:orientation="horizontal"
               android:paddingTop="5dp"
               android:paddingBottom="5dp">
-<!-- TODO Shift common attributes to layout?-->
     <CheckedTextView
         android:id="@android:id/text1"
         android:layout_width="wrap_content"

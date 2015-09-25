@@ -6,6 +6,7 @@ import android.os.Parcelable;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -16,11 +17,6 @@ import java.util.List;
  */
 public class UserItem extends ItineraryItem implements Parcelable {
 
-    // TODO Not really necessary to use Parcelable (we're already serialising using GSON). My
-    // intention was to use Parcelable to help speed up passing these between Activities. None of
-    // the other ItineraryItem classes need to be passed from PlacesActivity to MainActivity. The
-    // only disadvantage of GSON is that it is slow (Parcelable is comparatively fast)
-
     private String _name;
     private double _latitude;
     private double _longitude;
@@ -29,10 +25,20 @@ public class UserItem extends ItineraryItem implements Parcelable {
 
     private String _fullAddress;
 
+    private String _markerId;
+
     // Represents any saved suggestions that were suggested from this destination
     private List<SuggestionItem> _suggestionItems;
 
-    public void addSuggestionItems(List<SuggestionItem> items) {
+    public void addSuggestionItems(Collection<SuggestionItem> items) {
+        _suggestionItems.addAll(items);
+    }
+
+    public void replaceSuggestionItems(Collection<SuggestionItem> items) {
+        for (SuggestionItem item : items)
+            item.setUserItem(this);
+
+        _suggestionItems = new ArrayList<>();
         _suggestionItems.addAll(items);
     }
 
@@ -67,6 +73,16 @@ public class UserItem extends ItineraryItem implements Parcelable {
     }
 
     @Override
+    public String getMarkerId() {
+        return _markerId;
+    }
+
+    @Override
+    public void setMarkerId(String markerId) {
+        _markerId = markerId;
+    }
+
+    @Override
     public String getCountryCode() {
         return _countryCode == null ? "NZ" : _countryCode;
     }
@@ -89,6 +105,7 @@ public class UserItem extends ItineraryItem implements Parcelable {
     }
 
     public void addSuggestionItem(SuggestionItem item) {
+        item.setUserItem(this);
         _suggestionItems.add(item);
     }
 

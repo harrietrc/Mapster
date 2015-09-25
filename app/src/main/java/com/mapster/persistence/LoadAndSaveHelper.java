@@ -18,14 +18,11 @@ import com.mapster.activities.PlacesActivity;
 import com.mapster.android.gui.util.clearableautocompletetextview.ClearableAutoCompleteTextView;
 import com.mapster.geocode.GeocodeAndSaveItineraryTask;
 import com.mapster.itinerary.ItineraryItem;
-import com.mapster.itinerary.SuggestionItem;
 import com.mapster.itinerary.UserItem;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by Harriet on 9/08/2015. Access this to display save/load itinerary dialogues (which also
@@ -36,7 +33,7 @@ public class LoadAndSaveHelper {
 
     private Context _context;
     private LayoutInflater _inflater;
-    private ItineraryDataSource _datasource; // TODO Should be open - add check?
+    private ItineraryDataSource _datasource;
 
     // References to GUI elements that are populated with itinerary data. Data is grabbed from here
     // after the user chooses an itinerary name.
@@ -63,7 +60,6 @@ public class LoadAndSaveHelper {
         builder.setCancelable(true);
         builder.setNegativeButton(R.string.cancel, null);
 
-        // TODO Probably don't need to reinflate each time this is called
         final LinearLayout l = new LinearLayout(_context);
         View content = _inflater.inflate(R.layout.save_itinerary_dialogue, l);
         builder.setView(content);
@@ -88,6 +84,7 @@ public class LoadAndSaveHelper {
      */
     private void saveItinerary(String itineraryName) {
         PlacesActivity activity = (PlacesActivity) _context;
+        activity.refreshViewLists();
         GeocodeAndSaveItineraryTask geocodeTask =
                 new GeocodeAndSaveItineraryTask(_autoCompleteTextViews, _transportModes, activity,
                         _datasource, itineraryName);
@@ -144,7 +141,6 @@ public class LoadAndSaveHelper {
     private void loadItinerary(String itineraryName) {
         List<ItineraryItem> itineraryItems = _datasource.getItemsByItineraryName(itineraryName);
 
-        // TODO Might want to change the DB to only store UserItems so this isn't necessary
         ArrayList<UserItem> userItems = new ArrayList<>();
         for (ItineraryItem item : itineraryItems)
             userItems.add((UserItem) item);
@@ -152,33 +148,10 @@ public class LoadAndSaveHelper {
         // Update itinerary name
         writeItineraryNameToSettings(itineraryName);
 
+        // Gets rid of itinerary items that weren't part of the loaded itinerary
+        _datasource.deleteUnsavedItineraryItems();
+
         ((PlacesActivity) _context).updateFieldsFromItinerary(userItems); // Updates the UI
         ((PlacesActivity) _context).callback(userItems);
-    }
-
-    // TODO Duplicated from ItineraryActivity - refactor.
-    public List<ItineraryItem> getItemsFromDatabase() {
-        // Get itinerary items that match current itinerary name (stored in shared prefs)
-        String sharedPrefsName = _context.getResources().getString(R.string.shared_prefs);
-        String itineraryNamePrefs = _context.getResources().getString(R.string.itinerary_name_prefs);
-        SharedPreferences settings = _context.getSharedPreferences(sharedPrefsName, 0);
-        List<ItineraryItem> unsavedItems = _datasource.getItemsByItineraryName(null);
-        String itineraryName = settings.getString(itineraryNamePrefs, null);
-        List<ItineraryItem> savedItems = _datasource.getItemsByItineraryName(itineraryName);
-
-        Map<String, ItineraryItem> savedItemsMap = new HashMap<>();
-        for (ItineraryItem item : savedItems)
-            savedItemsMap.put(item.getName(), item);
-        for (ItineraryItem unsavedItem : unsavedItems) {
-            ItineraryItem savedItem = savedItemsMap.get(unsavedItem.getName());
-            if (savedItem != null) {
-                List<SuggestionItem> suggestions = ((UserItem) unsavedItem).getSuggestionItems();
-                ((UserItem) savedItem).addSuggestionItems(suggestions);
-                if (unsavedItem.getTime() != null)
-                    savedItem.setDateTime(unsavedItem.getTime());
-            }
-        }
-
-        return savedItems;
     }
 }

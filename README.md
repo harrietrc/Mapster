@@ -21,3 +21,7 @@ You must have:
  - An Android mobile. The device must have Android version 4.4.4 KitKat (or API level 19) or above.
  
 Download this project and import the whole project into Android Studio. Then compile and run the app to export the APK to your mobile and enjoy
+
+### Alternatively...
+- Download the .apk file in [this](https://github.com/harrietrc/Mapster/tree/maintenance/develop/apk) folder to an Android device
+- Install it on the device using Package Installer

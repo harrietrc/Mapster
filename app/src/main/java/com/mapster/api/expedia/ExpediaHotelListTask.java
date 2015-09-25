@@ -64,7 +64,6 @@ public class ExpediaHotelListTask extends AsyncTask<LatLng, Void, List<ExpediaHo
     /**
      * Creates a suggestion and marker for each hotel returned in the response.
      * @param hotels Objects containing hotel data
-     *               // TODO Change PlacesTask to a similar implementation to this
      */
     @Override
     protected void onPostExecute(List<ExpediaHotel> hotels) {

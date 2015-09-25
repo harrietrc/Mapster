@@ -33,8 +33,16 @@ public class SuggestionItem extends ItineraryItem {
         _multiplier = 1;
     }
 
-    // TODO Not always accurate! But will be most of the time... e.g. what if suggestions are
-    // across borders? They shouldn't be - telling a user to cross a political border is a bit dodgy.
+    @Override
+    public String getMarkerId() {
+        return _suggestion.getMarkerId();
+    }
+
+    @Override
+    public void setMarkerId(String markerId) {
+        _suggestion.setMarkerId(markerId);
+    }
+
     @Override
     public String getCountryCode() {
         return _userItem.getCountryCode();

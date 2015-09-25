@@ -36,8 +36,6 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
     // Because filter item views sometimes get reinstantiated, keep track of which options are checked
     private Map<String, String> _checkedFilterOptions;
 
-    // TODO Consider creating a class to hold child state, or combining _filterChildViewNames and filterChildren
-
     public ExpandableFilterListAdapter(Context context, List<String> filterTitles, HashMap<String,
             List<String>> filterChildren) {
         this.context = context;
@@ -102,7 +100,6 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
         }
 
         // Inflate the correct layout - either a filter option or the clear suggestions option
-        // TODO There are unnecessary inflations here
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (groupPosition == (getGroupCount()-1)) {
             // The last group is always 'Clear suggestions'
@@ -144,8 +141,6 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
             _filterChildViewNames.get(groupName).add(childText);
         }
 
-        // TODO Not a fan of this implementation. Checks list of children to ensure that they are children of this group.
-        // As such maintaining a list of children is meaningless - top of my list of things to fix.
         purgeFilterViews(groupName);
 
         // Check whether the child should be checked or not
@@ -162,8 +157,6 @@ public class ExpandableFilterListAdapter extends BaseExpandableListAdapter {
     /**
      * Gets rid of references to children that no longer refer t children - i.e. the view has
      * been reused for another group
-     * TODO This isn't great - try to think of an alternative. Perhaps keep all views in a single list.
-     * The parent/group name is being checked anyway so this is probably a better idea.
      */
     private void purgeFilterViews(String groupName) {
         HashSet<View> children = _filterChildViews.get(groupName);

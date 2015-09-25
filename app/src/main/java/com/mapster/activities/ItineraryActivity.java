@@ -1,29 +1,18 @@
 package com.mapster.activities;
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+
 import com.mapster.R;
 import com.mapster.itinerary.ItineraryItem;
-
-import com.mapster.itinerary.SuggestionItem;
-import com.mapster.itinerary.UserItem;
 import com.mapster.persistence.ItineraryDataSource;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by Harriet on 6/16/2015.
@@ -40,8 +29,6 @@ public class ItineraryActivity extends ActionBarActivity {
         // Set up the data - accessed and shared by both fragments
         _itineraryDataSource = new ItineraryDataSource(this);
         _itineraryDataSource.open();
-        // Note that for whatever reason, SuggestionItem._userItem is set to null when deserialised
-        // - possibly because it was a bidirectional relationship? Will look into it. TODO!
 
         // Set layout
         super.onCreate(savedInstanceState);
@@ -110,28 +97,6 @@ public class ItineraryActivity extends ActionBarActivity {
 
     public List<ItineraryItem> getItemsFromDatabase() {
         // Get itinerary items that match current itinerary name (stored in shared prefs)
-        String sharedPrefsName = getResources().getString(R.string.shared_prefs);
-        String itineraryNamePrefs = getResources().getString(R.string.itinerary_name_prefs);
-        SharedPreferences settings = getSharedPreferences(sharedPrefsName, 0);
-        String itineraryName = settings.getString(itineraryNamePrefs, null);
-        List<ItineraryItem> unsavedItems = _itineraryDataSource.getItemsByItineraryName(null);
-        List<ItineraryItem> savedItems = _itineraryDataSource.getItemsByItineraryName(itineraryName);
-
-        // TODO Hacky -
-        Map<String, ItineraryItem> savedItemsMap = new HashMap<>();
-        for (ItineraryItem item : savedItems)
-            savedItemsMap.put(item.getName(), item);
-        for (ItineraryItem unsavedItem : unsavedItems) {
-            ItineraryItem savedItem = savedItemsMap.get(unsavedItem.getName());
-            if (savedItem != null) {
-                List<SuggestionItem> suggestions = ((UserItem) unsavedItem).getSuggestionItems();
-                ((UserItem) savedItem).addSuggestionItems(suggestions);
-                if (unsavedItem.getTime() != null)
-                    savedItem.setDateTime(unsavedItem.getTime());
-            }
-        }
-
-
-        return savedItems;
+        return _itineraryDataSource.getUnsavedAndSavedItems(this);
     }
 }

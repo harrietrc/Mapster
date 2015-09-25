@@ -5,26 +5,37 @@ import com.mapster.itinerary.utils.ItineraryItemTimeComparator;
 
 import org.joda.time.DateTime;
 
-import java.util.Currency;
-import java.util.Locale;
-import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * Created by Harriet on 6/12/2015.
  * Add functionality as needed.
  */
 public abstract class ItineraryItem implements Comparable<ItineraryItem> {
 
-    /*
-    Unique identifier for itinerary item, used when matching itinerary items when carrying them
-    between activities. Can't use the ID from the database because the tables are occasionally
-    dropped to reset them.
-    */
-    static final AtomicLong NEXT_ID = new AtomicLong(0);
-    final long _id = NEXT_ID.getAndIncrement();
-
     // Time stuff (could encapsulate in a separate class)
     private Integer _year, _month, _day, _hour, _minute;
+
+    public abstract String getMarkerId();
+
+    public abstract void setMarkerId(String markerId);
+
+    @Override
+    public boolean equals(Object o) {
+        boolean isEqual = false;
+
+        if (o instanceof  ItineraryItem) {
+            ItineraryItem other = (ItineraryItem) o;
+            if (other.getName().equals(this.getName()) && other.getLocation().equals(this.getLocation()))
+                isEqual = true;
+        }
+
+        return isEqual;
+    }
+
+    @Override
+    public int hashCode() {
+        LatLng location = getLocation();
+        return getName().hashCode() * location.hashCode();
+    }
 
     /**
      * Compares the itinerary item based on its time/date fields
@@ -73,10 +84,6 @@ public abstract class ItineraryItem implements Comparable<ItineraryItem> {
         _day = time.getDayOfMonth();
         _hour = time.getHourOfDay();
         _minute = time.getMinuteOfHour();
-    }
-
-    public long getId() {
-        return _id;
     }
 
     public abstract String getName();

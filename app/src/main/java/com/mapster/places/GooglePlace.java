@@ -20,7 +20,7 @@ public class GooglePlace {
     private String _photoReference;
     private String _photoUrl;
 
-    // Save the details of a place, if they are retrieved. TODO necessary?
+    // Save the details of a place, if they are retrieved.
     private GooglePlaceDetail _detail;
 
     private Integer _priceLevel; // Rates the expense of the place, with 0 being free and 4 very expensive
@@ -70,10 +70,6 @@ public class GooglePlace {
         }
     }
 
-    // TODO Composition: is there a best practice for setting the properties of contained objects?
-    // I feel like setters and getters are a good option because you can control the access precisely
-    // and how fine grained that access will be. It also allows customisation of how values are
-    // processed but has the danger of setters/getters that do too much (e.g. change values)
     public void setDetail(GooglePlaceDetail detail) {
         _detail = detail;
     }
